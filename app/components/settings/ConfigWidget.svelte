@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
     import { showSnack } from '@nativescript-community/ui-material-snackbar';
-    import { ObservableArray, Page, Screen, View } from '@nativescript/core';
+    import { ObservableArray, Page, Screen, View, path } from '@nativescript/core';
     import { showError } from '@shared/utils/showError';
     import { showModal } from '@shared/utils/svelte/ui';
     import { WIDGET_NAMES, WeatherWidgetData, WidgetConfig, WidgetConfigManager, isDefaultLocation, widgetService } from 'plugin-widgets';
@@ -16,15 +16,16 @@
 
     import { CheckBox } from '@nativescript-community/ui-checkbox';
     import { CollectionView } from '@nativescript-community/ui-collectionview';
+    import { pickColor } from '@nativescript-community/ui-color';
+    import { confirm } from '@nativescript-community/ui-material-dialogs';
     import { VerticalPosition } from '@nativescript-community/ui-popover';
     import { closePopover } from '@nativescript-community/ui-popover/svelte';
     import IconButton from '@shared/components/IconButton.svelte';
     import { Template } from 'svelte-native/components';
     import { NativeViewElementNode } from 'svelte-native/dom';
-    import { onThemeChanged } from '~/helpers/theme';
     import { queryTimezone } from '~/helpers/favorites';
-    import { confirm } from '@nativescript-community/ui-material-dialogs';
-    import { pickColor } from '@nativescript-community/ui-color';
+    import { onThemeChanged } from '~/helpers/theme';
+    import { iconService, iconThemesFolder } from '~/services/icon';
 
     // Load sample data helper
     async function loadWidgetData(widgetClass: string): Promise<any> {
@@ -461,6 +462,34 @@
                 id: 'color',
                 title: lc('text_color'),
                 color: config.settings?.['color'] ?? colorOnSurface
+            },
+            {
+                type: 'image',
+                id: 'icon_pack',
+                title: lc('icon_pack'),
+                description: () => iconService.getPackName(),
+                image: () => iconService.getPackIcon(path.join(iconThemesFolder, config.iconSet ?? iconService.iconSet)),
+                async onTap(item) {
+                    const data = await selectValue<string>(
+                        (await iconService.getAvailableThemes()).map((k) => ({
+                            title: k.name,
+                            subtitle: k.description,
+                            data: k.id,
+                            type: 'checkbox_image',
+                            image: k.icon
+                        })),
+                        config.iconSet ?? iconService.iconSet,
+                        {
+                            title: lc('icon_pack')
+                        }
+                    );
+                    if (data) {
+                        config.iconSet = data;
+                        config = config;
+                        saveConfig(true);
+                        updateItem(item, 'id');
+                    }
+                }
             }
         );
         if (previewConfig.settings) {
@@ -546,32 +575,36 @@
     }
     async function onTap(item, event) {
         try {
-            if (item.type === 'checkbox' || item.type === 'switch') {
-                // we dont want duplicate events so let s timeout and see if we clicking diretly on the checkbox
-                const checkboxView: CheckBox = ((event.object as View).parent as View).getViewById('checkbox');
-                clearCheckboxTimer();
-                checkboxTapTimer = setTimeout(() => {
-                    checkboxView.checked = !checkboxView.checked;
-                }, 10);
-                return;
-            }
-            DEV_LOG && console.log('onTap', item.id);
-            switch (item.id) {
-                case 'location':
-                    await selectLocation(item);
-                    break;
-                // case 'preview_set':
-                //     await selectPreviewSet(event);
-                //     break;
-                case 'preview_size':
-                    await selectPreviewSize(event);
-                    break;
-                case 'provider':
-                    await selectProvider(event);
-                    break;
-                case 'model':
-                    await selectModel(event);
-                    break;
+            if (item.onTap) {
+                await item.onTap(item, event);
+            } else {
+                if (item.type === 'checkbox' || item.type === 'switch') {
+                    // we dont want duplicate events so let s timeout and see if we clicking diretly on the checkbox
+                    const checkboxView: CheckBox = ((event.object as View).parent as View).getViewById('checkbox');
+                    clearCheckboxTimer();
+                    checkboxTapTimer = setTimeout(() => {
+                        checkboxView.checked = !checkboxView.checked;
+                    }, 10);
+                    return;
+                }
+                DEV_LOG && console.log('onTap', item.id);
+                switch (item.id) {
+                    case 'location':
+                        await selectLocation(item);
+                        break;
+                    // case 'preview_set':
+                    //     await selectPreviewSet(event);
+                    //     break;
+                    case 'preview_size':
+                        await selectPreviewSize(event);
+                        break;
+                    case 'provider':
+                        await selectProvider(event);
+                        break;
+                    case 'model':
+                        await selectModel(event);
+                        break;
+                }
             }
         } catch (err) {
             showError(err);

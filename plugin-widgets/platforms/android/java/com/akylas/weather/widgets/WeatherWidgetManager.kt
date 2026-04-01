@@ -1332,6 +1332,7 @@ object WeatherWidgetManager {
             model = json.optStringNullable("model"),
             provider = json.optStringNullable("provider"),
             widgetKind = json.optStringNullable("widgetKind"),
+            iconSet = json.optStringNullable("iconSet"),
             settings = json.optJSONObject("settings")?.toJsonObject()
         )
     }
@@ -1346,6 +1347,7 @@ object WeatherWidgetManager {
             put("longitude", config.longitude)
             config.model?.let { put("model", it) }
             config.provider?.let { put("provider", it) }
+            config.iconSet?.let { put("iconSet", it) }
             config.widgetKind?.let { put("widgetKind", it) }
             put("settings", config.settings?.toJSONObject())
         }

@@ -212,7 +212,7 @@ function evaluateMapboxExpression(expr: any, context: string = 'data', usedColor
                 }
                 if (path.startsWith('item.')) {
                     if (path === 'item.iconPath') {
-                        return `\`\${iconService.iconSetFolderPath}/images/\${${path}}.png\``;
+                        return `\`\${iconSetFolderPath}/images/\${${path}}.png\``;
                     }
                     return path;
                 }
@@ -534,7 +534,7 @@ function buildAttribute(widgetName: string, prop: string, value: any, elementPat
     if (Array.isArray(value)) {
         let expr = evaluateMapboxExpression(value, defaultPrefix, usedColors);
         if (expr === 'data.iconPath') {
-            expr = `\`\${iconService.iconSetFolderPath}/images/\${${expr}}.png\``;
+            expr = `\`\${iconSetFolderPath}/images/\${${expr}}.png\``;
         }
         if (Array.isArray(attrName)) {
             return attrName.map((attr) => `${attr}={${expr}}`).join(' ');
@@ -546,7 +546,7 @@ function buildAttribute(widgetName: string, prop: string, value: any, elementPat
     if (typeof value === 'string' && hasTemplateBinding(value)) {
         let expr = convertBindingToSvelteExpr(value, defaultPrefix);
         if (value === '{{item.iconPath}}') {
-            expr = `\`\${iconService.iconSetFolderPath}/images/\${${expr}}.png\``;
+            expr = `\`\${iconSetFolderPath}/images/\${${expr}}.png\``;
         }
         if (Array.isArray(attrName)) {
             return attrName.map((attr) => `${attr}={${expr}}`).join(' ');
@@ -593,7 +593,7 @@ function buildAttribute(widgetName: string, prop: string, value: any, elementPat
     if (typeof value === 'string') {
         if (value.startsWith('data.') || value.startsWith('item.') || value.startsWith('size.')) {
             if (value === '{{item.iconPath}}') {
-                value = `\`\${iconService.iconSetFolderPath}/images/\${${value}}.png\``;
+                value = `\`\${iconSetFolderPath}/images/\${${value}}.png\``;
             }
             return `${attrName}={${value}}`;
         }
@@ -1300,7 +1300,8 @@ function generateSvelteComponent(layout: WidgetLayout): string {
     if (usesDayMonth) localeImports.push('formatDateWithoutYear');
     script += `    import { ${localeImports.join(', ')} } from '~/helpers/locale';\n`;
     script += `    import { titlecase } from '@nativescript-community/l';\n`;
-    script += `    import { iconService } from '~/services/icon';\n`;
+    script += `    import { path } from '@nativescript/core';\n`;
+    script += `    import { iconService, iconThemesFolder } from '~/services/icon';\n`;
     script += `    import { colors } from '~/variables';\n`;
     script += `    import type { WeatherWidgetData, WidgetConfig } from '~/services/widgets/WidgetTypes';\n`;
     script += `</script>\n`;
@@ -1312,6 +1313,7 @@ function generateSvelteComponent(layout: WidgetLayout): string {
     // script += `    export let width: number = ${layout.supportedSizes?.[0]?.width ?? 160};\n`;
     // script += `    export let height: number = ${layout.supportedSizes?.[0]?.height ?? 160};\n`;
     script += `    export let size: { width: number; height: number };\n\n`;
+    script += `    $: iconSetFolderPath = path.join(iconThemesFolder, config.iconSet ?? iconService.iconSet);\n\n`;
 
     // Compile top-level color if present
     let defaultColorRef: string | undefined;

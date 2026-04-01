@@ -3,7 +3,8 @@
     import { Template } from '@nativescript-community/svelte-native/components';
     import { formatDate, l, lc } from '~/helpers/locale';
     import { titlecase } from '@nativescript-community/l';
-    import { iconService } from '~/services/icon';
+    import { path } from '@nativescript/core';
+    import { iconService, iconThemesFolder } from '~/services/icon';
     import { colors } from '~/variables';
     import type { WeatherWidgetData, WidgetConfig } from '~/services/widgets/WidgetTypes';
 </script>
@@ -11,6 +12,8 @@
     export let config: WidgetConfig;
     export let data: WeatherWidgetData;
     export let size: { width: number; height: number };
+
+    $: iconSetFolderPath = path.join(iconThemesFolder, config.iconSet ?? iconService.iconSet);
 
     $: ({ colorOnSurface } = $colors);
     $: widgetColor = config.settings.color === null ? colorOnSurface : config.settings.color;
@@ -30,7 +33,7 @@
             <Template let:item>
             <stacklayout width={56} paddingLeft={2} paddingRight={2} padding={size.height < 60 ? 0 : 2} orientation="vertical">
                 <label text={item.time} fontSize={size.height < 60 ? 9 : 11} opacity={0.5} maxLines={1} color={widgetColor} horizontalAlignment="center" verticalAlignment="center"></label>
-                <image src={`${iconService.iconSetFolderPath}/images/${item.iconPath}.png`} width={size.height < 60 ? 24 : size.height < 80 ? 28 : 32} height={size.height < 60 ? 24 : size.height < 80 ? 28 : 32} horizontalAlignment="center" verticalAlignment="center"></image>
+                <image src={`${iconSetFolderPath}/images/${item.iconPath}.png`} width={size.height < 60 ? 24 : size.height < 80 ? 28 : 32} height={size.height < 60 ? 24 : size.height < 80 ? 28 : 32} horizontalAlignment="center" verticalAlignment="center"></image>
                 <label text={item.temperature} fontSize={size.height < 60 ? 12 : 14} fontWeight="700" maxLines={1} color={widgetColor} horizontalAlignment="center" verticalAlignment="center"></label>
                 {#if size.height >= 60 && item.precipAccumulation != null}
                     <stacklayout orientation="vertical" horizontalAlignment="center" verticalAlignment="center">

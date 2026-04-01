@@ -1,6 +1,7 @@
 import { Application } from '@nativescript/core';
 import { widgetService } from '../WidgetBridge';
 import { WidgetConfigManager } from '../WidgetConfigManager';
+import { SDK_VERSION } from '@nativescript/core/utils';
 
 /**
  * Native BroadcastReceiver that can be registered in AndroidManifest.xml
@@ -44,7 +45,7 @@ export class WidgetUpdateReceiver extends android.content.BroadcastReceiver {
                 widgetService.reloadConfigs();
 
                 // Request SCHEDULE_EXACT_ALARM permission for clock widgets on Android 12+
-                if (widgetId !== -1 && android.os.Build.VERSION.SDK_INT >= 31) {
+                if (widgetId !== -1 && SDK_VERSION >= 31) {
                     // Android 12+
                     try {
                         const config = WidgetConfigManager.getConfig(String(widgetId));
