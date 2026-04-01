@@ -464,6 +464,22 @@
                     }
                 });
                 saveLocation(result);
+            } else if (link.startsWith('glance-action:/')) {
+                const params = parseUrlQueryParameters(link);
+                if (params.appWidgetId !== undefined && WIDGETS) {
+                    const { WidgetConfigManager } = await import('plugin-widgets/WidgetConfigManager');
+                    const config = WidgetConfigManager.getConfig(params.appWidgetId);
+                    const ConfigWidget = (await import('~/components/settings/ConfigWidget.svelte')).default;
+                    navigate({
+                        page: ConfigWidget,
+                        props: {
+                            widgetClass: config.widgetKind,
+                            widgetId: params.appWidgetId,
+                            modalMode: false,
+                            isKindConfig: false
+                        }
+                    });
+                }
             } else {
                 searchCity(link);
             }
