@@ -6,7 +6,7 @@
     import { path } from '@nativescript/core';
     import { iconService, iconThemesFolder } from '~/services/icon';
     import { colors } from '~/variables';
-    import type { WeatherWidgetData, WidgetConfig } from '~/services/widgets/WidgetTypes';
+    import type { WeatherWidgetData, WidgetConfig } from 'plugin-widgets/WidgetTypes';
 </script>
 <script lang="ts">
     export let config: WidgetConfig;

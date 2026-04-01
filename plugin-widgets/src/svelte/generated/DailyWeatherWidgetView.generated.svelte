@@ -6,7 +6,7 @@
     import { path } from '@nativescript/core';
     import { iconService, iconThemesFolder } from '~/services/icon';
     import { colors } from '~/variables';
-    import type { WeatherWidgetData, WidgetConfig } from '~/services/widgets/WidgetTypes';
+    import type { WeatherWidgetData, WidgetConfig } from 'plugin-widgets/WidgetTypes';
 </script>
 <script lang="ts">
     export let config: WidgetConfig;
@@ -33,7 +33,7 @@
         </gridlayout>
             <label text={lc('daily')} textAlignment="left" fontSize={12} fontWeight="500" opacity={0.5} paddingLeft={8} paddingRight={8} color={widgetColor} horizontalAlignment="left" verticalAlignment="top"></label>
         <absolutelayout height={4} horizontalAlignment="stretch" verticalAlignment="top"></absolutelayout>
-        <collectionview items={data.dailyData?.slice(0, 10)} showIndicators={false} orientation="vertical" colWidth="auto" horizontalAlignment="stretch" verticalAlignment="top">
+        <collectionview items={data.dailyData?.slice(0, 10)} orientation="vertical" colWidth="auto" horizontalAlignment="stretch" verticalAlignment="top">
             <Template let:item>
             <stacklayout padding={2} orientation="vertical">
                 <stacklayout paddingLeft={6} paddingRight={6} paddingTop={2} paddingBottom={2} backgroundColor={colorSurfaceVariant} borderRadius={8} orientation="vertical" horizontalAlignment="center" verticalAlignment="center">

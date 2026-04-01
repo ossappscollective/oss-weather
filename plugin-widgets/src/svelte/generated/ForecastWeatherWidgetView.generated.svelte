@@ -6,7 +6,7 @@
     import { path } from '@nativescript/core';
     import { iconService, iconThemesFolder } from '~/services/icon';
     import { colors } from '~/variables';
-    import type { WeatherWidgetData, WidgetConfig } from '~/services/widgets/WidgetTypes';
+    import type { WeatherWidgetData, WidgetConfig } from 'plugin-widgets/WidgetTypes';
 </script>
 <script lang="ts">
     export let config: WidgetConfig;
@@ -34,7 +34,7 @@
         <absolutelayout height={8} horizontalAlignment="center" verticalAlignment="top"></absolutelayout>
             <label text={lc('hourly')} textAlignment="left" fontSize={12} fontWeight="500" opacity={0.5} paddingLeft={8} paddingRight={8} color={widgetColor} horizontalAlignment="left" verticalAlignment="top"></label>
         <absolutelayout height={4} horizontalAlignment="center" verticalAlignment="top"></absolutelayout>
-        <collectionview items={data.hourlyData?.slice(0, 8)} showIndicators={false} orientation="horizontal" colWidth="auto" horizontalAlignment="center" verticalAlignment="top">
+        <collectionview items={data.hourlyData?.slice(0, 8)} orientation="horizontal" colWidth="auto" horizontalAlignment="center" verticalAlignment="top">
             <Template let:item>
             <stacklayout width={53} padding={2} paddingLeft={4} paddingRight={4} orientation="vertical">
                 <label text={item.time} fontSize={10} opacity={0.5} maxLines={1} color={widgetColor} horizontalAlignment="center" verticalAlignment="center"></label>
@@ -47,7 +47,7 @@
         <absolutelayout height={16} horizontalAlignment="center" verticalAlignment="top"></absolutelayout>
             <label text={lc('daily')} textAlignment="left" fontSize={12} fontWeight="500" opacity={0.5} paddingLeft={8} paddingRight={8} color={widgetColor} horizontalAlignment="left" verticalAlignment="top"></label>
         <absolutelayout height={4} horizontalAlignment="center" verticalAlignment="top"></absolutelayout>
-        <collectionview items={data.dailyData?.slice(0, 10)} showIndicators={false} orientation="vertical" colWidth="auto" horizontalAlignment="center" verticalAlignment="top">
+        <collectionview items={data.dailyData?.slice(0, 10)} orientation="vertical" colWidth="auto" horizontalAlignment="center" verticalAlignment="top">
             <Template let:item>
             <stacklayout padding={2} orientation="vertical">
                 <stacklayout paddingLeft={6} paddingRight={6} paddingTop={2} paddingBottom={2} backgroundColor={colorSurfaceVariant} borderRadius={8} orientation="vertical" horizontalAlignment="center" verticalAlignment="center">

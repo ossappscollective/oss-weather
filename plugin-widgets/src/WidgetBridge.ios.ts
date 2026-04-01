@@ -497,7 +497,7 @@ export class WidgetBridge extends WidgetBridgeBase {
     public saveWidgetConfig(widgetId: string, config: WidgetConfig) {
         // TODO: implement saveWidgetConfig
         DEV_LOG && console.log('saveWidgetConfig', widgetId, config);
-        WidgetConfigManager.saveWidgetConfig(parseInt(widgetId, 10), config ? JSON.stringify(config) : null);
+        // WidgetConfigManager.saveWidgetConfig(parseInt(widgetId, 10), config ? JSON.stringify(config) : null);
     }
 
     /**

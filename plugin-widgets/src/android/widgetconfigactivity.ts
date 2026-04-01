@@ -12,7 +12,7 @@ import {
 } from '@nativescript/core';
 import { CSSUtils } from '@nativescript/core/css/system-classes';
 import { WidgetConfigManager } from '../WidgetConfigManager';
-import { ComponentInstanceInfo } from 'svelte-native/dom';
+import { ComponentInstanceInfo } from '@nativescript-community/svelte-native/dom';
 import type ConfigWidget__SvelteComponent_ from '~/components/settings/ConfigWidget.svelte';
 import { start as startThemeHelper } from '~/helpers/theme';
 import { onInitRootView } from '~/variables';

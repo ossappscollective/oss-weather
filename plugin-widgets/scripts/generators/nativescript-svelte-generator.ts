@@ -749,8 +749,8 @@ function generateMarkup(
                 ...(orientation && { direction: orientation }),
                 height: element.height || forEachElement.height,
                 width: element.width || forEachElement.width,
-                showIndicators: element.showIndicators,
-                scrollBarIndicatorVisible: element.scrollBarIndicatorVisible
+                // showIndicators: element.showIndicators,
+                // scrollBarIndicatorVisible: element.showIndicators
             };
 
             // Generate the collectionview with merged properties
@@ -806,7 +806,6 @@ function generateMarkup(
         'rowSpan',
         'textWrap',
         'showIndicators',
-        'scrollBarIndicatorVisible',
         'fillWidth',
         'fillHeight',
         'fillMaxSize',
@@ -1303,7 +1302,7 @@ function generateSvelteComponent(layout: WidgetLayout): string {
     script += `    import { path } from '@nativescript/core';\n`;
     script += `    import { iconService, iconThemesFolder } from '~/services/icon';\n`;
     script += `    import { colors } from '~/variables';\n`;
-    script += `    import type { WeatherWidgetData, WidgetConfig } from '~/services/widgets/WidgetTypes';\n`;
+    script += `    import type { WeatherWidgetData, WidgetConfig } from 'plugin-widgets/WidgetTypes';\n`;
     script += `</script>\n`;
     script += `<script lang="ts">\n`;
 

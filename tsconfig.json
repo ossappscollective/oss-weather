@@ -10,7 +10,9 @@
             "@nativescript/core": ["node_modules/@akylas/nativescript"],
             "@nativescript/core/*": ["node_modules/@akylas/nativescript/*"],
             "plugin-widgets": ["plugin-widgets/src"],
-            "plugin-widgets/*": ["plugin-widgets/src/*"]
+            "plugin-widgets/*": ["plugin-widgets/src/*"],
+            "svelte-native": ["node_modules/@nativescript-community/svelte-nativem"],
+            "svelte-native/*": ["node_modules/@nativescript-community/svelte-native/*"],
         }
     },
     "include": ["app/**/*", "plugin-widgets/src/**/*", "tools/app/**/*", "typings/*.d.ts", "plugin-widgets/typings/*.d.ts"],
