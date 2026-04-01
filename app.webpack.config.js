@@ -94,6 +94,10 @@ module.exports = (env, params = {}) => {
             env
         );
     }
+
+    const platform = env && ((env.android && 'android') || (env.ios && 'ios'));
+    const isIOS = platform === 'ios';
+    const isAndroid = platform === 'android';
     const {
         appId,
         appPath,
@@ -124,7 +128,7 @@ module.exports = (env, params = {}) => {
         buildweathermap = true, // --env.buildweathermap
         includeOWMKey, // --env.includeOWMKey
         includeDefaultLocation, // --env.includeDefaultLocation
-        widgets = !!process.env.WITH_WIDGETS // --env.widgets
+        widgets = isAndroid // --env.widgets
     } = env;
     if (widgets) {
         require('plugin-widgets/nativescript.webpack.config')(env, params);
@@ -162,15 +166,12 @@ module.exports = (env, params = {}) => {
         return config;
     });
     const config = webpackConfig(env, params);
-    config.resolve.conditionNames = config.resolve.conditionNames || [];
+    config.resolve.conditionNames = config.resolve.conditionNames || ['import', 'require', 'node', 'default'];
     config.resolve.conditionNames.push('svelte');
     const mode = production ? 'production' : 'development';
-    const platform = env && ((env.android && 'android') || (env.ios && 'ios'));
     const projectRoot = params.projectRoot || __dirname;
     const dist = nsWebpack.Utils.platform.getDistPath();
     const appResourcesFullPath = resolve(projectRoot, appResourcesPath);
-    const isIOS = platform === 'ios';
-    const isAndroid = platform === 'android';
 
     if (profile) {
         const StatsPlugin = require('stats-webpack-plugin');
