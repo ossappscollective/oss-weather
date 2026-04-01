@@ -1,0 +1,15 @@
+Features:
+- Widgets support!!
+
+Bug fixes:
+- temperature line sometimes appearing black in chart view
+- French BRA fix
+- temperature not showing in chart popover
+- provide localization strings from app to widget library via WidgetLocalizationProvider
+- add strings.xml fallbacks for widget description resources in library AAR
+- monochrome icon fix
+- language change fix
+- handle widget click action
+Code refactoring:
+- use shared utilities to remove duplicate code
+- remove duplicate code from widget
