@@ -1,7 +1,7 @@
 // app/services/widgets/shared/WidgetConfigManager.ts
 // Shared configuration management for widgets (platform-agnostic)
 
-import { ApplicationSettings } from '@nativescript/core';
+import { ApplicationSettings, Utils } from '@nativescript/core';
 import { DEFAULT_UPDATE_FREQUENCY, WidgetConfig } from './WidgetTypes';
 import { lc } from '@nativescript-community/l';
 import { getDefaultKindConfig } from './WidgetKindConfigs';
@@ -194,27 +194,31 @@ export class WidgetConfigManager {
      * Get update frequency
      */
     static getUpdateFrequency(): number {
-        return ApplicationSettings.getNumber(UPDATE_FREQUENCY_KEY, DEFAULT_UPDATE_FREQUENCY);
+        if (__ANDROID__) {
+            const widgetManager = com.akylas.weather.widgets.WeatherWidgetManager;
+            return widgetManager.getUpdateFrequency(Utils.android.getApplicationContext());
+        } else {
+            DEV_LOG && console.log(TAG, 'getUpdateFrequency', ApplicationSettings.getNumber(UPDATE_FREQUENCY_KEY, DEFAULT_UPDATE_FREQUENCY));
+            return ApplicationSettings.getNumber(UPDATE_FREQUENCY_KEY, DEFAULT_UPDATE_FREQUENCY);
+        }
     }
 
     /**
      * Set update frequency and update native scheduling
      */
     static setUpdateFrequency(minutes: number): void {
-        // DEV_LOG && console.log(TAG, 'setUpdateFrequency', minutes);
-        ApplicationSettings.setNumber(UPDATE_FREQUENCY_KEY, minutes);
+        DEV_LOG && console.log(TAG, 'setUpdateFrequency', minutes, typeof minutes);
 
-        // Update native scheduling based on platform
         if (__ANDROID__) {
             try {
-                const context = require('@nativescript/core').Utils.android.getApplicationContext();
                 const widgetManager = com.akylas.weather.widgets.WeatherWidgetManager;
-                widgetManager.setUpdateFrequency(context, minutes);
+                widgetManager.setUpdateFrequency(Utils.android.getApplicationContext(), minutes);
                 // DEV_LOG && console.log(TAG, 'Updated Android WorkManager schedule with frequency:', minutes);
             } catch (error) {
                 console.error(TAG, 'Failed to update Android WorkManager schedule:', error, error.stack);
             }
         } else if (__IOS__) {
+            ApplicationSettings.setNumber(UPDATE_FREQUENCY_KEY, minutes);
             // try {
             //     DEV_LOG && console.log(TAG, 'Updated iOS refresh frequency preference:', minutes);
             // } catch (error) {

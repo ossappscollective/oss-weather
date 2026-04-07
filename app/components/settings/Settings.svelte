@@ -618,6 +618,7 @@
                                 description: lc('widget_update_frequency_description'),
                                 rightValue: () => {
                                     const freq = WidgetConfigManager.getUpdateFrequency();
+                                    DEV_LOG && console.log('widget_update_frequency right', freq);
                                     return freq < 60 ? `${freq} min` : freq === 60 ? '1 hour' : `${freq / 60} hours`;
                                 }
                             },
@@ -1063,6 +1064,7 @@
                         const result = await selectValue(frequencyOptions, currentFreq, {
                             title: lc('widget_update_frequency')
                         });
+                        DEV_LOG && console.log('widget_update_frequency', result);
                         if (result !== undefined) {
                             WidgetConfigManager.setUpdateFrequency(result);
                             showSnack({ message: lc('widget_update_frequency_saved') });

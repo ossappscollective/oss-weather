@@ -75,6 +75,7 @@ declare namespace com {
                     static updateWidgetData(context: globalAndroid.content.Context, widgetId: number, data: string);
                     static getAllActiveWidgetIds(context: globalAndroid.content.Context): java.util.List<string>;
                     static setUpdateFrequency(context: globalAndroid.content.Context, minutes: number);
+                    static getUpdateFrequency(context: globalAndroid.content.Context): number;
                 }
             }
         }
