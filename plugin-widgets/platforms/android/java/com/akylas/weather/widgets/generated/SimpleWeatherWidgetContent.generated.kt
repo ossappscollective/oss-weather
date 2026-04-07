@@ -81,6 +81,9 @@ private fun ErrorPreview() {
 @Composable
 fun SimpleWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
     val context = LocalContext.current
+    val fontScale = context.resources.configuration.fontScale
+    val ignoreFontScale = config.settings?.get("ignoreFontScale")?.jsonPrimitive?.booleanOrNull ?: false
+    val fontScaleFactor = if (ignoreFontScale) 1.0f/fontScale else 1.0f;
     val size = LocalSize.current
     val widgetColor = run { val colorValue = when { config.settings?.get("color")?.jsonPrimitive?.contentOrNull == null -> GlanceTheme.colors.onSurface; else -> config.settings?.get("color")?.jsonPrimitive?.contentOrNull }; if (colorValue is String) ColorProvider(Color(colorValue.toColorIntRgba())) else GlanceTheme.colors.onSurface }
 
@@ -105,12 +108,12 @@ fun SimpleWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
                 }
                 Text(
                     text = data.temperature,
-                    style = TextStyle(fontSize = (size.width.value * 0.2f).sp, fontWeight = FontWeight.Bold, color = widgetColor)
+                    style = TextStyle(fontSize = (size.width.value * 0.2f * fontScaleFactor).sp, fontWeight = FontWeight.Bold, color = widgetColor)
                 )
             }
             Text(
                 text = data.locationName,
-                style = TextStyle(fontSize = 8.sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f))),
+                style = TextStyle(fontSize = (8 * fontScaleFactor).sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f))),
                 maxLines = 1
             )
         }
@@ -121,7 +124,7 @@ fun SimpleWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
         ) {
             Text(
                 text = data.locationName,
-                style = TextStyle(fontSize = 12.sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f))),
+                style = TextStyle(fontSize = (12 * fontScaleFactor).sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f))),
                 maxLines = 1
             )
             Row(
@@ -135,7 +138,7 @@ fun SimpleWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
                 ) {
                     Text(
                         text = data.temperature,
-                        style = TextStyle(fontSize = (min((size.width.value * 0.26f), 30.0f)).sp, fontWeight = FontWeight.Bold, color = widgetColor)
+                        style = TextStyle(fontSize = (min((size.width.value * 0.26f), 30.0f) * fontScaleFactor).sp, fontWeight = FontWeight.Bold, color = widgetColor)
                     )
                 }
                 Column(
@@ -161,7 +164,7 @@ fun SimpleWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
                 ) {
                     Text(
                         text = data.description,
-                        style = TextStyle(fontSize = 12.sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f)), textAlign = TextAlign.End)
+                        style = TextStyle(fontSize = (12 * fontScaleFactor).sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f)), textAlign = TextAlign.End)
                     )
                 }
             }

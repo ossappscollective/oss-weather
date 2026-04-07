@@ -420,5 +420,6 @@
   "wind_gust": "wind gust",
   "wind_speed": "wind speed",
   "reset_location": "reset location",
-  "widget_transparent_background": "transparent background"
+  "widget_transparent_background": "transparent background",
+  "widget_ignore_font_scale": "ignore system font scale"
 }

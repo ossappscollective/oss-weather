@@ -82,6 +82,9 @@ private fun ErrorPreview() {
 @Composable
 fun DailyWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
     val context = LocalContext.current
+    val fontScale = context.resources.configuration.fontScale
+    val ignoreFontScale = config.settings?.get("ignoreFontScale")?.jsonPrimitive?.booleanOrNull ?: false
+    val fontScaleFactor = if (ignoreFontScale) 1.0f/fontScale else 1.0f;
     val size = LocalSize.current
     val widgetColor = run { val colorValue = when { config.settings?.get("color")?.jsonPrimitive?.contentOrNull == null -> GlanceTheme.colors.onSurface; else -> config.settings?.get("color")?.jsonPrimitive?.contentOrNull }; if (colorValue is String) ColorProvider(Color(colorValue.toColorIntRgba())) else GlanceTheme.colors.onSurface }
 
@@ -102,12 +105,12 @@ fun DailyWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
             ) {
                 Text(
                     text = data.locationName,
-                    style = TextStyle(fontSize = 12.sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f)), textAlign = TextAlign.Start),
+                    style = TextStyle(fontSize = (12 * fontScaleFactor).sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f)), textAlign = TextAlign.Start),
                     maxLines = 1
                 )
                 Text(
                     text = data.temperature,
-                    style = TextStyle(fontSize = 26.sp, fontWeight = FontWeight.Bold, color = widgetColor)
+                    style = TextStyle(fontSize = (26 * fontScaleFactor).sp, fontWeight = FontWeight.Bold, color = widgetColor)
                 )
             }
             Spacer(modifier = GlanceModifier.defaultWeight())
@@ -128,7 +131,7 @@ fun DailyWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
                 if ("description" != null) {
                     Text(
                         text = data.description,
-                        style = TextStyle(fontSize = 11.sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f)), textAlign = TextAlign.End),
+                        style = TextStyle(fontSize = (11 * fontScaleFactor).sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f)), textAlign = TextAlign.End),
                         maxLines = 1
                     )
                 }
@@ -148,7 +151,7 @@ fun DailyWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
                         context.packageName
                     )
                 ),
-                style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Medium, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f)), textAlign = TextAlign.Start)
+                style = TextStyle(fontSize = (12 * fontScaleFactor).sp, fontWeight = FontWeight.Medium, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f)), textAlign = TextAlign.Start)
             )
         }
         Spacer(modifier = GlanceModifier.height(4.dp))
@@ -171,7 +174,7 @@ fun DailyWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
                         ) {
                             Text(
                                 text = item.day,
-                                style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Medium, color = widgetColor),
+                                style = TextStyle(fontSize = (12 * fontScaleFactor).sp, fontWeight = FontWeight.Medium, color = widgetColor),
                                 maxLines = 1
                             )
                             Spacer(modifier = GlanceModifier.defaultWeight())
@@ -195,13 +198,13 @@ fun DailyWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
                                 ) {
                                     Text(
                                         text = item.temperatureHigh,
-                                        style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Bold, color = widgetColor),
+                                        style = TextStyle(fontSize = (13 * fontScaleFactor).sp, fontWeight = FontWeight.Bold, color = widgetColor),
                                         maxLines = 1
                                     )
                                     Spacer(modifier = GlanceModifier.width(6.dp))
                                     Text(
                                         text = item.temperatureLow,
-                                        style = TextStyle(fontSize = 11.sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f))),
+                                        style = TextStyle(fontSize = (11 * fontScaleFactor).sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f))),
                                         maxLines = 1
                                     )
                                 }
@@ -213,14 +216,14 @@ fun DailyWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
                                     if ("item.precipAccumulation" != null) {
                                         Text(
                                             text = item.precipAccumulation,
-                                            style = TextStyle(fontSize = 10.sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f)))
+                                            style = TextStyle(fontSize = (10 * fontScaleFactor).sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f)))
                                         )
                                     }
                                     Spacer(modifier = GlanceModifier.width(6.dp))
                                     if ("item.precipitation" != null) {
                                         Text(
                                             text = "💧" + item.precipitation,
-                                            style = TextStyle(fontSize = 10.sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f)))
+                                            style = TextStyle(fontSize = (10 * fontScaleFactor).sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f)))
                                         )
                                     }
                                 }

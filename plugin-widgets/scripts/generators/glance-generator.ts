@@ -107,14 +107,14 @@ function compileDpValue(value: Expression | undefined, defaultValue?: string): s
  */
 function compileSpValue(value: Expression | undefined, defaultValue?: string): string {
     if (value === undefined) return defaultValue || '';
-    if (typeof value === 'number') return `${value}.sp`;
+    if (typeof value === 'number') return `(${value} * fontScaleFactor).sp`;
     const compiled = compilePropValue(value, { platform: 'kotlin', formatter: (v: number) => `${v}.sp` });
     if (!compiled || compiled === 'null' || compiled === '') return defaultValue || '';
     // If the result already has .sp in it (e.g. from 'when' expressions), return as-is
     if (compiled.includes('.sp')) return compiled;
     // Strip outer parens from compileArithmetic output before re-wrapping to avoid double parens
     const unwrapped = compiled.replace(/^\((.+)\)$/, '$1');
-    return `(${unwrapped}).sp`;
+    return `(${unwrapped} * fontScaleFactor).sp`;
 }
 
 /**
@@ -1026,6 +1026,9 @@ function generateKotlinFile(layout: WidgetLayout): string {
     lines.push('@Composable');
     lines.push(`fun ${className}(config: WidgetConfig, data: WeatherWidgetData) {`);
     lines.push('    val context = LocalContext.current');
+    lines.push('    val fontScale = context.resources.configuration.fontScale');
+    lines.push('    val ignoreFontScale = config.settings?.get("ignoreFontScale")?.jsonPrimitive?.booleanOrNull ?: false');
+    lines.push('    val fontScaleFactor = if (ignoreFontScale) 1.0f/fontScale else 1.0f;');
     lines.push('    val size = LocalSize.current');
 
     // Compile top-level color if present

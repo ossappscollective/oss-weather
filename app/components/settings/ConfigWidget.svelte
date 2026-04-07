@@ -490,7 +490,13 @@
                         updateItem(item, 'id');
                     }
                 }
-            }
+            },
+            {
+                type: 'switch',
+                id: 'ignoreFontScale',
+                title: lc('widget_ignore_font_scale'),
+                value: config.settings?.['ignoreFontScale'] ?? false
+            },
         );
         if (previewConfig.settings) {
             Object.keys(previewConfig.settings).forEach((key) => {

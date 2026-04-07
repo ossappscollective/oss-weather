@@ -39,10 +39,11 @@ import kotlinx.serialization.json.*
  */
 
 @OptIn(ExperimentalGlancePreviewApi::class)
-@Preview(widthDp = 260, heightDp = 130)
-@Preview(widthDp = 150, heightDp = 100)
-@Preview(widthDp = 100, heightDp = 100)
-@Preview(widthDp = 350, heightDp = 260)
+@Preview(widthDp = 260, heightDp = 140)
+@Preview(widthDp = 120, heightDp = 50)
+@Preview(widthDp = 80, heightDp = 80)
+@Preview(widthDp = 120, heightDp = 120)
+@Preview(widthDp = 260, heightDp = 260)
 @Composable
 private fun Preview() {
     val fakeWeatherWidgetData = WeatherWidgetData(
@@ -81,6 +82,9 @@ private fun ErrorPreview() {
 @Composable
 fun SimpleWeatherWithClockWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
     val context = LocalContext.current
+    val fontScale = context.resources.configuration.fontScale
+    val ignoreFontScale = config.settings?.get("ignoreFontScale")?.jsonPrimitive?.booleanOrNull ?: false
+    val fontScaleFactor = if (ignoreFontScale) 1.0f/fontScale else 1.0f;
     val size = LocalSize.current
     val widgetColor = run { val colorValue = when { config.settings?.get("color")?.jsonPrimitive?.contentOrNull != null -> config.settings?.get("color")?.jsonPrimitive?.contentOrNull; else -> GlanceTheme.colors.onSurface }; if (colorValue is String) ColorProvider(Color(colorValue.toColorIntRgba())) else GlanceTheme.colors.onSurface }
 
@@ -93,13 +97,13 @@ fun SimpleWeatherWithClockWidgetContent(config: WidgetConfig, data: WeatherWidge
         ) {
             Text(
                 text = data.locationName,
-                style = TextStyle(fontSize = 12.sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f))),
+                style = TextStyle(fontSize = (12 * fontScaleFactor).sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f))),
                 maxLines = 1
             )
             Text(
                 modifier = GlanceModifier.defaultWeight(),
                 text = data.temperature,
-                style = TextStyle(fontSize = (min((size.width.value * 0.2f), 20.0f)).sp, fontWeight = FontWeight.Bold, color = widgetColor, textAlign = TextAlign.End)
+                style = TextStyle(fontSize = (min((size.width.value * 0.2f), 20.0f) * fontScaleFactor).sp, fontWeight = FontWeight.Bold, color = widgetColor, textAlign = TextAlign.End)
             )
         }
         Row(
@@ -108,7 +112,7 @@ fun SimpleWeatherWithClockWidgetContent(config: WidgetConfig, data: WeatherWidge
         ) {
             Text(
                 text = android.text.format.DateFormat.getTimeFormat(context).format(java.util.Date()),
-                style = TextStyle(fontSize = (min((size.width.value * 0.17f), 62.0f)).sp, fontWeight = when { config.settings?.get("clockBold")?.jsonPrimitive?.booleanOrNull == true -> FontWeight.Bold; else -> FontWeight.Normal }, color = widgetColor)
+                style = TextStyle(fontSize = (min((size.width.value * 0.17f), 62.0f) * fontScaleFactor).sp, fontWeight = when { config.settings?.get("clockBold")?.jsonPrimitive?.booleanOrNull == true -> FontWeight.Bold; else -> FontWeight.Normal }, color = widgetColor)
             )
             Spacer(modifier = GlanceModifier.defaultWeight())
             if ("iconPath" != null) {
@@ -126,13 +130,13 @@ fun SimpleWeatherWithClockWidgetContent(config: WidgetConfig, data: WeatherWidge
         ) {
             Text(
                 text = android.text.format.DateFormat.getMediumDateFormat(context).format(java.util.Date()),
-                style = TextStyle(fontSize = 14.sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f)))
+                style = TextStyle(fontSize = (14 * fontScaleFactor).sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f)))
             )
             if ("description" != null) {
                 Text(
                     modifier = GlanceModifier.defaultWeight(),
                     text = data.description,
-                    style = TextStyle(fontSize = 12.sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f)), textAlign = TextAlign.End)
+                    style = TextStyle(fontSize = (12 * fontScaleFactor).sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f)), textAlign = TextAlign.End)
                 )
             }
         }
