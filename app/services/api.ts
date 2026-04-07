@@ -227,7 +227,7 @@ async function handleRequestResponse<T>(
             // if (statusCode === 401 && jsonReturn.error === 'invalid_grant') {
             //     return this.handleRequestRetry(requestParams, retry);
             // }
-            const error = jsonReturn.error_description || jsonReturn.reason || jsonReturn.error || jsonReturn.Message || jsonReturn;
+            const error = jsonReturn.error_description || jsonReturn.reason || jsonReturn.error || jsonReturn.message || jsonReturn.Message || jsonReturn;
             throw new HTTPError({
                 statusCode,
                 message: error,
