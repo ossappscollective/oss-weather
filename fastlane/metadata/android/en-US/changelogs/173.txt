@@ -1,0 +1,7 @@
+Bug fixes:
+- fix changing widgets update frequency
+- show OpenWeather API errors
+- new widget settings to ignore system font scale
+- wrong Settings entry in widgets config
+- daily/forecast widgets not showing content
+- Translations update
