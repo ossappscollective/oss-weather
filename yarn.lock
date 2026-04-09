@@ -2404,10 +2404,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nativescript-community/text@npm:1.6.23, @nativescript-community/text@npm:^1.6.22":
-  version: 1.6.23
-  resolution: "@nativescript-community/text@npm:1.6.23"
-  checksum: 10/f8823903d850322e4471e5e485cc99b036373175e38f4d17ace82ea9a107622881751593f764951a587f46f24a3bc57fb09d71394799fd04ef0865ef0a236cc8
+"@nativescript-community/text@npm:1.6.24":
+  version: 1.6.24
+  resolution: "@nativescript-community/text@npm:1.6.24"
+  checksum: 10/6dd14378a99e02300688e58905d24fb1fb1d2067152f0163442994762789f536a6762d72ccc2397c79968751a62023551044b2cb89de8618842639ad88dad4a3
   languageName: node
   linkType: hard
 
@@ -2415,6 +2415,13 @@ __metadata:
   version: 1.6.16
   resolution: "@nativescript-community/text@npm:1.6.16"
   checksum: 10/71a3481b5cacae14baff593613b5148860d4e795196182171c50d54a9a306de6c8a5485dae9759854e01fc7a45402b8a6081039d2d14db22b51fd2fec4c7f1ed
+  languageName: node
+  linkType: hard
+
+"@nativescript-community/text@npm:^1.6.22":
+  version: 1.6.23
+  resolution: "@nativescript-community/text@npm:1.6.23"
+  checksum: 10/f8823903d850322e4471e5e485cc99b036373175e38f4d17ace82ea9a107622881751593f764951a587f46f24a3bc57fb09d71394799fd04ef0865ef0a236cc8
   languageName: node
   linkType: hard
 
@@ -13194,7 +13201,7 @@ __metadata:
     "@nativescript-community/sentry": "npm:4.6.45"
     "@nativescript-community/svelte-native": "npm:1.0.32"
     "@nativescript-community/systemui": "npm:1.1.24"
-    "@nativescript-community/text": "npm:1.6.23"
+    "@nativescript-community/text": "npm:1.6.24"
     "@nativescript-community/ui-canvas": "npm:4.6.46"
     "@nativescript-community/ui-canvaslabel": "npm:1.2.49"
     "@nativescript-community/ui-chart": "npm:2.0.26"
