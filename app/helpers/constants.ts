@@ -34,6 +34,7 @@ export const SETTINGS_PROVIDER_AQI = 'provider_aqi';
 export const SETTINGS_WEATHER_LOCATION = 'weatherLocation';
 export const SETTINGS_FAVORITES = 'favorites';
 export const SETTINGS_DAILY_DATE_FORMAT = 'daily_date_format';
+export const SETTINGS_DAILY_DATA_ALIGNMENT = 'daily_data_alignment';
 
 export const DEFAULT_COLOR_THEME = 'default';
 export const DEFAULT_LOCALE = 'auto';
@@ -52,6 +53,7 @@ export const FEELS_LIKE_TEMPERATURE = false;
 export const ALWAYS_SHOW_PRECIP_PROB = false;
 export const DEFAULT_METRIC_CM_TO_MM = false;
 export const DEFAULT_DAILY_DATE_FORMAT = 'DD/MM';
+export const DEFAULT_DAILY_DATA_ALIGNMENT = 'center';
 
 export const WEATHER_DATA_LAYOUT = 'default';
 

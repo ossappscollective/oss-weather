@@ -8,10 +8,12 @@ import {
     ALWAYS_SHOW_PRECIP_PROB,
     DECIMAL_METRICS_TEMP,
     DEFAULT_COLOR_THEME,
+    DEFAULT_DAILY_DATA_ALIGNMENT,
     DEFAULT_DAILY_DATE_FORMAT,
     DEFAULT_METRIC_CM_TO_MM,
     SETTINGS_ALWAYS_SHOW_PRECIP_PROB,
     SETTINGS_COLOR_THEME,
+    SETTINGS_DAILY_DATA_ALIGNMENT,
     SETTINGS_DAILY_DATE_FORMAT,
     SETTINGS_FEELS_LIKE_TEMPERATURES,
     SETTINGS_FONTSCALE,
@@ -92,6 +94,7 @@ export let imperialUnits = ApplicationSettings.getBoolean(SETTINGS_IMPERIAL, fal
 export let metricDecimalTemp = ApplicationSettings.getBoolean(SETTINGS_METRIC_TEMP_DECIMAL, DECIMAL_METRICS_TEMP);
 export let unitCMToMM = ApplicationSettings.getBoolean(SETTINGS_METRIC_CM_TO_MM, DEFAULT_METRIC_CM_TO_MM);
 export const alwaysShowPrecipProb = writable(ApplicationSettings.getBoolean(SETTINGS_ALWAYS_SHOW_PRECIP_PROB, ALWAYS_SHOW_PRECIP_PROB));
+export const dailyDataAlignment = writable(ApplicationSettings.getString(SETTINGS_DAILY_DATA_ALIGNMENT, DEFAULT_DAILY_DATA_ALIGNMENT));
 export const weatherDataLayout = writable(ApplicationSettings.getString(SETTINGS_WEATHER_DATA_LAYOUT, WEATHER_DATA_LAYOUT));
 export const imperial = writable(imperialUnits);
 export let dailyDateFormat = ApplicationSettings.getString(SETTINGS_DAILY_DATE_FORMAT, DEFAULT_DAILY_DATE_FORMAT);
@@ -135,59 +138,70 @@ function updateUnits() {
     DEV_LOG && console.log('updateUnits', unitsSettings);
     notifyUnits();
 }
-prefs.on(`key:${SETTINGS_IMPERIAL}`, () => {
-    imperialUnits = ApplicationSettings.getBoolean(SETTINGS_IMPERIAL);
-    imperial.set(imperialUnits);
-    DEV_LOG && console.log(`key:${SETTINGS_IMPERIAL}`, imperialUnits);
-    ApplicationSettings.remove(SETTINGS_UNITS);
-    updateUnits();
-});
-prefs.on(`key:${SETTINGS_UNITS}`, () => {
-    DEV_LOG && console.warn(`key:${SETTINGS_UNITS}`, imperialUnits);
-    updateUnits();
-});
-prefs.on(`key:${SETTINGS_METRIC_TEMP_DECIMAL}`, () => {
-    metricDecimalTemp = ApplicationSettings.getBoolean(SETTINGS_METRIC_TEMP_DECIMAL, DECIMAL_METRICS_TEMP);
-    DEV_LOG && console.log(`key:${SETTINGS_METRIC_TEMP_DECIMAL}`, imperialUnits, metricDecimalTemp);
-    // we notify units to update ui
-    notifyUnits();
-});
-prefs.on(`key:${SETTINGS_METRIC_CM_TO_MM}`, () => {
-    unitCMToMM = ApplicationSettings.getBoolean(SETTINGS_METRIC_CM_TO_MM, DEFAULT_METRIC_CM_TO_MM);
-    DEV_LOG && console.log(`key:${SETTINGS_METRIC_CM_TO_MM}`, imperialUnits, metricDecimalTemp);
-    // we notify units to update ui
-    notifyUnits();
-});
 
-prefs.on(`key:${SETTINGS_DAILY_DATE_FORMAT}`, () => {
-    dailyDateFormat = ApplicationSettings.getString(SETTINGS_DAILY_DATE_FORMAT, DEFAULT_DAILY_DATE_FORMAT);
-    // we notify units to update ui
-    notifyUnits();
-});
-prefs.on(`key:${SETTINGS_WEATHER_DATA_LAYOUT}`, () => {
-    weatherDataLayout.set(ApplicationSettings.getString(SETTINGS_WEATHER_DATA_LAYOUT, WEATHER_DATA_LAYOUT));
-    DEV_LOG && console.log(`key:${SETTINGS_WEATHER_DATA_LAYOUT}`, weatherDataLayout);
-    // we notify imperial to update ui
-    globalObservable.notify({ eventName: SETTINGS_WEATHER_DATA_LAYOUT, data: weatherDataLayout });
-});
-prefs.on(`key:${SETTINGS_ALWAYS_SHOW_PRECIP_PROB}`, () => {
-    alwaysShowPrecipProb.set(ApplicationSettings.getBoolean(SETTINGS_ALWAYS_SHOW_PRECIP_PROB, ALWAYS_SHOW_PRECIP_PROB));
-    DEV_LOG && console.log(`key:${SETTINGS_ALWAYS_SHOW_PRECIP_PROB}`, get(alwaysShowPrecipProb));
-});
-prefs.on(`key:${SETTINGS_FEELS_LIKE_TEMPERATURES}`, () => {
-    globalObservable.notify({ eventName: SETTINGS_FEELS_LIKE_TEMPERATURES, data: ApplicationSettings.getBoolean(SETTINGS_FEELS_LIKE_TEMPERATURES) });
-});
-prefs.on(`key:${SETTINGS_SHOW_CURRENT_DAY_DAILY}`, () => {
-    globalObservable.notify({ eventName: SETTINGS_SHOW_CURRENT_DAY_DAILY, data: ApplicationSettings.getBoolean(SETTINGS_SHOW_CURRENT_DAY_DAILY) });
-});
-prefs.on(`key:${SETTINGS_FONTSCALE}`, () => {
-    storedFontScale = ApplicationSettings.getNumber(SETTINGS_FONTSCALE, 1);
-    if (storedFontScale === 1) {
-        fontScale.set(get(systemFontScale));
-    } else {
-        fontScale.set(storedFontScale);
+prefs.on('change', (event: EventData & { key: string }) => {
+    const key = event.key;
+    switch (key) {
+        case SETTINGS_IMPERIAL:
+            imperialUnits = ApplicationSettings.getBoolean(SETTINGS_IMPERIAL);
+            imperial.set(imperialUnits);
+            DEV_LOG && console.log(`key:${SETTINGS_IMPERIAL}`, imperialUnits);
+            ApplicationSettings.remove(SETTINGS_UNITS);
+            updateUnits();
+            break;
+        case SETTINGS_METRIC_TEMP_DECIMAL:
+            metricDecimalTemp = ApplicationSettings.getBoolean(SETTINGS_METRIC_TEMP_DECIMAL, DECIMAL_METRICS_TEMP);
+            DEV_LOG && console.log(`key:${SETTINGS_METRIC_TEMP_DECIMAL}`, imperialUnits, metricDecimalTemp);
+            // we notify units to update ui
+            notifyUnits();
+            break;
+        case SETTINGS_UNITS:
+            DEV_LOG && console.warn(`key:${SETTINGS_UNITS}`, imperialUnits);
+            updateUnits();
+            break;
+        case SETTINGS_METRIC_CM_TO_MM:
+            unitCMToMM = ApplicationSettings.getBoolean(SETTINGS_METRIC_CM_TO_MM, DEFAULT_METRIC_CM_TO_MM);
+            DEV_LOG && console.log(`key:${SETTINGS_METRIC_CM_TO_MM}`, imperialUnits, metricDecimalTemp);
+            // we notify units to update ui
+            notifyUnits();
+            break;
+        case SETTINGS_DAILY_DATE_FORMAT:
+            dailyDateFormat = ApplicationSettings.getString(SETTINGS_DAILY_DATE_FORMAT, DEFAULT_DAILY_DATE_FORMAT);
+            // we notify units to update ui
+            notifyUnits();
+            break;
+        case SETTINGS_WEATHER_DATA_LAYOUT:
+            weatherDataLayout.set(ApplicationSettings.getString(SETTINGS_WEATHER_DATA_LAYOUT, WEATHER_DATA_LAYOUT));
+            DEV_LOG && console.log(`key:${SETTINGS_WEATHER_DATA_LAYOUT}`, weatherDataLayout);
+            // we notify imperial to update ui
+            globalObservable.notify({ eventName: SETTINGS_WEATHER_DATA_LAYOUT, data: weatherDataLayout });
+            break;
+        case SETTINGS_ALWAYS_SHOW_PRECIP_PROB:
+            alwaysShowPrecipProb.set(ApplicationSettings.getBoolean(SETTINGS_ALWAYS_SHOW_PRECIP_PROB, ALWAYS_SHOW_PRECIP_PROB));
+            DEV_LOG && console.log(`key:${SETTINGS_ALWAYS_SHOW_PRECIP_PROB}`, get(alwaysShowPrecipProb));
+            break;
+        case SETTINGS_DAILY_DATA_ALIGNMENT:
+            dailyDataAlignment.set(ApplicationSettings.getString(SETTINGS_DAILY_DATA_ALIGNMENT, DEFAULT_DAILY_DATA_ALIGNMENT));
+            DEV_LOG && console.log(`key:${SETTINGS_DAILY_DATA_ALIGNMENT}`, get(dailyDataAlignment));
+            break;
+        case SETTINGS_FEELS_LIKE_TEMPERATURES:
+            globalObservable.notify({ eventName: SETTINGS_FEELS_LIKE_TEMPERATURES, data: ApplicationSettings.getBoolean(SETTINGS_FEELS_LIKE_TEMPERATURES) });
+            break;
+        case SETTINGS_SHOW_CURRENT_DAY_DAILY:
+            globalObservable.notify({ eventName: SETTINGS_SHOW_CURRENT_DAY_DAILY, data: ApplicationSettings.getBoolean(SETTINGS_SHOW_CURRENT_DAY_DAILY) });
+            break;
+        case SETTINGS_FONTSCALE:
+            storedFontScale = ApplicationSettings.getNumber(SETTINGS_FONTSCALE, 1);
+            if (storedFontScale === 1) {
+                fontScale.set(get(systemFontScale));
+            } else {
+                fontScale.set(storedFontScale);
+            }
+            globalObservable.notify({ eventName: SETTINGS_FONTSCALE, data: get(fontScale) });
+            break;
+        default:
+            break;
     }
-    globalObservable.notify({ eventName: SETTINGS_FONTSCALE, data: get(fontScale) });
 });
 
 function updateSystemFontScale(value) {

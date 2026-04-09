@@ -6,8 +6,9 @@
     import type { DailyData } from '~/services/providers/weather';
     import { WeatherProps, formatWeatherValue, weatherDataService } from '~/services/weatherData';
     import { createEventDispatcher } from '@shared/utils/svelte/ui';
-    import { colors, dailyDateFormat, fontScale, weatherDataLayout } from '~/variables';
+    import { colors, dailyDataAlignment, dailyDateFormat, fontScale, weatherDataLayout } from '~/variables';
     import { isEInk } from '~/helpers/theme';
+    import { Application, ApplicationSettings } from '@nativescript/core';
 
     let textPaint: Paint;
     let textIconPaint: Paint;
@@ -123,6 +124,7 @@
         }
 
         const centeredItemsToDraw = weatherDataService.getIconsData({ item, filter: [WeatherProps.windBeaufort], type: 'daily' });
+
         const count = centeredItemsToDraw.length;
         canvas.clipRect(60 * $fontScale, 0, w - ICON_WIDTH * $fontScale - 10, h);
         switch ($weatherDataLayout) {
@@ -146,6 +148,8 @@
                     const paint = c.paint || textIconPaint;
                     paint.setTextAlign(Align.CENTER);
 
+
+                    
                     if (c.icon) {
                         // paint.setColor(c.color || colorOnSurface);
                         // canvas.drawText(c.icon, columnIndex === 0 ? w2 - 20 : w2 + 20, y + lineHeight + lineHeight / 2 - paint.textSize / 2, paint);
@@ -226,7 +230,12 @@
                 for (let index = 0; index < centeredItemsToDraw.length; index++) {
                     const c = centeredItemsToDraw[index];
 
-                    const x = w / 2 - 20 / $fontScale - ((count - 1) / 2 - index) * 45 * $fontScale;
+                    const x =
+                        $dailyDataAlignment === 'left'
+                            ? 80 * $fontScale + index * 45 * $fontScale
+                            : $dailyDataAlignment === 'right'
+                              ? w - 100 * $fontScale - (count - 1 - index) * 45 * $fontScale
+                              : w / 2 - 20 / $fontScale - ((count - 1) / 2 - index) * 45 * $fontScale;
                     const paint = c.paint || textIconPaint;
                     paint.setTextAlign(Align.CENTER);
                     // if (c.customDraw) {

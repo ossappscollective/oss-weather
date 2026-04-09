@@ -26,6 +26,7 @@
         CHARTS_LANDSCAPE,
         CHARTS_PORTRAIT_FULLSCREEN,
         DAILY_PAGE_HOURLY_CHART,
+        DEFAULT_DAILY_DATA_ALIGNMENT,
         DEFAULT_DAILY_DATE_FORMAT,
         DEFAULT_HOURLY_ODD_COLORS,
         FEELS_LIKE_TEMPERATURE,
@@ -38,6 +39,7 @@
         NB_HOURS_FORECAST,
         NB_MINUTES_FORECAST,
         SETTINGS_ALWAYS_SHOW_PRECIP_PROB,
+        SETTINGS_DAILY_DATA_ALIGNMENT,
         SETTINGS_DAILY_DATE_FORMAT,
         SETTINGS_DAILY_PAGE_HOURLY_CHART,
         SETTINGS_FEELS_LIKE_TEMPERATURES,
@@ -81,7 +83,7 @@
     import { AVAILABLE_WEATHER_DATA, getWeatherDataTitle, weatherDataService } from '~/services/weatherData';
     import { gadgetbridgeService } from '~/services/gadgetbridge';
     import { confirmRestartApp, createView, getDateFormatHTMLArgs, hideLoading, openLink, selectValue, showLoading, showSliderPopover } from '~/utils/ui';
-    import { colors, fonts, fontScale, iconColor, imperial, metricDecimalTemp, onFontScaleChanged, onUnitsChanged, unitCMToMM, unitsSettings, windowInset } from '~/variables';
+    import { colors, fontScale, fonts, iconColor, imperial, metricDecimalTemp, onFontScaleChanged, onUnitsChanged, unitCMToMM, unitsSettings, windowInset } from '~/variables';
     import IconButton from '../common/IconButton.svelte';
     import { onDestroy, onMount } from 'svelte';
     const version = __APP_VERSION__ + ' Build ' + __APP_BUILD_NUMBER__;
@@ -165,6 +167,43 @@
                         icon: 'mdi-format-size',
                         id: 'font_scale',
                         title: lc('font_scale')
+                    },
+
+                    {
+                        type: 'sectionheader',
+                        title: lc('daily')
+                    },
+                    {
+                        id: 'setting',
+                        valueType: 'string',
+                        key: SETTINGS_WEATHER_DATA_LAYOUT,
+                        title: lc('weather_data_layout'),
+                        values: [
+                            { value: 'default', title: lc('blocks') },
+                            { value: 'line', title: lc('lines') }
+                        ],
+                        rightValue: () => ApplicationSettings.getString(SETTINGS_WEATHER_DATA_LAYOUT, WEATHER_DATA_LAYOUT)
+                    },
+                    {
+                        key: SETTINGS_DAILY_DATA_ALIGNMENT,
+                        id: 'setting',
+                        valueType: 'string',
+                        title: lc('daily_view_data_alignment'),
+                        values: [
+                            {
+                                value: 'left',
+                                title: lc('left')
+                            },
+                            {
+                                value: 'center',
+                                title: lc('center')
+                            },
+                            {
+                                value: 'right',
+                                title: lc('right')
+                            }
+                        ],
+                        rightValue: () => lc(ApplicationSettings.getString(SETTINGS_DAILY_DATA_ALIGNMENT, DEFAULT_DAILY_DATA_ALIGNMENT))
                     }
                 ];
             case 'locales':
@@ -409,17 +448,6 @@
                     const allData = currentData.concat(currentSmallData);
                     const disabledData = AVAILABLE_WEATHER_DATA.filter((d) => allData.indexOf(d) === -1);
                     return [
-                        {
-                            id: 'setting',
-                            valueType: 'string',
-                            key: SETTINGS_WEATHER_DATA_LAYOUT,
-                            title: lc('weather_data_layout'),
-                            values: [
-                                { value: 'default', title: lc('blocks') },
-                                { value: 'line', title: lc('lines') }
-                            ],
-                            rightValue: () => ApplicationSettings.getString(SETTINGS_WEATHER_DATA_LAYOUT, WEATHER_DATA_LAYOUT)
-                        },
                         {
                             type: 'switch',
                             id: SETTINGS_SHOW_CURRENT_DAY_DAILY,

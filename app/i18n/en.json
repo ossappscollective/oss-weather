@@ -421,5 +421,9 @@
   "wind_speed": "wind speed",
   "reset_location": "reset location",
   "widget_transparent_background": "transparent background",
-  "widget_ignore_font_scale": "ignore system font scale"
+  "widget_ignore_font_scale": "ignore system font scale",
+  "left": "left",
+  "center": "center",
+  "right": "right",
+  "daily_view_data_alignment": "daily list data alignment"
 }
