@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools"
     tools:shrinkMode="strict"
-    tools:keep="@layout/ns_*,@drawable/logo*,@drawable/ic_stat_logo*,@style/AppTheme.*,@style/DialogAnimation"/>
+    tools:keep="@layout/ns_*,@drawable/logo*,@drawable/ic_stat_logo*,@style/AppTheme.*,@style/DialogAnimation,@string/daily,@string/hourly"/>
