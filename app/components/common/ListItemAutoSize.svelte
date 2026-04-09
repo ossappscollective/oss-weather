@@ -17,9 +17,9 @@
     export let showBottomLine: boolean = false;
     // export let iconFontSize: number = 24;
     export let item: IListItem;
-    export let fontSize: number = 17;
+    export let fontSize: number = 21;
     export let fontWeight: any = 'normal';
-    export let subtitleFontSize: number = 14;
+    export let subtitleFontSize: number = 15;
     export let columns: string = '*,auto';
     export let mainCol = 0;
     export let onLinkTap: (event) => void = null;
@@ -100,7 +100,7 @@
         verticalTextAlignment="center"
         {...item.titleProps || $$restProps?.titleProps}
         use:conditionalEvent={{ condition: !!(item.onLinkTap || onLinkTap), event: 'linkTap', callback: item.onLinkTap || onLinkTap }}>
-        <cspan fontSize={fontSize * $fontScale} text={item.title || item.name} />
+        <cspan fontSize={fontSize * $fontScale} lineHeight={fontSize * $fontScale * 1.3} text={item.title || item.name} />
         <cspan color={item.subtitleColor || colorOnSurfaceVariant} fontSize={(item.subtitleFontSize || subtitleFontSize) * $fontScale} text={item.subtitle ? '\n' + item.subtitle : null} />
     </label>
 

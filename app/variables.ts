@@ -308,7 +308,6 @@ function setWindowInset(newInset) {
     rootViewStyle?.setUnscopedCssVariable('--windowInsetLeft', newInset.left + '');
     rootViewStyle?.setUnscopedCssVariable('--windowInsetRight', newInset.right + '');
     updateRootCss();
-    // DEV_LOG && console.log('setWindowInset', get(windowInset));
 }
 function updateIOSWindowInset() {
     if (__IOS__) {
