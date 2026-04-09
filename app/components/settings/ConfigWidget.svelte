@@ -442,7 +442,7 @@
 
         newItems.push(
             {
-                id: 'sectionheader',
+                type: 'sectionheader',
                 title: lc('settings')
             },
             {
