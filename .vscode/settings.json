@@ -1,15 +1,53 @@
 {
+    // Configure glob patterns for excluding files and folders.
     "files.exclude": {
-        "schema": true
+        "**/.bzr": true,
+        "**/.bzrmeta": true,
+        "**/.gradle": true,
+        "**/.DS_Store": true,
+        "**/.factorypath": true,
+        "**/.git": true,
+        "**/.metadata*": true,
+        "**/.project": true,
+        "**/.settings": true,
+        "**/.tags*": true,
+        "**/.tmp": true,
+        "**/.zip": true,
+        "**/tags": true,
+        "*compiled": true
+    },
+    "search.exclude": {
+        "**/pnpm-lock.yaml": true,
+        "**/yarn.lock": true,
+        "**/.metadata*": true,
+        "**/.tmp": true,
+        "**/.gradle": true,
+        "**/docs": true,
+        "**/*.log": true,
+        "**/*.svg": true,
+        "**/build": true,
+        "**/dist": true,
+        "**/node_modules": true,
+        "downloaded": true,
+        "platforms": true
+    },
+    "files.watcherExclude": {
+        "**/pnpm-lock.yaml": true,
+        "**/vendor.js": true,
+        "**/bundle.js": true,
+        "**/.history": true,
+        "**/build": true,
+        "**/dist": true,
+        "**/*.min.js": true,
+        "**/*.js.map": true,
+        "**/.gradle": true,
+        "**/.git": true,
+        "**/node_modules/**": true,
+        "**/.hg/store/**": true,
+        "platforms": true
     },
     "editor.snippetSuggestions": "top",
-    "i18n-ally-next.keystyle": "nested",
     "less.validate": false,
-    "i18n-ally-next.sourceLanguage": "en",
-    "typescript.tsdk": "node_modules/typescript/lib",
-    "search.exclude": {
-        "app/**/*.js": true
-    },
     "scss.lint.validProperties": [
         "max-font-size",
         "min-font-size",
@@ -58,9 +96,7 @@
         "a11y-missing-content": "ignore",
         "illegal-attribute-character": "ignore"
     },
-    "debug.javascript.defaultRuntimeExecutable": {
-        "pwa-node": "/Users/mguillon/.local/share/mise/shims/node"
-    },
-    "python.defaultInterpreterPath": "/Users/mguillon/.local/share/mise/installs/python/3.11.13/bin/python",
-    "i18n-ally-next.localesPaths": ["app/i18n"],
+    "i18n-ally-next.localesPaths": [
+        "app/i18n"
+    ]
 }
