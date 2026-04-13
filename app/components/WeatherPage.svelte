@@ -203,7 +203,7 @@
                                     navigate({ page: HourlyChart, props: { weatherLocation, weatherData } });
                                     break;
                                 case 'refresh':
-                                    await refreshWeather();
+                                    await manualRefreshWeather();
                                     break;
                                 case 'gps_location':
                                     await getLocationAndWeather();
@@ -319,14 +319,16 @@
         return currentLocation && location.coord.lat === currentLocation.coord.lat && location.coord.lon === currentLocation.coord.lon;
     }
 
-    function saveLocation(result: WeatherLocation) {
+    async function saveLocation(result: WeatherLocation) {
         const cityChanged = !isCurrentLocation(result);
         if (cityChanged) {
             setWeatherLocation(result);
-            refreshWeather();
         }
         favoriteCollectionView?.nativeView?.refreshVisibleItems();
         drawer?.close();
+        if (cityChanged) {
+            return refreshWeather();
+        }
     }
 
     async function searchCity(query?: string) {
@@ -392,7 +394,7 @@
                 const location = await gps.getCurrentLocation<LatLonKeys>({ desiredAccuracy, minimumUpdateTime, timeout });
                 if (location) {
                     const result = await geocodeAddress(location);
-                    saveLocation(result);
+                    await saveLocation(result);
                 }
             }
         } catch (error) {
@@ -401,23 +403,25 @@
             loading = false;
         }
     }
-    async function onPullToRefresh() {
-        try {
-            if (pullRefresh) {
-                pullRefresh.nativeView.refreshing = false;
-            }
-            loading = true;
-            const refreshLocationOnPull = ApplicationSettings.getBoolean('refresh_location_on_pull', false);
-            if (gpsAvailable && refreshLocationOnPull) {
-                await getLocationAndWeather();
-            } else {
-                await refreshWeather();
-            }
-        } catch (error) {
-            showError(error);
-        } finally {
-            loading = false;
+
+    async function manualRefreshWeather() {
+        const providerClass = getProviderClass(provider);
+        if (!providerClass.hasApiKey()) {
+            return askForApiKey(provider);
         }
+        const refreshLocationOnPull = ApplicationSettings.getBoolean('refresh_location_on_pull', false);
+        if (gpsAvailable && refreshLocationOnPull) {
+            return getLocationAndWeather();
+        } else {
+            return refreshWeather();
+        }
+    }
+    async function onPullToRefresh() {
+        if (pullRefresh) {
+            pullRefresh.nativeView.refreshing = false;
+        }
+
+        return manualRefreshWeather();
     }
 
     async function askForApiKey(provider: Providers) {
@@ -1073,19 +1077,19 @@
                     text={$slc('powered_by', l(`provider.${provider}`))}
                     verticalAlignment="bottom" />
             {:else}
-                <stackLayout id="hodler" horizontalAlignment="center" paddingLeft={20} paddingRight={20} row={1} verticalAlignment="middle" >
+                <stackLayout id="hodler" horizontalAlignment="center" paddingLeft={20} paddingRight={20} row={1} verticalAlignment="middle">
                     <label id="test" ios:iosAccessibilityAdjustsFontSize={false} fontSize={16 * $fontScale} marginBottom={20} text={$sl('no_location_desc')} textAlignment="center" textWrap={true} />
                     {#if gpsAvailable}
-                        <mdbutton id="location" margin="4 0 4 0" textAlignment="center" variant="outline" verticalTextAlignment="center" on:tap={getLocationAndWeather} >
+                        <mdbutton id="location" margin="4 0 4 0" textAlignment="center" variant="outline" verticalTextAlignment="center" on:tap={getLocationAndWeather}>
                             <cspan fontFamily={$fonts.mdi} fontSize={20 * $fontScale} text="mdi-crosshairs-gps" verticalAlignment="middle" />
                             <cspan ios:fontSize={16 * $fontScale} text={' ' + $sl('my_location').toUpperCase()} verticalAlignment="middle" />
                         </mdbutton>
                     {/if}
-                    <mdbutton id="search" margin="4 0 4 0" textAlignment="center" variant="outline" verticalTextAlignment="center" on:tap={() => searchCity()} >
+                    <mdbutton id="search" margin="4 0 4 0" textAlignment="center" variant="outline" verticalTextAlignment="center" on:tap={() => searchCity()}>
                         <cspan fontFamily={$fonts.mdi} fontSize={20 * $fontScale} text="mdi-magnify" verticalAlignment="middle" />
                         <cspan ios:fontSize={16 * $fontScale} text={' ' + $sl('search_location').toUpperCase()} verticalAlignment="middle" />
                     </mdbutton>
-                    <mdbutton id="search" margin="4 0 4 0" textAlignment="center" variant="outline" verticalTextAlignment="center" on:tap={selectLocationOnMap} >
+                    <mdbutton id="search" margin="4 0 4 0" textAlignment="center" variant="outline" verticalTextAlignment="center" on:tap={selectLocationOnMap}>
                         <cspan fontFamily={$fonts.mdi} fontSize={20 * $fontScale} text="mdi-map-plus" verticalAlignment="middle" />
                         <cspan ios:fontSize={16 * $fontScale} text={' ' + $sl('select_location_map').toUpperCase()} verticalAlignment="middle" />
                     </mdbutton>
