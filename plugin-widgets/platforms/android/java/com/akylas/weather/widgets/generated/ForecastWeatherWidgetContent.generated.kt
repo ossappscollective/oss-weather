@@ -96,7 +96,7 @@ fun ForecastWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) 
         verticalAlignment = Alignment.Vertical.Top,
     ) {
         Row(
-            modifier = GlanceModifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 6.dp),
+            modifier = GlanceModifier.fillMaxWidth().padding(horizontal = (min((size.width.value * 0.05f), 10.0f)).dp, vertical = (min((size.height.value * 0.07f), 6.0f)).dp),
             horizontalAlignment = Alignment.Horizontal.Start,
             verticalAlignment = Alignment.Vertical.Top,
         ) {
@@ -146,7 +146,7 @@ fun ForecastWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) 
             verticalAlignment = Alignment.Vertical.Top,
         ) {
             Text(
-                modifier = GlanceModifier.padding(horizontal = 8.dp),
+                modifier = GlanceModifier.padding(horizontal = (8).dp),
                 text = context.getString(
                     context.resources.getIdentifier(
                         "hourly",
@@ -161,7 +161,7 @@ fun ForecastWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) 
         Row {
             data.hourlyData.take(8).forEach { item ->
                 Column(
-                    modifier = GlanceModifier.width(53.dp).padding(horizontal = 4.dp),
+                    modifier = GlanceModifier.width((53).dp).padding(horizontal = (4).dp),
                     horizontalAlignment = Alignment.Horizontal.CenterHorizontally,
                     verticalAlignment = Alignment.Vertical.CenterVertically,
                 ) {
@@ -201,7 +201,7 @@ fun ForecastWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) 
             verticalAlignment = Alignment.Vertical.Top,
         ) {
             Text(
-                modifier = GlanceModifier.padding(horizontal = 8.dp),
+                modifier = GlanceModifier.padding(horizontal = (8).dp),
                 text = context.getString(
                     context.resources.getIdentifier(
                         "daily",
@@ -216,12 +216,12 @@ fun ForecastWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) 
         LazyColumn {
             items(data.dailyData.take(10)) { item ->
                 Column(
-                    modifier = GlanceModifier.fillMaxWidth().padding(2.dp),
+                    modifier = GlanceModifier.fillMaxWidth().padding((2).dp),
                     horizontalAlignment = Alignment.Horizontal.CenterHorizontally,
                     verticalAlignment = Alignment.Vertical.CenterVertically,
                 ) {
                     Column(
-                        modifier = GlanceModifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 2.dp).background(GlanceTheme.colors.surfaceVariant).cornerRadius(8.dp),
+                        modifier = GlanceModifier.fillMaxWidth().padding(horizontal = (6).dp, vertical = (2).dp).background(GlanceTheme.colors.surfaceVariant).cornerRadius((8).dp),
                         horizontalAlignment = Alignment.Horizontal.CenterHorizontally,
                         verticalAlignment = Alignment.Vertical.CenterVertically,
                     ) {

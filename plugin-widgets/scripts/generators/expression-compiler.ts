@@ -41,6 +41,7 @@ export interface CompilationOptions {
     context?: CompilationContext;
     formatter?: ValueFormatter;
     addDataPrefix?: boolean;
+    forceFormatter?: boolean;
     /** Type hints for config.settings.* properties (for generating correct accessors) */
     settingTypes?: Map<string, SettingType>;
 }
@@ -129,7 +130,7 @@ function inferSettingTypes(expr: Expression, typeMap: Map<string, SettingType> =
  * // => "when { config.settings?.get("clockBold")?.jsonPrimitive?.booleanOrNull == true -> ..."
  */
 export function compileExpression(expr: Expression, options: CompilationOptions): string {
-    const { addDataPrefix = true, context = 'value', formatter, platform } = options;
+    const { addDataPrefix = true, context = 'value', formatter, forceFormatter = false, platform } = options;
 
     // If no settingTypes provided, infer them from the expression tree
     if (!options.settingTypes && isExpression(expr)) {
@@ -177,7 +178,7 @@ export function compileExpression(expr: Expression, options: CompilationOptions)
 
     // Compile expression operators
     const [op, ...args] = expr;
-
+    let result;
     switch (op) {
         case 'get':
             // Look up inferred type for config.settings properties
@@ -186,24 +187,28 @@ export function compileExpression(expr: Expression, options: CompilationOptions)
                 const settingKey = args[0].substring(16);
                 settingType = options.settingTypes?.get(settingKey) || 'unknown';
             }
-            return compileGet(args[0], platform, addDataPrefix, settingType);
-
+            result = compileGet(args[0], platform, addDataPrefix, settingType);
+            break;
         case 'has':
             const a = compileExpression(args[0], { ...options, context: 'value', formatter: undefined });
-            return `${a} != null`;
+            result = `${a} != null`;
+            break;
 
         // Arithmetic
         case '+':
         case '-':
         case '*':
         case '/':
-            return compileArithmetic(op, args, options);
+            result = compileArithmetic(op, args, options);
+            break;
 
         // Math functions
         case 'min':
-            return compileMathMin(args, options);
+            result = compileMathMin(args, options);
+            break;
         case 'max':
-            return compileMathMax(args, options);
+            result = compileMathMax(args, options);
+            break;
 
         // Comparison
         case '<':
@@ -212,42 +217,58 @@ export function compileExpression(expr: Expression, options: CompilationOptions)
         case '>=':
         case '==':
         case '!=':
-            return compileComparison(op, args, options);
+            result = compileComparison(op, args, options);
+            break;
 
         // Logical
         case '!':
-            return compileNot(args, options);
+            result = compileNot(args, options);
+            break;
         case 'all':
-            return compileAll(args, options);
+            result = compileAll(args, options);
+            break;
         case 'any':
-            return compileAny(args, options);
+            result = compileAny(args, options);
+            break;
 
         // Conditional
         case 'case':
-            return compileCase(args, options);
+            result = compileCase(args, options);
+            break;
 
         // String operations
         case 'concat':
-            return compileConcat(args, options);
+            result = compileConcat(args, options);
+            break;
         case 'upcase':
-            return compileUpcase(args, options);
+            result = compileUpcase(args, options);
+            break;
         case 'downcase':
-            return compileDowncase(args, options);
+            result = compileDowncase(args, options);
+            break;
         case 'substring':
-            return compileSubstring(args, options);
+            result = compileSubstring(args, options);
+            break;
 
         // Date/Time formatting
         case 'format':
-            return compileFormat(args, options);
+            result = compileFormat(args, options);
+            break;
 
         // Template interpolation
         case 'interpolate':
-            return compileInterpolate(args, options);
+            result = compileInterpolate(args, options);
+            break;
 
         default:
             console.warn(`Unknown expression operator: ${op}`);
-            return `/* unknown op: ${op} */`;
+            result = `/* unknown op: ${op} */`;
+            break;
     }
+    if (forceFormatter && formatter && context === 'value') {
+        return formatter(result);
+    }
+    return result;
 }
 
 // ============================================================================

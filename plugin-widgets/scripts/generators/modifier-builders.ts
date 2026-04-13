@@ -117,7 +117,7 @@ export function formatColor(colorValue: string, platform: Platform, colorMap?: R
 export function formatDimension(value: number, platform: Platform): string {
     switch (platform) {
         case 'kotlin':
-            return `${value}.dp`;
+            return `(${value}).dp`;
         case 'swift':
             return String(value);
         case 'javascript':
@@ -204,10 +204,12 @@ export function buildGlanceModifier(element: BaseLayoutElement): string {
         const hExpr = compilePropertyValue(element.paddingHorizontal, {
             platform: 'kotlin',
             context: 'value',
+            forceFormatter: true,
             formatter: (v: number) => formatDimension(v, 'kotlin')
         });
         const vExpr = compilePropertyValue(element.paddingVertical, {
             platform: 'kotlin',
+            forceFormatter: true,
             context: 'value',
             formatter: (v: number) => formatDimension(v, 'kotlin')
         });
@@ -218,6 +220,7 @@ export function buildGlanceModifier(element: BaseLayoutElement): string {
         if (element.paddingHorizontal !== undefined) {
             const paddingExpr = compilePropertyValue(element.paddingHorizontal, {
                 platform: 'kotlin',
+                forceFormatter: true,
                 context: 'value',
                 formatter: (v: number) => formatDimension(v, 'kotlin')
             });
@@ -228,6 +231,7 @@ export function buildGlanceModifier(element: BaseLayoutElement): string {
         if (element.paddingVertical !== undefined) {
             const paddingExpr = compilePropertyValue(element.paddingVertical, {
                 platform: 'kotlin',
+                forceFormatter: true,
                 context: 'value',
                 formatter: (v: number) => formatDimension(v, 'kotlin')
             });

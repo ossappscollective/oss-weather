@@ -89,7 +89,7 @@ fun SimpleWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
 
     if (size.width.value < 120) {
         Column(
-            modifier = GlanceModifier.fillMaxWidth().fillMaxHeight().padding(3.dp),
+            modifier = GlanceModifier.fillMaxWidth().fillMaxHeight().padding((3).dp),
             horizontalAlignment = Alignment.Horizontal.CenterHorizontally,
         ) {
             Column(
@@ -120,7 +120,7 @@ fun SimpleWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
     }
     else {
         Box(
-            modifier = GlanceModifier.fillMaxWidth().fillMaxHeight().padding(horizontal = 10.dp, vertical = 6.dp)
+            modifier = GlanceModifier.fillMaxWidth().fillMaxHeight().padding(horizontal = (min((size.width.value * 0.05f), 10.0f)).dp, vertical = (min((size.height.value * 0.07f), 6.0f)).dp)
         ) {
             Text(
                 text = data.locationName,

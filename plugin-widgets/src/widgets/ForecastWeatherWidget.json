@@ -14,8 +14,8 @@
                 "type": "row",
                 "alignment": "start",
                 "crossAlignment": "start",
-                "paddingHorizontal": 10,
-                "paddingVertical": 6,
+                "paddingHorizontal": ["min", ["*", ["get", "size.width"], 0.05], 10],
+                "paddingVertical": ["min", ["*", ["get", "size.height"], 0.07], 6],
                 "fillWidth": true,
                 "children": [
                     {

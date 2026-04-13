@@ -11,8 +11,8 @@
     "layout": {
         "type": "column",
         "fillMaxSize": true,
-        "paddingHorizontal": 10,
-        "paddingVertical": 6,
+        "paddingHorizontal": ["min", ["*", ["get", "size.width"], 0.05], 10],
+        "paddingVertical": ["min", ["*", ["get", "size.height"], 0.07], 6],
         "alignment": "center",
         "children": [
             {
@@ -23,7 +23,7 @@
                         "type": "label",
                         "alignment": "bottom",
                         "text": ["get", "locationName"],
-                        "fontSize": 12,
+                        "fontSize": ["min", ["*", ["get", "size.width"], 0.09], ["min", ["*", ["get", "size.height"], 0.27], 12]],
                         "opacity": 0.5,
                         "maxLines": 1
                     },
@@ -32,7 +32,7 @@
                         "alignment": "bottom",
                         "flex": 1,
                         "text": ["get", "temperature"],
-                        "fontSize": ["min", ["*", ["get", "size.width"], 0.2], 20],
+                        "fontSize": ["min", ["*", ["get", "size.width"], 0.2], ["min", ["*", ["get", "size.height"], 0.27], 20]],
                         "fontWeight": "bold",
                         "textAlign": "right"
                     }
@@ -46,7 +46,7 @@
                     {
                         "type": "date",
                         "style": "dayMonth",
-                        "fontSize": ["min", ["*", ["get", "size.width"], 0.17], 62],
+                        "fontSize": ["min", ["*", ["get", "size.width"], 0.17], ["min", ["*", ["get", "size.height"], 0.37], 62]],
                         "fontWeight": ["case", ["==", ["get", "config.settings.clockBold"], true], "bold", "normal"]
                     },
                     {
@@ -69,14 +69,14 @@
                     {
                         "type": "date",
                         "style": "year",
-                        "fontSize": 14,
+                        "fontSize": ["min", ["*", ["get", "size.width"], 0.09], ["min", ["*", ["get", "size.height"], 0.27], 14]],
                         "opacity": 0.5
                     },
                     {
                         "type": "label",
                         "flex": 1,
                         "text": ["get", "description"],
-                        "fontSize": 12,
+                        "fontSize": ["min", ["*", ["get", "size.width"], 0.09], ["min", ["*", ["get", "size.height"], 0.27], 14]],
                         "opacity": 0.5,
                         "visibleIf": ["has", "description"],
                         "textAlign": "right"

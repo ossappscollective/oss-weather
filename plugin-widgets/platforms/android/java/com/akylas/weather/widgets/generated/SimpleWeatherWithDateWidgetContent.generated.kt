@@ -88,7 +88,7 @@ fun SimpleWeatherWithDateWidgetContent(config: WidgetConfig, data: WeatherWidget
     val widgetColor = run { val colorValue = when { config.settings?.get("color")?.jsonPrimitive?.contentOrNull == null -> GlanceTheme.colors.onSurface; else -> config.settings?.get("color")?.jsonPrimitive?.contentOrNull }; if (colorValue is String) ColorProvider(Color(colorValue.toColorIntRgba())) else GlanceTheme.colors.onSurface }
 
     Column(
-        modifier = GlanceModifier.fillMaxSize().padding(horizontal = 10.dp, vertical = 6.dp),
+        modifier = GlanceModifier.fillMaxSize().padding(horizontal = (min((size.width.value * 0.05f), 10.0f)).dp, vertical = (min((size.height.value * 0.07f), 6.0f)).dp),
         verticalAlignment = Alignment.Vertical.CenterVertically,
     ) {
         Row(
@@ -96,13 +96,13 @@ fun SimpleWeatherWithDateWidgetContent(config: WidgetConfig, data: WeatherWidget
         ) {
             Text(
                 text = data.locationName,
-                style = TextStyle(fontSize = (12 * fontScaleFactor).sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f))),
+                style = TextStyle(fontSize = (min((size.width.value * 0.09f), min((size.height.value * 0.27f), 12.0f)) * fontScaleFactor).sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f))),
                 maxLines = 1
             )
             Text(
                 modifier = GlanceModifier.defaultWeight(),
                 text = data.temperature,
-                style = TextStyle(fontSize = (min((size.width.value * 0.2f), 20.0f) * fontScaleFactor).sp, fontWeight = FontWeight.Bold, color = widgetColor, textAlign = TextAlign.End)
+                style = TextStyle(fontSize = (min((size.width.value * 0.2f), min((size.height.value * 0.27f), 20.0f)) * fontScaleFactor).sp, fontWeight = FontWeight.Bold, color = widgetColor, textAlign = TextAlign.End)
             )
         }
         Row(
@@ -120,7 +120,7 @@ fun SimpleWeatherWithDateWidgetContent(config: WidgetConfig, data: WeatherWidget
                         mediumFormat.format(java.util.Date())
                     }
                 },
-                style = TextStyle(fontSize = (min((size.width.value * 0.17f), 62.0f) * fontScaleFactor).sp, color = widgetColor, fontWeight = when { config.settings?.get("clockBold")?.jsonPrimitive?.booleanOrNull == true -> FontWeight.Bold; else -> FontWeight.Normal })
+                style = TextStyle(fontSize = (min((size.width.value * 0.17f), min((size.height.value * 0.37f), 62.0f)) * fontScaleFactor).sp, color = widgetColor, fontWeight = when { config.settings?.get("clockBold")?.jsonPrimitive?.booleanOrNull == true -> FontWeight.Bold; else -> FontWeight.Normal })
             )
             Spacer(modifier = GlanceModifier.defaultWeight())
             if ("iconPath" != null) {
@@ -138,13 +138,13 @@ fun SimpleWeatherWithDateWidgetContent(config: WidgetConfig, data: WeatherWidget
         ) {
             Text(
                 text = android.text.format.DateFormat.format("yyyy", java.util.Date()).toString(),
-                style = TextStyle(fontSize = (14 * fontScaleFactor).sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f)))
+                style = TextStyle(fontSize = (min((size.width.value * 0.09f), min((size.height.value * 0.27f), 14.0f)) * fontScaleFactor).sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f)))
             )
             if ("description" != null) {
                 Text(
                     modifier = GlanceModifier.defaultWeight(),
                     text = data.description,
-                    style = TextStyle(fontSize = (12 * fontScaleFactor).sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f)), textAlign = TextAlign.End)
+                    style = TextStyle(fontSize = (min((size.width.value * 0.09f), min((size.height.value * 0.27f), 14.0f)) * fontScaleFactor).sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f)), textAlign = TextAlign.End)
                 )
             }
         }
