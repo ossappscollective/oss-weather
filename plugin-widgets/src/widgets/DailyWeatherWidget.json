@@ -218,13 +218,13 @@
         "fakeData": {
             "temperature": "12\u00b0",
             "description": "Partly Cloudy",
-            "iconPath": "802d",
+            "iconPath": 802,
             "locationName": "Grenoble",
             "date": "Mon, Feb 24",
             "dailyData": [
                 {
                     "day": "Mon",
-                    "iconPath": "800d",
+                    "iconPath": 800,
                     "temperatureHigh": "12\u00b0",
                     "temperatureLow": "4\u00b0",
                     "precipAccumulation": "0 mm",
@@ -233,7 +233,7 @@
                 },
                 {
                     "day": "Tue",
-                    "iconPath": "802d",
+                    "iconPath": 802,
                     "temperatureHigh": "14\u00b0",
                     "temperatureLow": "6\u00b0",
                     "precipAccumulation": "0 mm",
@@ -242,7 +242,7 @@
                 },
                 {
                     "day": "Wed",
-                    "iconPath": "500d",
+                    "iconPath": 500,
                     "temperatureHigh": "10\u00b0",
                     "temperatureLow": "5\u00b0",
                     "precipAccumulation": "3 mm",
@@ -251,7 +251,7 @@
                 },
                 {
                     "day": "Thu",
-                    "iconPath": "503",
+                    "iconPath": 503,
                     "temperatureHigh": "9\u00b0",
                     "temperatureLow": "3\u00b0",
                     "precipAccumulation": "8 mm",
@@ -260,7 +260,7 @@
                 },
                 {
                     "day": "Fri",
-                    "iconPath": "802d",
+                    "iconPath": 802,
                     "temperatureHigh": "11\u00b0",
                     "temperatureLow": "4\u00b0",
                     "precipAccumulation": "0 mm",
@@ -269,7 +269,7 @@
                 },
                 {
                     "day": "Sat",
-                    "iconPath": "800d",
+                    "iconPath": 800,
                     "temperatureHigh": "15\u00b0",
                     "temperatureLow": "7\u00b0",
                     "precipAccumulation": "0 mm",

@@ -472,22 +472,21 @@
                 const params = parseUrlQueryParameters(link);
                 if (WIDGETS) {
                     if (params.appWidgetId !== undefined) {
-                        const openSettings = intent?.getStringExtra('openSettings')
+                        const openSettings = intent?.getStringExtra('openSettings');
                         if (openSettings !== 'false') {
-                            
-                DEV_LOG && console.log('glance-action', params, intent, openSettings);
-                        const { WidgetConfigManager } = await import('plugin-widgets/WidgetConfigManager');
-                        const config = WidgetConfigManager.getConfig(params.appWidgetId);
-                        const ConfigWidget = (await import('~/components/settings/ConfigWidget.svelte')).default;
-                        navigate({
-                            page: ConfigWidget,
-                            props: {
-                                widgetClass: config.widgetKind,
-                                widgetId: params.appWidgetId,
-                                modalMode: false,
-                                isKindConfig: false
-                            }
-                        });
+                            DEV_LOG && console.log('glance-action', params, intent, openSettings);
+                            const { WidgetConfigManager } = await import('plugin-widgets/WidgetConfigManager');
+                            const config = WidgetConfigManager.getConfig(params.appWidgetId);
+                            const ConfigWidget = (await import('~/components/settings/ConfigWidget.svelte')).default;
+                            navigate({
+                                page: ConfigWidget,
+                                props: {
+                                    widgetClass: config.widgetKind,
+                                    widgetId: params.appWidgetId,
+                                    modalMode: false,
+                                    isKindConfig: false
+                                }
+                            });
                         }
                     }
                 }

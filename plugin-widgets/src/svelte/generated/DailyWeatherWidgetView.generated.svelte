@@ -13,21 +13,19 @@
     export let data: WeatherWidgetData;
     export let size: { width: number; height: number };
 
-    $: iconSetFolderPath = path.join(iconThemesFolder, config.iconSet ?? iconService.iconSet);
-
     $: ({ colorOnSurface, colorSurfaceVariant } = $colors);
     $: widgetColor = config.settings.color === null ? colorOnSurface : config.settings.color;
 </script>
 
 <gridlayout width={size.width} height={size.height} {...$$restProps} class="widget-container">
     <stacklayout orientation="vertical">
-        <gridlayout row="auto" padding={8} columns="auto,*,auto" horizontalAlignment="stretch" verticalAlignment="top">
+        <gridlayout row="auto" paddingLeft={Math.min(size.width * 0.05, 10)} paddingRight={Math.min(size.width * 0.05, 10)} paddingTop={Math.min(size.height * 0.07, 6)} paddingBottom={Math.min(size.height * 0.07, 6)} columns="auto,*,auto" horizontalAlignment="stretch" verticalAlignment="top">
             <stacklayout orientation="vertical" col={0} verticalAlignment="top" horizontalAlignment="left">
                 <label text={data.locationName} fontSize={12} opacity={0.5} textAlignment="left" maxLines={1} color={widgetColor} horizontalAlignment="left" verticalAlignment="top"></label>
                 <label text={data.temperature} fontSize={26} fontWeight="700" color={widgetColor} horizontalAlignment="left" verticalAlignment="top"></label>
             </stacklayout>
             <stacklayout orientation="vertical" col={2} verticalAlignment="top" horizontalAlignment="left">
-                <image src={`${iconSetFolderPath}/images/${data.iconPath}.png`} width={54} height={54} visibility={(data.iconPath != null) ? 'visible' : 'collapsed'} horizontalAlignment="right" verticalAlignment="bottom"></image>
+                <image src={iconService.getIconPath(data.iconPath, true, false, config.iconSet)} width={54} height={54} visibility={(data.iconPath != null) ? 'visible' : 'collapsed'} horizontalAlignment="right" verticalAlignment="bottom"></image>
                 <label text={data.description} fontSize={11} opacity={0.5} textAlignment="right" maxLines={1} visibility={(data.description != null) ? 'visible' : 'collapsed'} color={widgetColor} horizontalAlignment="right" verticalAlignment="bottom"></label>
             </stacklayout>
         </gridlayout>
@@ -39,7 +37,7 @@
                 <stacklayout paddingLeft={6} paddingRight={6} paddingTop={2} paddingBottom={2} backgroundColor={colorSurfaceVariant} borderRadius={8} orientation="vertical" horizontalAlignment="center" verticalAlignment="center">
                     <gridlayout row="auto" columns="auto,*,auto,*,auto" horizontalAlignment="center" verticalAlignment="center">
                         <label text={item.day} fontSize={12} fontWeight="500" maxLines={1} color={widgetColor} col={0} verticalAlignment="center" horizontalAlignment="center"></label>
-                        <image src={`${iconSetFolderPath}/images/${item.iconPath}.png`} width={36} height={36} col={2} verticalAlignment="center" horizontalAlignment="center"></image>
+                        <image src={iconService.getIconPath(item.iconPath, true, false, config.iconSet)} width={36} height={36} col={2} verticalAlignment="center" horizontalAlignment="center"></image>
                         <stacklayout orientation="vertical" col={4} verticalAlignment="center" horizontalAlignment="center">
                             <stacklayout padding={6} orientation="horizontal" horizontalAlignment="right" verticalAlignment="bottom">
                                 <label text={item.temperatureHigh} fontSize={13} fontWeight="700" maxLines={1} color={widgetColor} verticalAlignment="center" horizontalAlignment="right"></label>

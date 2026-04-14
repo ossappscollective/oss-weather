@@ -132,56 +132,56 @@
                 {
                     "time": "06:00",
                     "temperature": "6 °C",
-                    "iconPath": "800d",
+                    "iconPath": 800,
                     "precipAccumulation": "0 mm",
                     "windSpeed": "10 km/h"
                 },
                 {
                     "time": "07:00",
                     "temperature": "7 °C",
-                    "iconPath": "800d",
+                    "iconPath": 800,
                     "precipAccumulation": "0 mm",
                     "windSpeed": "10 km/h"
                 },
                 {
                     "time": "08:00",
                     "temperature": "8 °C",
-                    "iconPath": "802d",
+                    "iconPath": 802,
                     "precipAccumulation": "0 mm",
                     "windSpeed": "12 km/h"
                 },
                 {
                     "time": "09:00",
                     "temperature": "10 °C",
-                    "iconPath": "500n",
+                    "iconPath": 500,
                     "precipAccumulation": "0 mm",
                     "windSpeed": "12 km/h"
                 },
                 {
                     "time": "10:00",
                     "temperature": "12 °C",
-                    "iconPath": "802d",
+                    "iconPath": 802,
                     "precipAccumulation": "0 mm",
                     "windSpeed": "14 km/h"
                 },
                 {
                     "time": "11:00",
                     "temperature": "13 °C",
-                    "iconPath": "802d",
+                    "iconPath": 802,
                     "precipAccumulation": "0 mm",
                     "windSpeed": "14 km/h"
                 },
                 {
                     "time": "12:00",
                     "temperature": "14 °C",
-                    "iconPath": "500n",
+                    "iconPath": 500,
                     "precipAccumulation": "0.2 mm",
                     "windSpeed": "16 km/h"
                 },
                 {
                     "time": "13:00",
                     "temperature": "14 °C",
-                    "iconPath": "500n",
+                    "iconPath": 500,
                     "precipAccumulation": "0.5 mm",
                     "windSpeed": "16 km/h"
                 }

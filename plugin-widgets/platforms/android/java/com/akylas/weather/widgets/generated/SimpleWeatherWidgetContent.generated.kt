@@ -47,7 +47,7 @@ import kotlinx.serialization.json.*
 private fun Preview() {
     val fakeWeatherWidgetData = WeatherWidgetData(
         temperature = "8°",
-        iconPath = "icon_themes/meteocons/images/800d.png",
+        iconPath = "icon_themes/meteocons/images/800.png",
         description = "Partly Cloudy",
         locationName = "Grenoble",
         date = "Mon, Feb 24",

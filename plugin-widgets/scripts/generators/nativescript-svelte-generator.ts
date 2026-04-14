@@ -212,7 +212,7 @@ function evaluateMapboxExpression(expr: any, context: string = 'data', usedColor
                 }
                 if (path.startsWith('item.')) {
                     if (path === 'item.iconPath') {
-                        return `\`\${iconSetFolderPath}/images/\${${path}}.png\``;
+                        return `\iconService.getIconPath(${path}, true, false, config.iconSet)`;
                     }
                     return path;
                 }
@@ -534,7 +534,7 @@ function buildAttribute(widgetName: string, prop: string, value: any, elementPat
     if (Array.isArray(value)) {
         let expr = evaluateMapboxExpression(value, defaultPrefix, usedColors);
         if (expr === 'data.iconPath') {
-            expr = `\`\${iconSetFolderPath}/images/\${${expr}}.png\``;
+            expr = `\iconService.getIconPath(${expr}, true, false, config.iconSet)`;
         }
         if (Array.isArray(attrName)) {
             return attrName.map((attr) => `${attr}={${expr}}`).join(' ');
@@ -546,7 +546,7 @@ function buildAttribute(widgetName: string, prop: string, value: any, elementPat
     if (typeof value === 'string' && hasTemplateBinding(value)) {
         let expr = convertBindingToSvelteExpr(value, defaultPrefix);
         if (value === '{{item.iconPath}}') {
-            expr = `\`\${iconSetFolderPath}/images/\${${expr}}.png\``;
+            expr = `\iconService.getIconPath(${expr}, true, false, config.iconSet)`;
         }
         if (Array.isArray(attrName)) {
             return attrName.map((attr) => `${attr}={${expr}}`).join(' ');
@@ -593,7 +593,7 @@ function buildAttribute(widgetName: string, prop: string, value: any, elementPat
     if (typeof value === 'string') {
         if (value.startsWith('data.') || value.startsWith('item.') || value.startsWith('size.')) {
             if (value === '{{item.iconPath}}') {
-                value = `\`\${iconSetFolderPath}/images/\${${value}}.png\``;
+                value = `\iconService.getIconPath(${value}, true, false, config.iconSet)`;
             }
             return `${attrName}={${value}}`;
         }
@@ -1312,7 +1312,6 @@ function generateSvelteComponent(layout: WidgetLayout): string {
     // script += `    export let width: number = ${layout.supportedSizes?.[0]?.width ?? 160};\n`;
     // script += `    export let height: number = ${layout.supportedSizes?.[0]?.height ?? 160};\n`;
     script += `    export let size: { width: number; height: number };\n\n`;
-    script += `    $: iconSetFolderPath = path.join(iconThemesFolder, config.iconSet ?? iconService.iconSet);\n\n`;
 
     // Compile top-level color if present
     let defaultColorRef: string | undefined;

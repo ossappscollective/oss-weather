@@ -302,23 +302,23 @@
             "temperature": "12\u00b0",
             "locationName": "Paris",
             "description": "Partly Cloudy",
-            "iconPath": "800d",
+            "iconPath": 800,
             "date": "Mon, Feb 24",
             "hourlyData": [
-                { "time": "06:00", "temperature": "6\u00b0", "iconPath": "800d", "precipAccumulation": "0 mm" },
-                { "time": "07:00", "temperature": "7\u00b0", "iconPath": "800d", "precipAccumulation": "0 mm" },
-                { "time": "08:00", "temperature": "8\u00b0", "iconPath": "802d", "precipAccumulation": "0 mm" },
-                { "time": "09:00", "temperature": "10\u00b0", "iconPath": "500n", "precipAccumulation": "0 mm" },
-                { "time": "10:00", "temperature": "12\u00b0", "iconPath": "802d", "precipAccumulation": "0 mm" },
-                { "time": "11:00", "temperature": "13\u00b0", "iconPath": "802d", "precipAccumulation": "0 mm" }
+                { "time": "06:00", "temperature": "6\u00b0", "iconPath": 800, "precipAccumulation": "0 mm" },
+                { "time": "07:00", "temperature": "7\u00b0", "iconPath": 800, "precipAccumulation": "0 mm" },
+                { "time": "08:00", "temperature": "8\u00b0", "iconPath": 802, "precipAccumulation": "0 mm" },
+                { "time": "09:00", "temperature": "10\u00b0", "iconPath": 500, "precipAccumulation": "0 mm" },
+                { "time": "10:00", "temperature": "12\u00b0", "iconPath": 802, "precipAccumulation": "0 mm" },
+                { "time": "11:00", "temperature": "13\u00b0", "iconPath": 802, "precipAccumulation": "0 mm" }
             ],
             "dailyData": [
-                { "day": "Mon", "iconPath": "800d", "temperatureHigh": "12\u00b0", "temperatureLow": "4\u00b0", "precipAccumulation": "0 mm" },
-                { "day": "Tue", "iconPath": "802d", "temperatureHigh": "14\u00b0", "temperatureLow": "6\u00b0", "precipAccumulation": "0 mm" },
-                { "day": "Wed", "iconPath": "500d", "temperatureHigh": "10\u00b0", "temperatureLow": "5\u00b0", "precipAccumulation": "0 mm" },
-                { "day": "Thu", "iconPath": "802d", "temperatureHigh": "9\u00b0", "temperatureLow": "3\u00b0", "precipAccumulation": "0 mm" },
-                { "day": "Fri", "iconPath": "800d", "temperatureHigh": "11\u00b0", "temperatureLow": "4\u00b0", "precipAccumulation": "0 mm" },
-                { "day": "Sat", "iconPath": "803d", "temperatureHigh": "15\u00b0", "temperatureLow": "7\u00b0", "precipAccumulation": "0 mm" }
+                { "day": "Mon", "iconPath": 800, "temperatureHigh": "12\u00b0", "temperatureLow": "4\u00b0", "precipAccumulation": "0 mm" },
+                { "day": "Tue", "iconPath": 802, "temperatureHigh": "14\u00b0", "temperatureLow": "6\u00b0", "precipAccumulation": "0 mm" },
+                { "day": "Wed", "iconPath": 500, "temperatureHigh": "10\u00b0", "temperatureLow": "5\u00b0", "precipAccumulation": "0 mm" },
+                { "day": "Thu", "iconPath": 802, "temperatureHigh": "9\u00b0", "temperatureLow": "3\u00b0", "precipAccumulation": "0 mm" },
+                { "day": "Fri", "iconPath": 800, "temperatureHigh": "11\u00b0", "temperatureLow": "4\u00b0", "precipAccumulation": "0 mm" },
+                { "day": "Sat", "iconPath": 803, "temperatureHigh": "15\u00b0", "temperatureLow": "7\u00b0", "precipAccumulation": "0 mm" }
             ]
         }
     }

@@ -127,7 +127,7 @@
         ],
         "fakeData": {
             "temperature": "8\u00b0",
-            "iconPath": "800d",
+            "iconPath": 800,
             "description": "Partly Cloudy",
             "locationName": "Grenoble",
             "date": "Mon, Feb 24"
