@@ -874,7 +874,7 @@ function generatePreviewBlock(layout: WidgetLayout, className: string): string[]
             const props = [
                 item.time !== undefined ? `time = "${item.time}"` : null,
                 item.temperature !== undefined ? `temperature = "${item.temperature}"` : null,
-                item.iconPath !== undefined ? `iconPath = "icon_themes/meteocons/images/${item.iconPath}.png"` : null,
+                item.iconPath !== undefined ? `iconPath = "icon_themes/meteocons/images/${item.iconPath}d.png"` : null,
                 item.precipAccumulation !== undefined ? `precipAccumulation = "${item.precipAccumulation}"` : null,
                 item.windSpeed !== undefined ? `windSpeed = "${item.windSpeed}"` : null,
                 item.description !== undefined ? `description = "${item.description}"` : null,
@@ -886,7 +886,7 @@ function generatePreviewBlock(layout: WidgetLayout, className: string): string[]
         const dailyItem = (item: any) => {
             const props = [
                 item.day !== undefined ? `day = "${item.day}"` : null,
-                item.iconPath !== undefined ? `iconPath = "icon_themes/meteocons/images/${item.iconPath}.png"` : null,
+                item.iconPath !== undefined ? `iconPath = "icon_themes/meteocons/images/${item.iconPath}d.png"` : null,
                 item.temperatureHigh !== undefined ? `temperatureHigh = "${item.temperatureHigh}"` : null,
                 item.temperatureLow !== undefined ? `temperatureLow = "${item.temperatureLow}"` : null,
                 item.precipAccumulation !== undefined ? `precipAccumulation = "${item.precipAccumulation}"` : null,
