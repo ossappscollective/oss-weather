@@ -9,11 +9,11 @@ import { overrideSpanAndFormattedString } from '@nativescript-community/text';
 import SwipeMenuElement from '@nativescript-community/ui-collectionview-swipemenu/svelte';
 import CollectionViewElement from '@nativescript-community/ui-collectionview/svelte';
 import DrawerElement from '@nativescript-community/ui-drawer/svelte';
-import { initialize } from '@nativescript-community/ui-image';
+import { ImageViewTraceCategory, initialize } from '@nativescript-community/ui-image';
 import { Label } from '@nativescript-community/ui-label';
 import { install as installBottomSheets } from '@nativescript-community/ui-material-bottomsheet';
 import { installMixins, themer } from '@nativescript-community/ui-material-core';
-import { Application } from '@nativescript/core';
+import { Application, Trace, Utils } from '@nativescript/core';
 import { init as sharedInit } from '@shared/index';
 import { startSentry } from '@shared/utils/sentry';
 import WeatherPage from '~/components/WeatherPage.svelte';
@@ -37,7 +37,7 @@ try {
     registerNativeViewElement('AbsoluteLayout', () => require('@nativescript/core').AbsoluteLayout);
     registerNativeViewElement('scrollview', () => require('@nativescript/core').ScrollView);
     registerNativeViewElement('GridLayout', () => require('@nativescript/core').GridLayout);
-    registerNativeViewElement('image', () => require('@nativescript/core').Image);
+    registerNativeViewElement('image', () => require('@nativescript-community/ui-image').Img);
     // registerNativeViewElement('scrollview', () => NestedScrollView);
     registerNativeViewElement('StackLayout', () => require('@nativescript/core').StackLayout);
     registerNativeViewElement('slider', () => require('@nativescript-community/ui-material-slider').Slider, null, {}, { override: true });
@@ -76,7 +76,7 @@ try {
     // Trace.addCategories(Trace.categories.NativeLifecycle);
     // Trace.addCategories(Trace.categories.Transition);
     // Trace.addCategories(ChartTraceCategory);
-    // Trace.addCategories(CollectionViewTraceCategory);
+    // Trace.addCategories(ImageViewTraceCategory);
     // Trace.enable();
     // on startup we need to ensure theme is loaded because of a mixin
     // on startup we need to say what we are using

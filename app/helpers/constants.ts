@@ -3,7 +3,7 @@ import { prefs } from '~/services/preferences';
 
 export const DATA_VERSION = 1;
 
-export const ALERT_OPTION_MAX_HEIGHT = Screen.mainScreen.heightDIPs * 0.47;
+export const ALERT_OPTION_MAX_HEIGHT = Screen.mainScreen.heightDIPs * 0.67;
 
 export const SETTINGS_LANGUAGE = 'language';
 export const SETTINGS_IMPERIAL = 'imperial';
@@ -109,3 +109,5 @@ export const WEATHER_MAP_COLOR_SCHEMES = [
         title: 'Dark Sky'
     }
 ];
+
+export const PROVIDER_PADDING = 4;

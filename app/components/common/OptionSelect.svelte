@@ -403,7 +403,7 @@
                         col={item.boxType === 'circle' ? 0 : 2}
                         verticalAlignment="center"
                         on:checkedChange={(e) => onCheckedChanged(item, e)} />
-                    <image borderRadius={4} col={2} marginBottom={5} marginRight={10} marginTop={5} src={item.image} width={50} />
+                    <image borderRadius={4} col={2} marginBottom={5} marginRight={10 + (item.imageMargin ?? 0)} marginTop={5} src={item.image} stretch="aspectFit" width={item.imageWidth ?? 50} />
                 </svelte:component>
             </Template>
             <Template key="slider" let:item>

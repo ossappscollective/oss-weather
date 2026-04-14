@@ -2,6 +2,7 @@ declare namespace com {
     export namespace akylas {
         export namespace weather {
             export namespace widgets {
+                export class AnimatableIconView extends globalAndroid.widget.FrameLayout {}
                 export class WeatherWidgetManager {
                     static onWidgetAdded(activity: androidx.appcompat.app.AppCompatActivity, widgetId: number) {
                         throw new Error('Method not implemented.');

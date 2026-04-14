@@ -468,7 +468,7 @@
                 id: 'icon_pack',
                 title: lc('icon_pack'),
                 description: () => iconService.getPackName(),
-                image: () => iconService.getPackIcon(path.join(iconThemesFolder, config.iconSet ?? iconService.iconSet)),
+                image: () => iconService.getPackIcon(config.iconSet ?? iconService.iconSet),
                 async onTap(item) {
                     const data = await selectValue<string>(
                         (await iconService.getAvailableThemes()).map((k) => ({
@@ -476,7 +476,9 @@
                             subtitle: k.description,
                             data: k.id,
                             type: 'checkbox_image',
-                            image: k.icon
+                            image: k.icon,
+                            imageWidth: k.imageWidth,
+                            imageMargin: k.imageMargin
                         })),
                         config.iconSet ?? iconService.iconSet,
                         {
@@ -496,7 +498,7 @@
                 id: 'ignoreFontScale',
                 title: lc('widget_ignore_font_scale'),
                 value: config.settings?.['ignoreFontScale'] ?? false
-            },
+            }
         );
         if (previewConfig.settings) {
             Object.keys(previewConfig.settings).forEach((key) => {

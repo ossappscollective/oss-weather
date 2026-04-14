@@ -22,6 +22,7 @@
     import { Template } from '@nativescript-community/svelte-native/components';
     import { loadImage } from '~/utils/utils.common';
     import { FavoriteLocation } from '~/helpers/favorites';
+    import { PROVIDER_PADDING } from '~/helpers/constants';
 
     let { colorBackground, colorOnSurface, colorOnSurfaceVariant, colorOutline } = $colors;
     $: ({ colorBackground, colorOnSurface, colorOnSurfaceVariant, colorOutline } = $colors);
@@ -46,7 +47,7 @@
 
     let iconCache: { [k: string]: ImageSource } = {};
     function getIcon(iconId, isDay): ImageSource {
-        const realIcon = iconService.getIcon(iconId, isDay, false);
+        const realIcon = iconService.getIconPath(iconId, isDay, false);
         if (realIcon === null) {
             return null;
         }
@@ -54,7 +55,10 @@
         if (icon) {
             return icon;
         }
-        icon = iconCache[realIcon] = loadImage(`${iconService.iconSetFolderPath}/images/${realIcon}.png`, { resizeThreshold: 70 });
+        icon = loadImage(realIcon, { resizeThreshold: 70 });
+        if (!realIcon.startsWith('android.resource://')) {
+            iconCache[realIcon] = icon;
+        }
         return icon;
     }
     onDestroy(() => {
@@ -91,8 +95,14 @@
         if (!icon) {
             return;
         }
+        const padding = iconService.usingProvider ? PROVIDER_PADDING : 0;
         srcRect.set(0, 0, icon.width, icon.height);
-        dstRect.set(dx + COLUMN_WIDTH / 2 - ICON_SIZE / 2, dy + COLUMN_HEIGHT / 2 - ICON_SIZE / 2, dx + COLUMN_WIDTH / 2 + ICON_SIZE / 2, dy + COLUMN_HEIGHT / 2 + ICON_SIZE / 2);
+        dstRect.set(
+            dx + COLUMN_WIDTH / 2 - ICON_SIZE / 2 + padding,
+            dy + COLUMN_HEIGHT / 2 - ICON_SIZE / 2 + padding,
+            dx + COLUMN_WIDTH / 2 + ICON_SIZE / 2 - 2 * padding,
+            dy + COLUMN_HEIGHT / 2 + ICON_SIZE / 2 - 2 * padding
+        );
         paint.color = d.color;
         paint.setAlpha(150);
         canvas.drawRect(dx, dy, dx + COLUMN_WIDTH, dy + COLUMN_HEIGHT, paint);

@@ -19,6 +19,21 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" tools:node="remove" />
     <permission android:name="__PACKAGE__.broadcast"
         android:protectionLevel="signatureOrSystem"></permission>
+
+    <queries>
+        <!-- Breezy Weather Icon Packs -->
+        <intent>
+            <action android:name="org.breezyweather.ICON_PROVIDER" />
+        </intent>
+        <!-- Geometric Weather Icon Packs -->
+        <intent>
+            <action android:name="wangdaye.com.geometricweather.ICON_PROVIDER" />
+        </intent>
+        <!-- Chronus Icon Packs -->
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+        </intent>
+    </queries>
     <application android:requestLegacyExternalStorage="true"
         android:name="com.tns.NativeScriptApplication" android:allowBackup="true"
         android:hardwareAccelerated="true"
@@ -35,6 +50,7 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.APP_WEATHER" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />

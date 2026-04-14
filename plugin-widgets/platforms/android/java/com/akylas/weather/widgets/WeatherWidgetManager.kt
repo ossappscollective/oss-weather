@@ -6,6 +6,7 @@ import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.drawable.BitmapDrawable
 import androidx.glance.ImageProvider
 import androidx.glance.appwidget.GlanceAppWidget
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -881,6 +882,10 @@ object WeatherWidgetManager {
         if (iconFilePath.isNullOrBlank()) {
             WidgetsLogger.d(LOG_TAG, "Icon file path is null or blank")
             return null
+        }
+        val drawable = com.nativescript.image.DrawableUtils.tryLoadExternalDrawable(context, android.net.Uri.parse(iconFilePath))
+        if (drawable is BitmapDrawable) {
+            return drawable.getBitmap()
         }
         // Try absolute path first (works at runtime with NativeScript)
         val file = File(iconFilePath)

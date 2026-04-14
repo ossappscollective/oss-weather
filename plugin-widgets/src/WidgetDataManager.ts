@@ -143,9 +143,9 @@ export class WidgetDataManager {
     }
 
     private getIconPath(iconId: number, isDay: boolean, iconSet: string): string {
-        const icon = iconService.getIcon(iconId, isDay);
-        const iconSetFolderPath = path.join(iconThemesFolder, iconSet || iconService.iconSet);
-        return `${iconSetFolderPath}/images/${icon}.png`;
+        return iconService.getIconPath(iconId, isDay, false, iconSet || iconService.iconSet);
+        // const iconSetFolderPath = path.join(iconThemesFolder, iconSet || iconService.iconSet);
+        // return `${iconSetFolderPath}/images/${icon}.png`;
     }
 
     /**

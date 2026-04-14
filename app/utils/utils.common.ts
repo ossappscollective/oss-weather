@@ -1,12 +1,24 @@
+import { loadImage, loadImageSync } from '@akylas/nativescript-app-utils';
 import { LinearGradient, TileMode } from '@nativescript-community/ui-canvas';
 import { Application, Color, Device, Frame, ImageSource, Utils } from '@nativescript/core';
 import { Dayjs } from 'dayjs';
 import { FavoriteLocation } from '~/helpers/favorites';
 import { lc } from '~/helpers/locale';
 
-export { restartApp, loadImageSync as loadImage } from '@akylas/nativescript-app-utils';
+export { restartApp } from '@akylas/nativescript-app-utils';
 
 export const sdkVersion = parseInt(Device.sdkVersion, 10);
+
+export function loadImage(imagePath, options) {
+    if (imagePath?.startsWith('android.resource://')) {
+        const drawable = com.nativescript.image.DrawableUtils.tryLoadExternalDrawable(
+            Utils.android.getApplicationContext(),
+            android.net.Uri.parse(imagePath)
+        ) as android.graphics.drawable.BitmapDrawable;
+        return drawable ? new ImageSource(drawable.getBitmap()) : null;
+    }
+    return loadImageSync(imagePath, options);
+}
 
 declare module '@nativescript/core/ui/frame' {
     interface Frame {

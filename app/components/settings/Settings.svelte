@@ -362,7 +362,9 @@
                                     subtitle: k.description,
                                     data: k.id,
                                     type: 'checkbox_image',
-                                    image: k.icon
+                                    image: k.icon,
+                                    imageWidth: k.imageWidth,
+                                    imageMargin: k.imageMargin
                                 })),
                                 iconService.iconSet,
                                 {

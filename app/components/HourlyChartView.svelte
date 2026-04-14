@@ -49,6 +49,7 @@
 
 <script lang="ts">
     import { ComponentInstanceInfo } from '~/utils/ui';
+    import { PROVIDER_PADDING } from '~/helpers/constants';
 
     let { colorOnSurface, colorOnSurfaceVariant, colorOutline, colorSurfaceContainer } = $colors;
     $: ({ colorOnSurface, colorOnSurfaceVariant, colorOutline, colorSurfaceContainer } = $colors);
@@ -92,12 +93,15 @@
         if (!iconId) {
             return null;
         }
-        const realIcon = iconService.getIcon(iconId, isDay, false);
+        const realIcon = iconService.getIconPath(iconId, isDay, false);
         let icon = iconCache[realIcon];
         if (icon) {
             return icon;
         }
-        icon = iconCache[realIcon] = loadImage(`${iconService.iconSetFolderPath}/images/${realIcon}.png`, { resizeThreshold: 80 });
+        icon = loadImage(realIcon, { resizeThreshold: 80 });
+        if (!realIcon.startsWith('android.resource://')) {
+            iconCache[realIcon] = icon;
+        }
         return icon;
     }
     onMount(async () => {
@@ -164,13 +168,14 @@
                             if (dataSet.label === WeatherProps.iconId) {
                                 const imageSource = icon as ImageSource;
                                 const iconSize = 30;
+                                const padding = iconService.usingProvider ? PROVIDER_PADDING : 0;
                                 if ((icon && Math.abs(hour - lastIconHour) >= modulo) || (lastIconHour === undefined && hour % modulo === 0)) {
                                     const drawOffsetX = x - iconSize / 2;
                                     const drawOffsetY = 0;
                                     canvas.drawBitmap(
                                         imageSource,
                                         new Rect(0, 0, imageSource.width, imageSource.height),
-                                        new RectF(drawOffsetX, drawOffsetY, drawOffsetX + iconSize, drawOffsetY + iconSize),
+                                        new RectF(drawOffsetX + padding, drawOffsetY + padding, drawOffsetX + iconSize - 2 * padding, drawOffsetY + iconSize - 2 * padding),
                                         null
                                     );
                                     lastIconHour = hour;

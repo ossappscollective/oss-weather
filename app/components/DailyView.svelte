@@ -8,7 +8,6 @@
     import { createEventDispatcher } from '@shared/utils/svelte/ui';
     import { colors, dailyDataAlignment, dailyDateFormat, fontScale, weatherDataLayout } from '~/variables';
     import { isEInk } from '~/helpers/theme';
-    import { Application, ApplicationSettings } from '@nativescript/core';
 
     let textPaint: Paint;
     let textIconPaint: Paint;
@@ -148,8 +147,6 @@
                     const paint = c.paint || textIconPaint;
                     paint.setTextAlign(Align.CENTER);
 
-
-                    
                     if (c.icon) {
                         // paint.setColor(c.color || colorOnSurface);
                         // canvas.drawText(c.icon, columnIndex === 0 ? w2 - 20 : w2 + 20, y + lineHeight + lineHeight / 2 - paint.textSize / 2, paint);

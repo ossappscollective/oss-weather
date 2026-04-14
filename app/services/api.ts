@@ -288,6 +288,7 @@ export function prepareItems(weatherLocation: WeatherLocation, weatherData: Weat
     const firstDailyIndex = weatherDailyData.findIndex((d) => d.time >= startOfDay);
 
     weatherDailyData.slice(firstDailyIndex).forEach((d, index) => {
+        // DEV_LOG && console.log('d', index,JSON.stringify(d));
         if (index === 0) {
             const hours = firstHourIndex >= 0 ? weatherData.hourly.slice(firstHourIndex) : [];
             // eslint-disable-next-line prefer-const
@@ -298,8 +299,7 @@ export function prepareItems(weatherLocation: WeatherLocation, weatherData: Weat
 
             if (firstHourIndex >= 0) {
                 Object.assign(current, hours[0]);
-            }
-            if (firstHourIndex === 0 && firstMinuteIndex > 10) {
+            } else if (firstHourIndex === 0 && firstMinuteIndex > 10) {
                 current = Object.assign(current, weatherData.minutely.data[firstMinuteIndex - 1]);
             }
             if (now.valueOf() - weatherData.currently.time <= 1000 * 60 * 20) {

@@ -58,6 +58,9 @@
     }
     function selectTemplate(item, index, items) {
         if (iconService.animated) {
+            // if (iconService.usingLottie) {
+            //     return index === 0 ? 'topView_lottie_animated' : 'lottie_animated';
+            // }
             return index === 0 ? 'topView_animated' : 'animated';
         }
         return index === 0 ? 'topView' : 'default';

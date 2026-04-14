@@ -9,6 +9,11 @@ declare namespace com {
 declare namespace com {
     export namespace akylas {
         export namespace weather {
+            export class WeatherIconProviderRegistry {
+                static getDrawablePath(context: globalAndroid.content.Context, arg1: string, realIconId: number, isDay: boolean, arg4: boolean): string;
+                static listInstalledProviders(context: globalAndroid.content.Context): string;
+                static getPackageInfo(context: globalAndroid.content.Context, provider: string): string;
+            }
             export class ImageUtils extends java.lang.Object {
                 public static class: java.lang.Class<ImageUtils>;
                 public constructor();

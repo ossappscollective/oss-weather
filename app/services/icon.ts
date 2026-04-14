@@ -1,7 +1,7 @@
-import { ApplicationSettings, File, Folder, Observable, knownFolders, path } from '@nativescript/core';
+import { ApplicationSettings, File, Folder, Observable, Utils, knownFolders, path } from '@nativescript/core';
 import { prefs } from './preferences';
 import { createGlobalEventListener, globalObservable } from '@shared/utils/svelte/ui';
-import { ANIMATIONS_ENABLED } from '~/helpers/constants';
+import { ANIMATIONS_ENABLED, PROVIDER_PADDING } from '~/helpers/constants';
 
 export const iconThemesFolder = path.join(knownFolders.currentApp().path, 'assets/icon_themes');
 export const onIconPackChanged = createGlobalEventListener('iconPack');
@@ -94,8 +94,14 @@ export class IconService extends Observable {
     getPackName() {
         return this.getIconConfig().name;
     }
-    getPackIcon(folderPath = this.iconSetFolderPath) {
-        return path.join(folderPath, 'images/800d.png');
+    getPackIcon(iconSet?: string) {
+        if (iconSet) {
+            if (iconSet.startsWith('provider:')) {
+                return this.getIconPath(800, true, false, iconSet);
+            }
+            return path.join(iconThemesFolder, iconSet, 'images/800d.png');
+        }
+        return this.getIconConfig().sampleIconPath ?? path.join(this.iconSetFolderPath, 'images/800d.png');
     }
     iconSet: string;
     iconSetFolderPath: string;
@@ -118,17 +124,58 @@ export class IconService extends Observable {
         }
     }
     get animated() {
-        return this.mAnimated && this.lotties.size > 0;
+        return this.mAnimated;
     }
+    usingLottie = true;
+    usingProvider = false;
+
     load(fireChange = true) {
         this.iconSet = ApplicationSettings.getString('icon_set', 'meteocons');
-        this.iconSetFolderPath = path.join(iconThemesFolder, this.iconSet);
-        this.iconSetConfig = null;
-        fillIconMap(path.join(this.iconSetFolderPath, 'images'), this.images);
-        fillIconMap(path.join(this.iconSetFolderPath, 'lottie'), this.lotties);
+        if (this.iconSet.startsWith('provider:')) {
+            this.iconSetFolderPath = null;
+            this.iconSetConfig = JSON.parse(com.akylas.weather.WeatherIconProviderRegistry.getPackageInfo(Utils.android.getApplicationContext(), this.iconSet.substring(9)));
+            this.images.clear();
+            this.lotties.clear();
+            this.usingLottie = false;
+            this.usingProvider = true;
+            DEV_LOG && console.log('load', this.iconSet, this.iconSetConfig);
+        } else {
+            this.iconSetFolderPath = path.join(iconThemesFolder, this.iconSet);
+            this.iconSetConfig = null;
+            fillIconMap(path.join(this.iconSetFolderPath, 'images'), this.images);
+            fillIconMap(path.join(this.iconSetFolderPath, 'lottie'), this.lotties);
+            this.usingLottie = true;
+            this.usingProvider = false;
+        }
         this.mappingCache.clear();
         if (fireChange) {
             globalObservable.notify({ eventName: 'iconPack', data: this.iconSet });
+        }
+    }
+
+    getIconPath(iconId: number, isDay: boolean, animated = this.animated, iconSet = this.iconSet) {
+        if (!iconId && iconId !== 0) {
+            return null;
+        }
+        if (__ANDROID__ && iconSet.startsWith('provider:')) {
+            let realIconId = iconId;
+            while (realIconId !== undefined && WEATHER_CODE_MAPPING.get(realIconId)) {
+                realIconId = WEATHER_CODE_MAPPING.get(realIconId);
+            }
+            if (!realIconId) {
+                return null;
+            }
+            const context = Utils.android.getApplicationContext();
+            // TODO: support AnimatableIconView
+            return com.akylas.weather.WeatherIconProviderRegistry.getDrawablePath(context, iconSet.substring(9), realIconId, isDay, false);
+        } else {
+            const iconSetFolderPath = path.join(iconThemesFolder, iconSet || iconService.iconSet);
+            const realIcon = iconService.getIcon(iconId, isDay, false);
+            if (animated) {
+                return `~/assets/icon_themes/${iconSet}/lottie/${realIcon}.lottie`;
+            } else {
+                return `${iconSetFolderPath}/images/${realIcon}.png`;
+            }
         }
     }
     getIcon(iconId: number, isDay: boolean, animated = this.animated) {
@@ -156,18 +203,37 @@ export class IconService extends Observable {
     }
     async getAvailableThemes() {
         const theme_folders = await Folder.fromPath(iconThemesFolder).getEntities();
-        return Promise.all(
-            theme_folders.map(async (folderPath) => {
-                const jsonData = JSON.parse(await File.fromPath(path.join(folderPath.path, 'config.json')).readText());
-                const icon = this.getPackIcon(folderPath.path);
+
+        const result = await Promise.all(
+            theme_folders.map(async (folder) => {
+                const jsonData = JSON.parse(await File.fromPath(path.join(folder.path, 'config.json')).readText());
+                const icon = this.getPackIcon(folder.name);
                 return {
                     icon,
                     name: jsonData.name,
                     description: jsonData.description,
-                    id: folderPath.name
+                    id: folder.name,
+                    imageWidth: 50,
+                    imageMargin: 0
                 };
             })
         );
+        if (__ANDROID__) {
+            const context = Utils.android.getApplicationContext();
+            const iconPacks = JSON.parse(com.akylas.weather.WeatherIconProviderRegistry.listInstalledProviders(context));
+            DEV_LOG && console.log('iconPacks', iconPacks);
+            iconPacks.forEach((iconPack) => {
+                result.push({
+                    icon: iconPack.sampleIconPath,
+                    name: iconPack.name,
+                    id: `provider:${iconPack.id}`,
+                    description: null,
+                    imageWidth: 50 - 2 * PROVIDER_PADDING,
+                    imageMargin: PROVIDER_PADDING
+                });
+            });
+        }
+        return result;
     }
 }
 export const iconService = new IconService();
