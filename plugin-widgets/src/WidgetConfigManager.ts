@@ -11,6 +11,7 @@ import { widgetService } from 'plugin-widgets/WidgetBridge';
 const WIDGET_CONFIGS_KEY = 'widget_configs'; // per-instance configs
 const WIDGET_KIND_CONFIGS_KEY = 'widget_kind_configs'; // per-kind default configs
 const UPDATE_FREQUENCY_KEY = 'widget_update_frequency';
+const OPEN_APP_ON_WIDGET_TAP_KEY = 'widget_open_app_on_tap';
 const CACHE_TIMEOUT_KEY = 'widget_cache_timeout';
 
 const TAG = '[WidgetConfigManager]';
@@ -210,20 +211,34 @@ export class WidgetConfigManager {
         DEV_LOG && console.log(TAG, 'setUpdateFrequency', minutes, typeof minutes);
 
         if (__ANDROID__) {
-            try {
-                const widgetManager = com.akylas.weather.widgets.WeatherWidgetManager;
-                widgetManager.setUpdateFrequency(Utils.android.getApplicationContext(), minutes);
-                // DEV_LOG && console.log(TAG, 'Updated Android WorkManager schedule with frequency:', minutes);
-            } catch (error) {
-                console.error(TAG, 'Failed to update Android WorkManager schedule:', error, error.stack);
-            }
+            const widgetManager = com.akylas.weather.widgets.WeatherWidgetManager;
+            widgetManager.setUpdateFrequency(Utils.android.getApplicationContext(), minutes);
         } else if (__IOS__) {
             ApplicationSettings.setNumber(UPDATE_FREQUENCY_KEY, minutes);
-            // try {
-            //     DEV_LOG && console.log(TAG, 'Updated iOS refresh frequency preference:', minutes);
-            // } catch (error) {
-            //     console.error(TAG, 'Failed to update iOS refresh preference:', error, error.stack);
-            // }
+        }
+    }
+    /**
+     * Get update frequency
+     */
+    static getOpenAppOnWidgetTap(): boolean {
+        if (__ANDROID__) {
+            const widgetManager = com.akylas.weather.widgets.WeatherWidgetManager;
+            return widgetManager.getOpenAppOnTap(Utils.android.getApplicationContext());
+        } else {
+            return ApplicationSettings.getBoolean(OPEN_APP_ON_WIDGET_TAP_KEY, false);
+        }
+    }
+
+    /**
+     * Set update frequency and update native scheduling
+     */
+    static setOpenAppOnWidgetTap(value: boolean): void {
+        if (__ANDROID__) {
+            const widgetManager = com.akylas.weather.widgets.WeatherWidgetManager;
+            widgetManager.setOpenAppOnTap(Utils.android.getApplicationContext(), value);
+            // DEV_LOG && console.log(TAG, 'Updated Android WorkManager schedule with frequency:', minutes);
+        } else if (__IOS__) {
+            ApplicationSettings.setBoolean(OPEN_APP_ON_WIDGET_TAP_KEY, value);
         }
     }
 

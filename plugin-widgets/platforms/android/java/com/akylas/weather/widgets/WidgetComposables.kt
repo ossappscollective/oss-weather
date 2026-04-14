@@ -13,7 +13,9 @@ import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
 import androidx.glance.action.actionStartActivity
+import androidx.glance.action.actionParametersOf
 import androidx.glance.action.clickable
+import androidx.glance.action.ActionParameters
 import androidx.glance.background
 import androidx.glance.layout.*
 import androidx.glance.text.FontWeight
@@ -21,8 +23,11 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
+import com.akylas.weather.widgets.WeatherWidgetManager.getOpenAppOnTap
 
 object WidgetComposables {
+
+    val openSettingsTypeKey = ActionParameters.Key<String>("openSettings")
 
     @Composable
     fun NoDataContent(
@@ -30,7 +35,8 @@ object WidgetComposables {
         errorMessage: String = ""
     ) {
         val context = LocalContext.current
-        val launchIntent = WeatherWidgetManager.createAppLaunchIntent(context)
+        val openOnClick = getOpenAppOnTap(context)
+        val launchIntent = if (openOnClick) null else WeatherWidgetManager.createAppLaunchIntent(context)
         val openAction = launchIntent?.let { actionStartActivity(it.component!!) }
         Box(
             modifier = GlanceModifier
@@ -129,6 +135,7 @@ object WidgetComposables {
         val providedColor = color ?: GlanceTheme.colors.widgetBackground
         val composeColor = providedColor.getColor(context)
         val alpha = if (composeColor != null) composeColor.alpha else 1f
+        val openOnClick = getOpenAppOnTap(context)
 
         // If we could extract the color, split alpha and tint color (tint must not carry alpha)
         val tintColorProvider = if (composeColor != null) {
@@ -139,6 +146,10 @@ object WidgetComposables {
             providedColor
         }
         
+        val launchIntent = if (openOnClick) WeatherWidgetManager.createAppLaunchIntent(context) else null
+        val openAction = launchIntent?.let { 
+            actionStartActivity(it.component!!, actionParametersOf(openSettingsTypeKey to "false"))
+         }
         Box(
             modifier = modifier.fillMaxSize().then(
                 if (enabled) GlanceModifier.background(
@@ -146,7 +157,7 @@ object WidgetComposables {
                     alpha = alpha,
                     colorFilter = ColorFilter.tint(tintColorProvider)
                 ) else GlanceModifier
-            )
+            ).then(if (openAction != null) GlanceModifier.clickable(openAction) else GlanceModifier)
         ) {
             content()
         }
@@ -164,161 +175,6 @@ object WidgetComposables {
                 .padding(padding)
         ) {
             content()
-        }
-    }
-
-    @Composable
-    fun LocationHeader(
-        locationName: String,
-        fontSize: TextUnit = 14.sp,
-        maxLines: Int = 1,
-        modifier: GlanceModifier = GlanceModifier
-    ) {
-        Text(
-            text = locationName,
-            style = TextStyle(
-                fontSize = fontSize,
-                color = GlanceTheme.colors.onSurface
-            ),
-            maxLines = maxLines,
-            modifier = modifier
-        )
-    }
-
-    @Composable
-    fun WeatherIcon(
-        iconPath: String?,
-        description: String,
-        size: Dp = 48.dp,
-        modifier: GlanceModifier = GlanceModifier
-    ) {
-        WeatherWidgetManager.getIconImageProviderFromPath(iconPath, LocalContext.current)?.let { provider ->
-            Image(
-                provider = provider,
-                contentDescription = description,
-                modifier = modifier.size(size)
-            )
-        }
-    }
-
-    @Composable
-    fun TemperatureText(
-        temperature: String,
-        fontSize: TextUnit = 32.sp,
-        modifier: GlanceModifier = GlanceModifier
-    ) {
-        Text(
-            text = temperature,
-            style = TextStyle(
-                fontSize = fontSize,
-                fontWeight = FontWeight.Bold,
-                color = GlanceTheme.colors.onSurface
-            ),
-            modifier = modifier
-        )
-    }
-
-    @Composable
-    fun DescriptionText(
-        description: String,
-        fontSize: TextUnit = 14.sp,
-        modifier: GlanceModifier = GlanceModifier
-    ) {
-        Text(
-            text = description,
-            style = TextStyle(
-                fontSize = fontSize,
-                color = GlanceTheme.colors.onSurface
-            ),
-            modifier = modifier
-        )
-    }
-    
-    @Composable
-    fun PrecipitationText(
-        precipAccumulation: String,
-        fontSize: TextUnit = 10.sp,
-        modifier: GlanceModifier = GlanceModifier,
-        useAccentColor: Boolean = false
-    ) {
-        Text(
-            text = precipAccumulation,
-            style = TextStyle(
-                fontSize = fontSize,
-                color = if (useAccentColor) GlanceTheme.colors.primary else GlanceTheme.colors.onSurfaceVariant
-            ),
-            modifier = modifier,
-            maxLines = 1
-        )
-    }
-
-    @Composable
-    fun CurrentWeatherSection(
-        data: WeatherWidgetData,
-        modifier: GlanceModifier = GlanceModifier
-    ) {
-        Row(
-            modifier = modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.Vertical.CenterVertically
-        ) {
-            // Weather icon
-            WeatherIcon(data.iconPath, data.description, 40.dp)
-            
-            Spacer(modifier = GlanceModifier.width(8.dp))
-            
-            // Temperature and location
-            Column(
-                modifier = GlanceModifier.defaultWeight()
-            ) {
-                TemperatureText(data.temperature, 24.sp)
-                Spacer(modifier = GlanceModifier.height(2.dp))
-                LocationHeader(data.locationName, 11.sp)
-            }
-            
-            Spacer(modifier = GlanceModifier.defaultWeight())
-        }
-    }
-
-    @Composable
-    fun CardItem(
-        content: @Composable RowScope.() -> Unit
-    ) {
-        Row(
-            modifier = GlanceModifier
-                .fillMaxWidth()
-                .background(GlanceTheme.colors.surface)
-                .padding(horizontal = 8.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.Vertical.CenterVertically,
-            content = content
-        )
-    }
-
-    @Composable
-    fun DataLabel(
-        icon: String,
-        value: String,
-        useAccentColor: Boolean = false
-    ) {
-        Row(
-            verticalAlignment = Alignment.Vertical.CenterVertically,
-            modifier = GlanceModifier.padding(end = 8.dp)
-        ) {
-            Text(
-                text = icon,
-                style = TextStyle(
-                    color = if (useAccentColor) GlanceTheme.colors.primary else GlanceTheme.colors.onSurfaceVariant,
-                    fontSize = 12.sp
-                )
-            )
-            Spacer(modifier = GlanceModifier.width(2.dp))
-            Text(
-                text = value,
-                style = TextStyle(
-                    color = if (useAccentColor) GlanceTheme.colors.primary else GlanceTheme.colors.onSurfaceVariant,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Medium
-                )
-            )
         }
     }
 }

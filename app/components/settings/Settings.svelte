@@ -643,6 +643,12 @@
                         const configs = WidgetConfigManager.getAllConfigs();
                         const items: any[] = [
                             {
+                                id: 'widget_open_app_on_tap',
+                                type: 'switch',
+                                title: lc('widget_open_app_on_tap'),
+                                value: WidgetConfigManager.getOpenAppOnWidgetTap()
+                            },
+                            {
                                 id: 'widget_update_frequency',
                                 title: lc('widget_update_frequency'),
                                 description: lc('widget_update_frequency_description'),
@@ -1103,6 +1109,25 @@
                     }
                     break;
                 }
+                case 'widget_open_app_on_tap': {
+                    if (WIDGETS) {
+                        const frequencyOptions = [15, 30, 60, 120, 240, 360, 720, 1440].map((mins) => ({
+                            title: mins < 60 ? `${mins} min` : mins === 60 ? '1 hour' : `${mins / 60} hours`,
+                            data: mins
+                        }));
+                        const currentFreq = WidgetConfigManager.getUpdateFrequency();
+                        const result = await selectValue(frequencyOptions, currentFreq, {
+                            title: lc('widget_update_frequency')
+                        });
+                        DEV_LOG && console.log('widget_update_frequency', result);
+                        if (result !== undefined) {
+                            WidgetConfigManager.setUpdateFrequency(result);
+                            showSnack({ message: lc('widget_update_frequency_saved') });
+                            updateItem(item, 'id');
+                        }
+                    }
+                    break;
+                }
                 case 'update_all_widgets': {
                     if (WIDGETS) {
                         try {
@@ -1417,6 +1442,11 @@
                     if (__ANDROID__) {
                         gadgetbridgeService.setEnabled(value);
                         showSnack({ message: value ? lc('gadgetbridge_enabled_msg') : lc('gadgetbridge_disabled_msg') });
+                    }
+                    break;
+                case 'widget_open_app_on_tap':
+                    if (WIDGETS && __ANDROID__) {
+                        WidgetConfigManager.setOpenAppOnWidgetTap(value);
                     }
                     break;
                 default:

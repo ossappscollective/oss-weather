@@ -2174,13 +2174,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nativescript-community/appurl@npm:1.4.2":
-  version: 1.4.2
-  resolution: "@nativescript-community/appurl@npm:1.4.2"
-  checksum: 10/8888e92434c758c7d11da13f91569f2abb4d2a583ec060ce816b7cf4891811361563e9a10eaf997f424c804486814392681d622a5b00a80cbf3f50fb95be94f6
-  languageName: node
-  linkType: hard
-
 "@nativescript-community/arraybuffers@npm:^1.1.5":
   version: 1.1.5
   resolution: "@nativescript-community/arraybuffers@npm:1.1.5"
@@ -2682,10 +2675,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nativescript-community/universal-links@npm:3.0.1":
-  version: 3.0.1
-  resolution: "@nativescript-community/universal-links@npm:3.0.1"
-  checksum: 10/7eeb26c0a28edb802c1207c6c9c13b2c955e1cfd492a0bbc3420aabd39a2a6fe98ca39089f67c9e59506c1809da3f3b92666349c569b33cc2254d75a70d0cffb
+"@nativescript-community/universal-links@npm:3.0.2":
+  version: 3.0.2
+  resolution: "@nativescript-community/universal-links@npm:3.0.2"
+  checksum: 10/d722da0187833dc3d25d4819afd5839cc1059abea95c06b8ce6162a6abe07e3f67f8bf7a30a3e78afa771287af817ad62761d9c693f85f0dca29a49fdab8a247
   languageName: node
   linkType: hard
 
@@ -13189,7 +13182,6 @@ __metadata:
     "@akylas/nativescript-webpack": "npm:5.0.24"
     "@mapbox/to-color": "npm:2.3.0"
     "@mdi/font": "npm:7.4.47"
-    "@nativescript-community/appurl": "npm:1.4.2"
     "@nativescript-community/css-theme": "npm:1.2.14"
     "@nativescript-community/extendedinfo": "npm:1.3.1"
     "@nativescript-community/geocoding": "npm:3.2.1"
@@ -13231,7 +13223,7 @@ __metadata:
     "@nativescript-community/ui-share-file": "npm:1.3.3"
     "@nativescript-community/ui-webview": "npm:1.6.0"
     "@nativescript-community/ui-zoomimage": "npm:4.6.14"
-    "@nativescript-community/universal-links": "npm:3.0.1"
+    "@nativescript-community/universal-links": "npm:3.0.2"
     "@nativescript/core": "npm:8.9.9"
     "@nativescript/iqkeyboardmanager": "npm:2.1.2"
     "@swc/core": "npm:1.13.5"

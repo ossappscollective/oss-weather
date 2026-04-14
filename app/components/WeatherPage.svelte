@@ -11,7 +11,7 @@
     import { VerticalPosition } from '@nativescript-community/ui-popover';
     import { closePopover } from '@nativescript-community/ui-popover/svelte';
     import { PullToRefresh } from '@nativescript-community/ui-pulltorefresh';
-    import { getUniversalLink, registerUniversalLinkCallback } from '@nativescript-community/universal-links';
+    import { getUniversalLink, getUniversalLinkIntent, registerUniversalLinkCallback } from '@nativescript-community/universal-links/index';
     import { Application, ApplicationSettings, Color, ContentView, CoreTypes, EventData, File, Page, Screen, knownFolders, path } from '@nativescript/core';
     import { openFile, throttle } from '@nativescript/core/utils';
     import { alert, showError } from '@shared/utils/showError';
@@ -450,7 +450,7 @@
     }
 
     const onAppUrl = tryCatchFunction(
-        async (link: string) => {
+        async (link: string, intent?) => {
             if (link.startsWith('geo')) {
                 const latlong = link.split(':')[1].split(',').map(parseFloat) as [number, number];
                 if (latlong[0] !== 0 || latlong[1] !== 0) {
@@ -470,19 +470,26 @@
                 saveLocation(result);
             } else if (link.startsWith('glance-action:/')) {
                 const params = parseUrlQueryParameters(link);
-                if (params.appWidgetId !== undefined && WIDGETS) {
-                    const { WidgetConfigManager } = await import('plugin-widgets/WidgetConfigManager');
-                    const config = WidgetConfigManager.getConfig(params.appWidgetId);
-                    const ConfigWidget = (await import('~/components/settings/ConfigWidget.svelte')).default;
-                    navigate({
-                        page: ConfigWidget,
-                        props: {
-                            widgetClass: config.widgetKind,
-                            widgetId: params.appWidgetId,
-                            modalMode: false,
-                            isKindConfig: false
+                if (WIDGETS) {
+                    if (params.appWidgetId !== undefined) {
+                        const openSettings = intent?.getStringExtra('openSettings')
+                        if (openSettings !== 'false') {
+                            
+                DEV_LOG && console.log('glance-action', params, intent, openSettings);
+                        const { WidgetConfigManager } = await import('plugin-widgets/WidgetConfigManager');
+                        const config = WidgetConfigManager.getConfig(params.appWidgetId);
+                        const ConfigWidget = (await import('~/components/settings/ConfigWidget.svelte')).default;
+                        navigate({
+                            page: ConfigWidget,
+                            props: {
+                                widgetClass: config.widgetKind,
+                                widgetId: params.appWidgetId,
+                                modalMode: false,
+                                isKindConfig: false
+                            }
+                        });
                         }
-                    });
+                    }
                 }
             } else {
                 searchCity(link);
@@ -520,7 +527,7 @@
         registerUniversalLinkCallback(onAppUrl);
         const current = getUniversalLink();
         if (current) {
-            onAppUrl(current);
+            onAppUrl(current, getUniversalLinkIntent());
         } else if (weatherData) {
             items = prepareItems(weatherLocation, weatherData);
         } else if (weatherLocation) {

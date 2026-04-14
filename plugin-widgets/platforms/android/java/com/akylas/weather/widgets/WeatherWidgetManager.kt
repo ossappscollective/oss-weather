@@ -168,6 +168,7 @@ object WeatherWidgetManager {
     private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private const val WIDGET_PREFS_FILE = "prefs.db"
     private const val UPDATE_FREQUENCY_KEY = "widget_update_frequency"
+    private const val UPDATE_APP_ON_WIDGET_TAP_KEY = "widget_open_app_on_tap"
     private const val WIDGET_CONFIGS_KEY = "widget_configs" // per-instance configs
     private const val WIDGET_KIND_CONFIGS_KEY = "widget_kind_configs" // per-kind default configs
     private const val ACTIVE_WIDGETS_KEY = "active_widget_ids"
@@ -501,6 +502,26 @@ object WeatherWidgetManager {
         WidgetsLogger.d(LOG_TAG, "getUpdateFrequency() -> $freq")
         return freq
     }
+
+    @JvmStatic
+    fun getOpenAppOnTap(context: Context): Boolean {
+        val prefs = context.getSharedPreferences(WIDGET_PREFS_FILE, Context.MODE_PRIVATE)
+        val value = prefs.getBoolean(UPDATE_APP_ON_WIDGET_TAP_KEY, false)
+        return value
+    }
+
+    /**
+     * Set update frequency and reschedule if widgets are active
+     */
+    @JvmStatic
+    fun setOpenAppOnTap(context: Context, value: Boolean) {
+        val prefs = context.getSharedPreferences(WIDGET_PREFS_FILE, Context.MODE_PRIVATE)
+        prefs.edit { putBoolean(UPDATE_APP_ON_WIDGET_TAP_KEY, value) }
+        
+        // Reschedule with new frequency if widgets are active
+        requestAllWidgetsUpdate(context)
+    }
+
 
     /**
      * Set update frequency and reschedule if widgets are active

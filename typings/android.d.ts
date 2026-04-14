@@ -68,6 +68,8 @@ declare namespace com {
             }
             export namespace widgets {
                 export class WeatherWidgetManager {
+                    static getOpenAppOnTap(arg0: globalAndroid.content.Context): boolean;
+                    static setOpenAppOnTap(arg0: globalAndroid.content.Context, value: boolean);
                     static checkActiveWidgets(context: globalAndroid.content.Context);
                     static saveWidgetConfigString(context: globalAndroid.content.Context, widgetId: number, arg2: string);
                     static onWidgetAdded(activity: androidx.appcompat.app.AppCompatActivity, widgetId: number);
