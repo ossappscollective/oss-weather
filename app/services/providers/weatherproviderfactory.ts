@@ -75,6 +75,8 @@ const ProvidersClassMap: ProvidersMap = {
     [Providers.OpenMeteo]: OMProvider
 };
 
+export type ProvidersClasses = ProvidersMap[keyof ProvidersMap]
+
 export function getProviderForType(newType: ProviderType): WeatherProvider {
     return ProvidersClassMap[newType].getInstance();
 }

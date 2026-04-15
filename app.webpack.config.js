@@ -290,7 +290,7 @@ module.exports = (env, params = {}) => {
         OWM_DEFAULT_KEY: `"${process.env.OWM_DEFAULT_KEY}"`,
         ATMO_DEFAULT_KEY: `"${process.env.ATMO_DEFAULT_KEY}"`,
         MF_DEFAULT_KEY: '"__Wj7dVSTjV9YGu1guveLyDq0g7S7TfTjaHBTPTpO0kj8__"',
-        ACCUWEATHER_DEFAULT_KEY: `"${process.env.ACCUWEATHER_DEFAULT_KEY || ''}"`,
+        ACCUWEATHER_DEFAULT_KEY: process.env.ACCUWEATHER_DEFAULT_KEY ? `"${process.env.ACCUWEATHER_DEFAULT_KEY || ''}"` : 'undefined',
         MF_API_KEY: `"${process.env.MF_API_KEY || ''}"`,
         OWM_MY_KEY: includeOWMKey ? `"${process.env.OWM_MY_KEY}"` : 'undefined',
         MAPTILER_KEY: `"${process.env.MAPTILER_KEY}"`,

@@ -60,6 +60,7 @@
     import type { AqiProviderType, DailyData, Hourly, ProviderType, WeatherData } from '~/services/providers/weather';
     import {
         Providers,
+        ProvidersClasses,
         aqi_providers,
         getAqiProvider,
         getAqiProviderType,
@@ -77,6 +78,7 @@
     import { isBRABounds } from '~/utils/utils.common';
     import { actionBarHeight, colors, fontScale, fonts, onFontScaleChanged, onSettingsChanged, windowInset } from '~/variables';
     import IconButton from './common/IconButton.svelte';
+    import { WeatherProvider } from '~/services/providers/weatherprovider';
 
     const gps: GPS = new GPS();
     const gpsAvailable = gps.hasGPS();
@@ -771,18 +773,44 @@
         }
     }
 
-    function onSwipe(e) {
+    const onSwipe = (e) => {
         const enabled = ApplicationSettings.getBoolean(SETTINGS_SWIPE_ACTION_BAR_PROVIDER, SWIPE_ACTION_BAR_PROVIDER);
         if (enabled && weatherLocation) {
             const currentProviderIndex = providers.indexOf(provider);
-            let newIndex = currentProviderIndex + (e.direction === 1 ? -1 : 1);
-            if (newIndex < 0) {
-                newIndex += providers.length;
+            const delta = e.direction === 1 ? -1 : 1;
+            let nextProviderIndex = currentProviderIndex;
+            let newProvider;
+            let providerClass: ProvidersClasses;
+            function updateNextProvider() {
+                nextProviderIndex = nextProviderIndex + delta;
+                if (nextProviderIndex < 0) {
+                    nextProviderIndex += providers.length;
+                }
+                newProvider = providers[nextProviderIndex % providers.length];
+                providerClass = getProviderClass(newProvider);
+                DEV_LOG &&
+                    console.log(
+                        'updateNextProvider',
+                        currentProviderIndex,
+                        nextProviderIndex,
+                        newProvider,
+                        providerClass.id,
+                        providerClass.requiresApiKey(),
+                        typeof providerClass.hasApiKey(),
+                        providerClass.hasApiKey()
+                    );
             }
-            const newProvider = providers[newIndex % providers.length];
-            setWeatherLocationProvider(newProvider);
+            updateNextProvider();
+            while (nextProviderIndex !== currentProviderIndex && providerClass.requiresApiKey() && !providerClass.hasApiKey()) {
+                updateNextProvider();
+            }
+            if (newProvider !== provider) {
+                provider = newProvider;
+            refreshWeather();
+
+            }
         }
-    }
+    };
 
     function refreshFavoritesVisibleItems() {
         favoriteCollectionView?.nativeView?.refreshVisibleItems();

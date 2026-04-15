@@ -246,10 +246,10 @@ export class AccuWeatherProvider extends WeatherProvider {
     }
 
     static readAccuWeatherApiKeySetting() {
-        let key = ApplicationSettings.getString(API_KEY_SETTING, ACCUWEATHER_DEFAULT_KEY || '');
+        let key = ApplicationSettings.getString(API_KEY_SETTING, ACCUWEATHER_DEFAULT_KEY);
         if (!key || key?.length === 0) {
             ApplicationSettings.remove(API_KEY_SETTING);
-            key = ACCUWEATHER_DEFAULT_KEY || '';
+            key = ACCUWEATHER_DEFAULT_KEY || ACCUWEATHER_DEFAULT_KEY;
         }
         return key?.trim();
     }
@@ -263,8 +263,11 @@ export class AccuWeatherProvider extends WeatherProvider {
         }
     }
 
+    public static requiresApiKey() {
+        return true;
+    }
     public static hasApiKey() {
-        return AccuWeatherProvider.accuWeatherApiKey && AccuWeatherProvider.accuWeatherApiKey.length && AccuWeatherProvider.accuWeatherApiKey !== ACCUWEATHER_DEFAULT_KEY;
+        return !!AccuWeatherProvider.accuWeatherApiKey && AccuWeatherProvider.accuWeatherApiKey.length && AccuWeatherProvider.accuWeatherApiKey !== ACCUWEATHER_DEFAULT_KEY;
     }
 
     public static getApiKey() {

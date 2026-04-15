@@ -528,10 +528,10 @@ export class MFProvider extends WeatherProvider {
     static apiKey = MFProvider.readApiKeySetting();
 
     static readApiKeySetting() {
-        let key = ApplicationSettings.getString(API_KEY_SETTING, MF_API_KEY || '');
+        let key = ApplicationSettings.getString(API_KEY_SETTING, MF_API_KEY);
         if (!key || key?.length === 0) {
             ApplicationSettings.remove(API_KEY_SETTING);
-            key = MF_API_KEY || '';
+            key = MF_API_KEY;
         }
         return key?.trim();
     }
