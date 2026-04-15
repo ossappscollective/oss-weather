@@ -5,12 +5,12 @@
     import { closeModal } from '@shared/utils/svelte/ui';
     import { NativeViewElementNode } from '@nativescript-community/svelte-native/dom';
     import CActionBar from '~/components/common/CActionBar.svelte';
-    import { SETTINGS_WEATHER_MAP_CUSTOM_TILE_SOURCE } from '~/helpers/constants';
     import { lang, lc } from '~/helpers/locale';
     import { currentTheme, onThemeChanged } from '~/helpers/theme';
     import { networkService } from '~/services/api';
     import { openLink } from '~/utils/ui';
     import { windowInset } from '~/variables';
+    import { SETTINGS_WEATHER_MAP_CUSTOM_TILE_SOURCE } from '~/services/providers/maptiler';
 </script>
 
 <script lang="ts">

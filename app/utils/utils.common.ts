@@ -1,4 +1,4 @@
-import { loadImage, loadImageSync } from '@akylas/nativescript-app-utils';
+import { loadImageSync } from '@akylas/nativescript-app-utils';
 import { LinearGradient, TileMode } from '@nativescript-community/ui-canvas';
 import { Application, Color, Device, Frame, ImageSource, Utils } from '@nativescript/core';
 import { Dayjs } from 'dayjs';
@@ -11,6 +11,7 @@ export const sdkVersion = parseInt(Device.sdkVersion, 10);
 
 export function loadImage(imagePath, options) {
     if (imagePath?.startsWith('android.resource://')) {
+        //@ts-expect-error needs ui-image typings
         const drawable = com.nativescript.image.DrawableUtils.tryLoadExternalDrawable(
             Utils.android.getApplicationContext(),
             android.net.Uri.parse(imagePath)

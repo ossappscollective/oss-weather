@@ -153,7 +153,7 @@ export class IconService extends Observable {
         }
     }
 
-    getIconPath(iconId: number, isDay: boolean, animated = this.animated, iconSet = this.iconSet) {
+    getIconPath(iconId, isDay: boolean, animated = this.animated, iconSet = this.iconSet) {
         if (!iconId && iconId !== 0) {
             return null;
         }
