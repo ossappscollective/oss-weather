@@ -428,5 +428,7 @@
   "right": "right",
   "daily_view_data_alignment": "daily list data alignment",
   "maptiler_api_key_required_description": "to use maptiler radar you need to register a free API key on %1$s",
-  "maptiler_api_key": "Maptiler API key"
+  "maptiler_api_key": "Maptiler API key",
+  "open_meteo_augment_model": "augment models with Best Match",
+  "open_meteo_augment_model_desc": "when a different model than Best Match is used, we still query Best Match to augment data"
 }

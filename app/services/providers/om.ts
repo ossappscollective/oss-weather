@@ -14,6 +14,7 @@ import { WeatherProvider } from './weatherprovider';
 // const mfApiKey = getString('mfApiKey', MF_DEFAULT_KEY);
 
 export const SETTINGS_OM_PREFERED_MODEL = 'open_meteo_prefered_model';
+export const SETTINGS_OM_AUGMENT_WITH_BEST_MATCH = 'open_meteo_angment_best_match';
 export const DEFAULT_OM_PREFERED_MODEL = 'best_match';
 
 const KEY_MAPPING = {
@@ -165,6 +166,13 @@ export class OMProvider extends WeatherProvider implements AirQualityProvider {
                 title: lc('open_meteo_prefered_model'),
                 currentValue: getOMPreferredModel,
                 values: Object.keys(OpenMeteoModels).map((t) => ({ value: t, title: OpenMeteoModels[t] }))
+            },
+            {
+                type: 'switch',
+                id: SETTINGS_OM_AUGMENT_WITH_BEST_MATCH,
+                title: lc('open_meteo_augment_model'),
+                description: lc('open_meteo_augment_model_desc'),
+                value: ApplicationSettings.getBoolean(SETTINGS_OM_AUGMENT_WITH_BEST_MATCH, true)
             }
         ];
     }
@@ -317,13 +325,14 @@ export class OMProvider extends WeatherProvider implements AirQualityProvider {
         weatherLocation: WeatherLocation,
         {
             current,
-            forceModel,
+            forceModel = !ApplicationSettings.getBoolean(SETTINGS_OM_AUGMENT_WITH_BEST_MATCH, true),
             minutely,
             model = getOMPreferredModel(),
             warnings,
             weatherProps
         }: { warnings?: boolean; minutely?: boolean; current?: boolean; model?: string; forceModel?: boolean; weatherProps?: WeatherProps[] } = {}
     ) {
+        DEV_LOG && console.log('getWeather', forceModel, ApplicationSettings.getBoolean(SETTINGS_OM_AUGMENT_WITH_BEST_MATCH, true));
         const feelsLikeTemperatures = ApplicationSettings.getBoolean('feels_like_temperatures', FEELS_LIKE_TEMPERATURE);
         const coords = weatherLocation.coord;
         let models = 'best_match';

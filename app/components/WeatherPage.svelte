@@ -408,7 +408,7 @@
 
     async function manualRefreshWeather() {
         const providerClass = getProviderClass(provider);
-        if (!providerClass.hasApiKey()) {
+        if (providerClass.requiresApiKey() && !providerClass.hasApiKey()) {
             return askForApiKey(provider);
         }
         const refreshLocationOnPull = ApplicationSettings.getBoolean('refresh_location_on_pull', false);
