@@ -28,7 +28,7 @@
     "animations_desc": "Animiert, wenn vom Symbolsatz unterstützt",
     "api_key": "API-Schlüssel",
     "api_key_required": "API-Schlüssel erforderlich",
-    "api_key_required_description": "Um Wetterdaten von OpenWeather zu erhalten, wird ein kostenloser API-Schlüssel benötigt.\nDie App hat standardmäßig einen API-Schlüssel, aber um das Limit an Datenabfragen nicht zu übersteigen, muss jeder Benutzer einen eigenen API-Schlüssel erstellen.",
+    "owm_api_key_required_description": "Um Wetterdaten von OpenWeather zu erhalten, wird ein kostenloser API-Schlüssel benötigt.\nDie App hat standardmäßig einen API-Schlüssel, aber um das Limit an Datenabfragen nicht zu übersteigen, muss jeder Benutzer einen eigenen API-Schlüssel erstellen.",
     "app": {
         "name": "OSS Wetter"
     },

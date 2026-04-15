@@ -30,6 +30,9 @@ export abstract class Provider {
         return null;
     }
     public static setApiKey(key: string) {}
+    static getApiKeyDescription() {
+        return null;
+    }
 
     public static getInstance<T extends Provider>(this: new () => T): T {
         // we use static id because prototype.constructor.name might not be uniq when uglified

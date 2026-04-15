@@ -1,14 +1,13 @@
 import { lc, titlecase } from '@nativescript-community/l';
+import { ApplicationSettings } from '@nativescript/core';
+import { FEELS_LIKE_TEMPERATURE, NB_DAYS_FORECAST, NB_HOURS_FORECAST } from '~/helpers/constants';
 import { WeatherDataType, weatherDataIconColors } from '~/helpers/formatter';
 import { getStartOfDay, lang } from '~/helpers/locale';
 import { WeatherLocation, request } from '../api';
-import { CityWeather, Coord, OneCallResult } from './openweathermap';
 import { prefs } from '../preferences';
-import { WeatherProvider } from './weatherprovider';
+import { CityWeather, Coord, OneCallResult } from './openweathermap';
 import { Currently, DailyData, Hourly, WeatherData } from './weather';
-import { FEELS_LIKE_TEMPERATURE, NB_DAYS_FORECAST, NB_HOURS_FORECAST, NB_MINUTES_FORECAST } from '~/helpers/constants';
-import { ApplicationSettings } from '@nativescript/core';
-import dayjs from 'dayjs';
+import { WeatherProvider } from './weatherprovider';
 
 const API_KEY_SETTING = 'owmApiKey';
 
@@ -28,7 +27,7 @@ export class OWMProvider extends WeatherProvider {
                 id: 'setting',
                 key: API_KEY_SETTING,
                 default: () => OWMProvider.owmApiKey,
-                description: lc('api_key_required_description'),
+                description: lc('owm_api_key_required_description'),
                 title: lc('owm_api_key')
             },
             {
@@ -198,7 +197,6 @@ export class OWMProvider extends WeatherProvider {
     static getUrl() {
         return 'https://openweathermap.org';
     }
-
 
     public static setApiKey(apiKey) {
         OWMProvider.owmApiKey = apiKey?.trim();

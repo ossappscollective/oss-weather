@@ -21,7 +21,7 @@
     "animations": "Animasjoner",
     "api_key": "API-nøkkel",
     "api_key_required": "API-nøkkel kreves",
-    "api_key_required_description": "Opprett konto på OpenWeather for å skaffe gratis API-nøkkel som kreves for å hente værdata.\nProgrammet har en, men for å holde seg innen grensene for gratis plan må hver bruker lage sin egen API-nøkkel.",
+    "owm_api_key_required_description": "Opprett konto på OpenWeather for å skaffe gratis API-nøkkel som kreves for å hente værdata.\nProgrammet har en, men for å holde seg innen grensene for gratis plan må hver bruker lage sin egen API-nøkkel.",
     "app": {
         "name": "OSS-vær"
     },

@@ -28,7 +28,7 @@
     "animations_desc": "如果圖示集支援則會動畫",
     "api_key": "API 金鑰",
     "api_key_required": "需要 API 金鑰",
-    "api_key_required_description": "註冊OpenWeather帳號以取得擷取天氣數據所需的免費API金鑰。\n\n該應用程式本身有一個，但為了符合免費方案的限制，每位使用者必須創建自己的API金鑰。",
+    "owm_api_key_required_description": "註冊OpenWeather帳號以取得擷取天氣數據所需的免費API金鑰。\n\n該應用程式本身有一個，但為了符合免費方案的限制，每位使用者必須創建自己的API金鑰。",
     "app": {
         "name": "OSS 天氣"
     },

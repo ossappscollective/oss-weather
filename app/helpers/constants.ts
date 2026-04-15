@@ -12,11 +12,6 @@ export const SETTINGS_COLOR_THEME = 'color_theme';
 export const SETTINGS_DAILY_PAGE_HOURLY_CHART = 'daily_page_hourly_chart';
 export const SETTINGS_MAIN_PAGE_HOURLY_CHART = 'main_page_hourly_chart';
 export const SETTINGS_SWIPE_ACTION_BAR_PROVIDER = 'swipe_actionbar_provider';
-export const SETTINGS_WEATHER_MAP_COLORS = 'weather_map_colors';
-export const SETTINGS_WEATHER_MAP_ANIMATION_SPEED = 'weather_map_animation_speed';
-export const SETTINGS_WEATHER_MAP_LAYER_OPACITY = 'weather_map_layer_opacity';
-export const SETTINGS_WEATHER_MAP_SHOW_SNOW = 'weather_map_show_snow';
-export const SETTINGS_WEATHER_MAP_CUSTOM_TILE_SOURCE = 'weather_map_custom_tile_source';
 export const SETTINGS_UNITS = 'units';
 export const SETTINGS_METRIC_TEMP_DECIMAL = 'metric_temp_decimal';
 export const SETTINGS_METRIC_CM_TO_MM = 'metric_cm_to_mm';
@@ -35,6 +30,7 @@ export const SETTINGS_WEATHER_LOCATION = 'weatherLocation';
 export const SETTINGS_FAVORITES = 'favorites';
 export const SETTINGS_DAILY_DATE_FORMAT = 'daily_date_format';
 export const SETTINGS_DAILY_DATA_ALIGNMENT = 'daily_data_alignment';
+export const SETTINGS_MAPTILER_DEFAULT_KEY = 'maptiler_api_key';
 
 export const DEFAULT_COLOR_THEME = 'default';
 export const DEFAULT_LOCALE = 'auto';
@@ -66,48 +62,5 @@ export const MAIN_CHART_SHOW_WIND = false;
 export const DEFAULT_HOURLY_ODD_COLORS = true;
 
 export const MIN_UV_INDEX = 0;
-
-export const WEATHER_MAP_COLORS = 4;
-export const WEATHER_MAP_ANIMATION_SPEED = 100;
-export const WEATHER_MAP_LAYER_OPACITY = 0.8;
-export const WEATHER_MAP_SHOW_SNOW = true;
-export const WEATHER_MAP_COLOR_SCHEMES = [
-    {
-        value: 0,
-        title: 'Black and White Value'
-    },
-    {
-        value: 1,
-        title: 'Original'
-    },
-    {
-        value: 2,
-        title: 'Universal Blue'
-    },
-    {
-        value: 3,
-        title: 'TITAN'
-    },
-    {
-        value: 4,
-        title: 'The Weather Channel'
-    },
-    // {
-    //     value: 5,
-    //     title: 'Meteored'
-    // },
-    {
-        value: 6,
-        title: 'NEXRAD Level-III'
-    },
-    {
-        value: 7,
-        title: 'RAINBOW @ SELEX-SI'
-    },
-    {
-        value: 8,
-        title: 'Dark Sky'
-    }
-];
 
 export const PROVIDER_PADDING = 4;

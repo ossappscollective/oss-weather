@@ -27,7 +27,7 @@
     "animations_desc": "Animado se o pacote de ícones tiver apoio",
     "api_key": "Chave API",
     "api_key_required": "Chave de API obrigatória",
-    "api_key_required_description": "para obter dados meteorológicos do OpenWeather, é necessária uma chave de API gratuita. \nO aplicativo distribui uma por padrão, no entanto, para permanecer no plano gratuito, cada usuário deve criar sua própria chave de API.\n\nVocê pode fazer isso criando uma conta em seu site.",
+    "owm_api_key_required_description": "para obter dados meteorológicos do OpenWeather, é necessária uma chave de API gratuita. \nO aplicativo distribui uma por padrão, no entanto, para permanecer no plano gratuito, cada usuário deve criar sua própria chave de API.\n\nVocê pode fazer isso criando uma conta em seu site.",
     "app": {
         "name": "OSS Weather"
     },

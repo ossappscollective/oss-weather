@@ -25,7 +25,7 @@
     "animations_desc": "Beranimasi jika jika ikon set mensupportnya",
     "api_key": "Kunci API",
     "api_key_required": "Kunci API dibutuhkan",
-    "api_key_required_description": "Buat akun di OpenWeather untuk mendapatkan kunci API gratis yang diperlukan untuk mengambil data cuaca.\nAplikasi ini memilikinya, tetapi untuk tetap berada dalam batasan paket gratis, setiap pengguna harus membuat kunci API mereka sendiri.",
+    "owm_api_key_required_description": "Buat akun di OpenWeather untuk mendapatkan kunci API gratis yang diperlukan untuk mengambil data cuaca.\nAplikasi ini memilikinya, tetapi untuk tetap berada dalam batasan paket gratis, setiap pengguna harus membuat kunci API mereka sendiri.",
     "app": {
         "name": "Cuaca OSS"
     },

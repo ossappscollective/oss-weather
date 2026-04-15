@@ -16,7 +16,7 @@
     "animations_desc": "Animado caso o pacote de icones tenha suporte",
     "api_key": "Chave API",
     "api_key_required": "Necessaria Chave API",
-    "api_key_required_description": "Para obter informações sobre o clima, crie uma conta em OpenWeather para obter uma chave API gratuita.\nO app tem sua própria chave, porém, para manter-se dentro dos limites do plano gratuito cada usuário precisa criar sua própria chave API.",
+    "owm_api_key_required_description": "Para obter informações sobre o clima, crie uma conta em OpenWeather para obter uma chave API gratuita.\nO app tem sua própria chave, porém, para manter-se dentro dos limites do plano gratuito cada usuário precisa criar sua própria chave API.",
     "app": {
         "name": "OSS Clima"
     },

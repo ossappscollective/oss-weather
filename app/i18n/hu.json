@@ -28,7 +28,7 @@
     "animations_desc": "animáció engedélyezése, ha az ikonkészlet támogatja",
     "api_key": "API kulcs",
     "api_key_required": "API kulcs szükséges",
-    "api_key_required_description": "Regisztrálj OpenWeather fiókot az időjárás lekérdezéséhez szükséges ingyenes API kulcsért az openweathermap.org/api oldalon!\nAz app-ba beépített kulcs lekérdezési limit túllépésének elkerülése érdekében minden felhasználónak saját kulcsot kell regisztrálnia.",
+    "owm_api_key_required_description": "Regisztrálj OpenWeather fiókot az időjárás lekérdezéséhez szükséges ingyenes API kulcsért az openweathermap.org/api oldalon!\nAz app-ba beépített kulcs lekérdezési limit túllépésének elkerülése érdekében minden felhasználónak saját kulcsot kell regisztrálnia.",
     "app": {
         "name": "OSS Időjárás"
     },

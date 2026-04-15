@@ -25,7 +25,7 @@
     "animations_desc": "Animovat, pokud to sada ikon umožní",
     "api_key": "API klíč",
     "api_key_required": "API klíč je vyžadován",
-    "api_key_required_description": "Vytvořte si účet na OpenWeather, abyste zdarma získali klíč API pro načtení meteorologických dat.\nAplikace má sice vlastní, ale jeho využití je omezené.",
+    "owm_api_key_required_description": "Vytvořte si účet na OpenWeather, abyste zdarma získali klíč API pro načtení meteorologických dat.\nAplikace má sice vlastní, ale jeho využití je omezené.",
     "app": {
         "name": "OSS Počasí"
     },

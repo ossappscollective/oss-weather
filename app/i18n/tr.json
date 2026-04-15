@@ -23,7 +23,7 @@
     "animations_desc": "simge seti destekliyorsa canlandırılır",
     "api_key": "API anahtarı",
     "api_key_required": "API anahtarı gerekli",
-    "api_key_required_description": "OpenWeather'ten hava durumu verilerini almak için ücretsiz bir API anahtarı gereklidir.\nUygulama varsayılan olarak bir tane sağlar, ancak ücretsiz planda kalabilmek için her kullanıcının kendi API anahtarını oluşturması gerekir.",
+    "owm_api_key_required_description": "OpenWeather'ten hava durumu verilerini almak için ücretsiz bir API anahtarı gereklidir.\nUygulama varsayılan olarak bir tane sağlar, ancak ücretsiz planda kalabilmek için her kullanıcının kendi API anahtarını oluşturması gerekir.",
     "app": {
         "name": "OSS Hava Durumu"
     },

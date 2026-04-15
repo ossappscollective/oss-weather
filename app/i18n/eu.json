@@ -33,7 +33,7 @@
     "animations_desc": "Animatu ikono-sortak ahal bada",
     "api_key": "API gakoa",
     "api_key_required": "API gakoa beharrezkoa",
-    "api_key_required_description": "Sortu kontua OpenWeather-en eguraldiaren datuak atzitzeko behar den doako API gakoa lortzeko.\nAplikazioak badu bat baina doako planaren mugen barne mantentzeko erabiltzaile bakoitzak bere API gako propioa sortu behar du.",
+    "owm_api_key_required_description": "Sortu kontua OpenWeather-en eguraldiaren datuak atzitzeko behar den doako API gakoa lortzeko.\nAplikazioak badu bat baina doako planaren mugen barne mantentzeko erabiltzaile bakoitzak bere API gako propioa sortu behar du.",
     "app": {
         "name": "OSS Eguraldia"
     },

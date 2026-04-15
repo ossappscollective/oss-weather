@@ -28,7 +28,7 @@
     "animations_desc": "animé si le jeu d'icônes le prend en charge",
     "api_key": "Clé d'API",
     "api_key_required": "Clé d'API requise",
-    "api_key_required_description": "Créez un compte sur OpenWeather pour obtenir la clé API gratuite nécessaire pour récupérer les données météo.\nL’application dispose d’une clé, mais pour respecter les limites du plan gratuit, chaque utilisateur doit créer sa propre clé API.",
+    "owm_api_key_required_description": "Créez un compte sur OpenWeather pour obtenir la clé API gratuite nécessaire pour récupérer les données météo.\nL’application dispose d’une clé, mais pour respecter les limites du plan gratuit, chaque utilisateur doit créer sa propre clé API.",
     "app": {
         "name": "OSS Météo"
     },

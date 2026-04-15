@@ -33,7 +33,7 @@
     "animations_desc": "geanimeerd als de pictogrammenset het ondersteunt",
     "api_key": "API-sleutel",
     "api_key_required": "API-sleutel nodig",
-    "api_key_required_description": "Maak een account aan op OpenWeather om de gratis API-sleutel te verkrijgen die nodig is om weergegevens te downloaden.\nDe applicatie heeft een eigen sleutel, maar om binnen de limieten van het gratis plan te blijven moet elke gebruiker een eigen API-sleutel aanmaken.",
+    "owm_api_key_required_description": "Maak een account aan op OpenWeather om de gratis API-sleutel te verkrijgen die nodig is om weergegevens te downloaden.\nDe applicatie heeft een eigen sleutel, maar om binnen de limieten van het gratis plan te blijven moet elke gebruiker een eigen API-sleutel aanmaken.",
     "app": {
         "name": "OSS Weer"
     },

@@ -33,7 +33,7 @@
     "animations_desc": "prikaži animacijo če jih ikone podpriajo",
     "api_key": "Ključ za API",
     "api_key_required": "Obvezen Ključ za API",
-    "api_key_required_description": "Ustvarite uporabnik na OpenWeather da pridpbite gratis ključza API obvezen za prejemanje informacije o vremenu.\nAplikacija namreč ima svoj ključ, ampak da ostane v mejah gratis, vsak uporabnik mora ustvariti svoj ključ za API.",
+    "owm_api_key_required_description": "Ustvarite uporabnik na OpenWeather da pridpbite gratis ključza API obvezen za prejemanje informacije o vremenu.\nAplikacija namreč ima svoj ključ, ampak da ostane v mejah gratis, vsak uporabnik mora ustvariti svoj ključ za API.",
     "app": {
         "name": "OSS Vreme"
     },

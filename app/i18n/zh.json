@@ -28,7 +28,7 @@
     "animations_desc": "启用动画（如果所选图标包支持）",
     "api_key": "API 密钥",
     "api_key_required": "需要 API 密钥",
-    "api_key_required_description": "要获取天气数据，需先在 OpenWeather 创建账号并获取免费的 API 密钥。\n虽然应用内置有一个密钥，但由于免费计划的限制，每个用户必须创建自己的 API 密钥。",
+    "owm_api_key_required_description": "要获取天气数据，需先在 OpenWeather 创建账号并获取免费的 API 密钥。\n虽然应用内置有一个密钥，但由于免费计划的限制，每个用户必须创建自己的 API 密钥。",
     "app": {
         "name": "OSS 天气"
     },

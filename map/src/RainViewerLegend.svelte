@@ -1,7 +1,9 @@
 <script lang="ts">
+    import type { ColorRamp } from '@maptiler/weather';
+
     export let expanded = false;
     export let snow = false;
-    export let colorScheme: string = '0';
+    export let colorramp: ColorRamp;
 </script>
 
 <div id="info-popup" class="popup legend" class:legend-minimized={!expanded}>

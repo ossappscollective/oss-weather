@@ -33,7 +33,7 @@
   "animations_desc": "animated if the icon set supports it",
   "api_key": "API key",
   "api_key_required": "API key required",
-  "api_key_required_description": "Create an account on OpenWeather to get the gratis API key required to fetch weather data.\nThe app has one, but to stay within the limits of the gratis plan, each user must create their own API key.",
+  "owm_api_key_required_description": "Create an account on OpenWeather to get the gratis API key required to fetch weather data.\nThe app has one, but to stay within the limits of the gratis plan, each user must create their own API key.",
   "app": {
     "name": "OSS Weather"
   },
@@ -265,6 +265,7 @@
   "preferences": "Preferences",
   "pressure": "pressure",
   "provider": {
+    "maptiler": "Maptiler",
     "accuweather": "AccuWeather",
     "meteofrance": "Méteo France",
     "openmeteo": "Open-Meteo",
@@ -425,5 +426,7 @@
   "left": "left",
   "center": "center",
   "right": "right",
-  "daily_view_data_alignment": "daily list data alignment"
+  "daily_view_data_alignment": "daily list data alignment",
+  "maptiler_api_key_required_description": "to use maptiler radar you need to register a free API key on %1$s",
+  "maptiler_api_key": "Maptiler API key"
 }

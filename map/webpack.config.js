@@ -31,7 +31,7 @@ module.exports = (env = {}, params = {}) => {
         entry: ENTRY,
         stats: 'none',
         resolve: {
-            conditionNames: ['svelte'],
+            conditionNames: ['svelte', 'import', 'require', 'node', 'default'],
             alias: {
                 // svelte: path.resolve(__dirname, '../node_modules/svelte')
             },

@@ -1,15 +1,14 @@
 <script lang="ts">
-    import { getString } from '@nativescript/core/application-settings';
-    import { debounce } from '@nativescript/core/utils';
-    import { l } from '~/helpers/locale';
-    import { OWMProvider } from '~/services/providers/owm';
     import { closeBottomSheet } from '@nativescript-community/ui-material-bottomsheet/svelte';
-    import { openLink } from '~/utils/ui';
+    import { debounce } from '@nativescript/core/utils';
+    import { l, lc } from '~/helpers/locale';
+    import { MaptilerProvider } from '~/services/providers/maptiler';
     import { Providers, getProviderClass } from '~/services/providers/weatherproviderfactory';
+    import { openLink } from '~/utils/ui';
 
     let canClose = false;
-    export let provider: Providers;
-    const providerClass = getProviderClass(provider);
+    export let provider: Providers | 'maptiler';
+    const providerClass = provider === 'maptiler' ? MaptilerProvider : getProviderClass(provider);
     let apiKey = providerClass.getApiKey();
 
     function openWebsite() {
@@ -32,7 +31,8 @@
 
 <gesturerootview rows="auto">
     <stacklayout iosIgnoreSafeArea={true} padding="10">
-        <label text={l('api_key_required')} textWrap={true} />
+        <label fontSize={17} text={lc(`provider.${provider}`) + ': ' + l('api_key_required')} textWrap={true} />
+        <label text={providerClass.getApiKeyDescription()} textWrap={true} />
         <gridlayout columns="auto,*, auto" marginTop={5} rows="auto">
             <!-- <image width={100} src="https://openweathermap.org/themes/openweathermap/assets/img/logo_white_cropped.png" marginRight="10"/> -->
             <textfield col={1} hint={l('api_key')} placeholder={l('api_key')} text={apiKey} on:textChange={onKeyChange} />

@@ -28,7 +28,7 @@
     "animations_desc": "Animaciones si los iconos lo permiten",
     "api_key": "Clave de la API",
     "api_key_required": "Se requiere clave de API",
-    "api_key_required_description": "Crea una cuenta en OpenWeather para obtener la clave API gratuita necesaria para obtener datos meteorológicos.\nLa aplicación tiene una, pero para mantenerse dentro de los límites del plan gratuito, cada usuario debe crear su propia clave API.",
+    "owm_api_key_required_description": "Crea una cuenta en OpenWeather para obtener la clave API gratuita necesaria para obtener datos meteorológicos.\nLa aplicación tiene una, pero para mantenerse dentro de los límites del plan gratuito, cada usuario debe crear su propia clave API.",
     "app": {
         "name": "OSS Tiempo"
     },

@@ -79,6 +79,7 @@
     import { actionBarHeight, colors, fontScale, fonts, onFontScaleChanged, onSettingsChanged, windowInset } from '~/variables';
     import IconButton from './common/IconButton.svelte';
     import { WeatherProvider } from '~/services/providers/weatherprovider';
+    import { MaptilerProvider } from '~/services/providers/maptiler';
 
     const gps: GPS = new GPS();
     const gpsAvailable = gps.hasGPS();
@@ -193,8 +194,7 @@
                                     navigate({ page: Settings });
                                     break;
                                 case 'map':
-                                    const WeatherMapPage = (await import('~/components/WeatherMapPage.svelte')).default;
-                                    navigate({ page: WeatherMapPage, props: { focusPos: weatherLocation ? weatherLocation.coord : undefined } });
+                                    await goToWeatherMap();
                                     break;
                                 case 'compare':
                                     const CompareWeather = (await import('~/components/compare/CompareWeatherSingle.svelte')).default;
@@ -426,7 +426,7 @@
         return manualRefreshWeather();
     }
 
-    async function askForApiKey(provider: Providers) {
+    async function askForApiKey(provider: Providers | 'maptiler', shouldRefreshWeather = true) {
         try {
             const ApiKeysBottomSheet = (await import('~/components/APIKeysBottomSheet.svelte')).default;
             const result: boolean = await showBottomSheet({
@@ -440,11 +440,13 @@
                     provider
                 }
             });
-            if (result) {
+            if (result && shouldRefreshWeather) {
                 refreshWeather();
             }
+            return result;
         } catch (error) {
             showError(error);
+            return;
         }
     }
     function onOrientationChanged(event) {
@@ -805,9 +807,9 @@
                 updateNextProvider();
             }
             if (newProvider !== provider) {
+                // dont "store" the new provider, only for current view
                 provider = newProvider;
-            refreshWeather();
-
+                refreshWeather();
             }
         }
     };
@@ -917,6 +919,18 @@
             }
         }
     }
+
+    async function goToWeatherMap(props = { focusPos: weatherLocation ? weatherLocation.coord : undefined }) {
+        DEV_LOG && console.log('goToWeatherMap', MaptilerProvider.apiKey, MaptilerProvider.hasApiKey());
+        if (!MaptilerProvider.hasApiKey()) {
+            if (!(await askForApiKey('maptiler', false))) {
+                return;
+            }
+        }
+
+        const WeatherMapPage = (await import('~/components/WeatherMapPage.svelte')).default;
+        navigate({ page: WeatherMapPage, props });
+    }
     async function showFavMenu(favItem: FavoriteLocation, event) {
         try {
             const options = [
@@ -1002,8 +1016,7 @@
                                     toggleFavorite(favItem);
                                     break;
                                 case 'map':
-                                    const WeatherMapPage = (await import('~/components/WeatherMapPage.svelte')).default;
-                                    navigate({ page: WeatherMapPage, props: { focusPos: favItem.coord } });
+                                    await goToWeatherMap({ focusPos: favItem.coord });
                                     break;
                                 case 'compare':
                                     const CompareWeather = (await import('~/components/compare/CompareWeatherSingle.svelte')).default;

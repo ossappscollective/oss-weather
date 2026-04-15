@@ -18,6 +18,7 @@
     import { navigate } from '@shared/utils/svelte/ui';
     import dayjs from 'dayjs';
     import { WIDGET_KINDS, WIDGET_NAMES, WidgetConfigManager } from 'plugin-widgets';
+    import { onDestroy, onMount } from 'svelte';
     import CActionBar from '~/components/common/CActionBar.svelte';
     import ListItemAutoSize from '~/components/common/ListItemAutoSize.svelte';
     import {
@@ -59,33 +60,23 @@
         SETTINGS_SWIPE_ACTION_BAR_PROVIDER,
         SETTINGS_UNITS,
         SETTINGS_WEATHER_DATA_LAYOUT,
-        SETTINGS_WEATHER_MAP_ANIMATION_SPEED,
-        SETTINGS_WEATHER_MAP_COLORS,
-        SETTINGS_WEATHER_MAP_CUSTOM_TILE_SOURCE,
-        SETTINGS_WEATHER_MAP_LAYER_OPACITY,
-        SETTINGS_WEATHER_MAP_SHOW_SNOW,
         SHOW_CURRENT_DAY_DAILY,
         SHOW_DAILY_IN_CURRENTLY,
         SWIPE_ACTION_BAR_PROVIDER,
-        WEATHER_DATA_LAYOUT,
-        WEATHER_MAP_ANIMATION_SPEED,
-        WEATHER_MAP_COLORS,
-        WEATHER_MAP_COLOR_SCHEMES,
-        WEATHER_MAP_LAYER_OPACITY,
-        WEATHER_MAP_SHOW_SNOW
+        WEATHER_DATA_LAYOUT
     } from '~/helpers/constants';
     import { clock_24, getLocaleDisplayName, l, lc, onLanguageChanged, selectLanguage, slc } from '~/helpers/locale';
     import { getColorThemeDisplayName, getThemeDisplayName, onThemeChanged, selectColorTheme, selectTheme } from '~/helpers/theme';
-    import { AVAILABLE_UINTS, UNITS, UNIT_FAMILIES } from '~/helpers/units';
+    import { AVAILABLE_UINTS, UNIT_FAMILIES } from '~/helpers/units';
     import { networkService } from '~/services/api';
+    import { gadgetbridgeService } from '~/services/gadgetbridge';
     import { iconService } from '~/services/icon';
+    import { MaptilerProvider } from '~/services/providers/maptiler';
     import { aqi_providers, getAqiProviderType, getProviderSettins, getProviderType, providers } from '~/services/providers/weatherproviderfactory';
     import { AVAILABLE_WEATHER_DATA, getWeatherDataTitle, weatherDataService } from '~/services/weatherData';
-    import { gadgetbridgeService } from '~/services/gadgetbridge';
     import { confirmRestartApp, createView, getDateFormatHTMLArgs, hideLoading, openLink, selectValue, showLoading, showSliderPopover } from '~/utils/ui';
     import { colors, fontScale, fonts, iconColor, imperial, metricDecimalTemp, onFontScaleChanged, onUnitsChanged, unitCMToMM, unitsSettings, windowInset } from '~/variables';
     import IconButton from '../common/IconButton.svelte';
-    import { onDestroy, onMount } from 'svelte';
     const version = __APP_VERSION__ + ' Build ' + __APP_BUILD_NUMBER__;
     const storeSettings = {};
 </script>
@@ -530,57 +521,7 @@
                         );
                 };
             case 'map':
-                return () => [
-                    {
-                        key: SETTINGS_WEATHER_MAP_COLORS,
-                        id: 'setting',
-                        title: lc('weather_map_colors'),
-                        currentValue: () => ApplicationSettings.getNumber(SETTINGS_WEATHER_MAP_COLORS, WEATHER_MAP_COLORS),
-                        values: WEATHER_MAP_COLOR_SCHEMES,
-                        description: () => WEATHER_MAP_COLOR_SCHEMES.find((d) => d.value === ApplicationSettings.getNumber(SETTINGS_WEATHER_MAP_COLORS, WEATHER_MAP_COLORS))?.title
-                    },
-                    {
-                        id: 'setting',
-                        key: SETTINGS_WEATHER_MAP_ANIMATION_SPEED,
-                        min: 0.1,
-                        max: 2,
-                        step: null,
-                        title: lc('animation_speed'),
-                        type: 'slider',
-                        valueFormatter: (value) => value.toFixed(2),
-                        transformValue: (value) => Math.round(WEATHER_MAP_ANIMATION_SPEED / value),
-                        rightValue: () => Math.round((WEATHER_MAP_ANIMATION_SPEED / ApplicationSettings.getNumber(SETTINGS_WEATHER_MAP_ANIMATION_SPEED, WEATHER_MAP_ANIMATION_SPEED)) * 100) / 100
-                    },
-                    {
-                        id: 'setting',
-                        key: SETTINGS_WEATHER_MAP_LAYER_OPACITY,
-                        min: 0,
-                        max: 1,
-                        step: null,
-                        title: lc('layer_opacity'),
-                        type: 'slider',
-                        valueFormatter: (value) => value.toFixed(2),
-                        transformValue: (value) => value,
-                        rightValue: () => Math.round(ApplicationSettings.getNumber(SETTINGS_WEATHER_MAP_LAYER_OPACITY, WEATHER_MAP_LAYER_OPACITY) * 100) / 100
-                    },
-                    {
-                        type: 'switch',
-                        icon: 'mdi-snowflake',
-                        id: SETTINGS_WEATHER_MAP_SHOW_SNOW,
-                        title: lc('show_snow'),
-                        value: ApplicationSettings.getBoolean(SETTINGS_WEATHER_MAP_SHOW_SNOW, WEATHER_MAP_SHOW_SNOW)
-                    },
-                    {
-                        type: 'prompt',
-                        icon: 'mdi-server',
-                        valueType: 'string',
-                        default: () => ApplicationSettings.getString(SETTINGS_WEATHER_MAP_CUSTOM_TILE_SOURCE, null),
-                        id: 'setting',
-                        key: SETTINGS_WEATHER_MAP_CUSTOM_TILE_SOURCE,
-                        description: () => ApplicationSettings.getString(SETTINGS_WEATHER_MAP_CUSTOM_TILE_SOURCE, null),
-                        title: lc('custom_tile_server')
-                    }
-                ];
+                return () => MaptilerProvider.getSettings();
             case 'geolocation':
                 return () => [
                     {

@@ -33,7 +33,7 @@
     "animations_desc": "Animowane, jeśli obsługiwane przez zestaw ikon",
     "api_key": "Klucz API",
     "api_key_required": "Wymagany jest klucz API",
-    "api_key_required_description": "Utwórz konto na OpenWeather, aby uzyskać bezpłatny klucz API wymagany do pobierania danych pogodowych.\nAplikacja już posiada wbudowany taki klucz, ale aby nie przekroczyć limitów darmowego planu, każdy użytkownik musi utworzyć własny klucz API.",
+    "owm_api_key_required_description": "Utwórz konto na OpenWeather, aby uzyskać bezpłatny klucz API wymagany do pobierania danych pogodowych.\nAplikacja już posiada wbudowany taki klucz, ale aby nie przekroczyć limitów darmowego planu, każdy użytkownik musi utworzyć własny klucz API.",
     "app": {
         "name": "Pogoda OSS"
     },

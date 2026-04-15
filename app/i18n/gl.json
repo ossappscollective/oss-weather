@@ -21,7 +21,7 @@
     "animations": "Animacións",
     "api_key": "API key",
     "api_key_required": "Requírese unha API key",
-    "api_key_required_description": "Crea unha conta no OpenWeather para obter unha API key de balde requirida para obter os datos meteorolóxicos.\nA app ten unha, mais para estar dentro dos límites do plan gratuito, cada usuario debe crear a súa propia API key.",
+    "owm_api_key_required_description": "Crea unha conta no OpenWeather para obter unha API key de balde requirida para obter os datos meteorolóxicos.\nA app ten unha, mais para estar dentro dos límites do plan gratuito, cada usuario debe crear a súa propia API key.",
     "app": {
         "name": "OSS Weather"
     },

@@ -33,7 +33,7 @@
     "animations_desc": "animat si el conjunt d'icones ho permet",
     "api_key": "Clau API",
     "api_key_required": "Cal una clau API",
-    "api_key_required_description": "Creeu un compte a OpenWeather per obtenir la clau de l'API gratuïta, necessària per obtenir les dades meteorològiques.\nL’aplicació en té una, però per mantenir-se dins dels límits del pla gratuït, cada usuari ha de crear la seva pròpia clau d’API.",
+    "owm_api_key_required_description": "Creeu un compte a OpenWeather per obtenir la clau de l'API gratuïta, necessària per obtenir les dades meteorològiques.\nL’aplicació en té una, però per mantenir-se dins dels límits del pla gratuït, cada usuari ha de crear la seva pròpia clau d’API.",
     "app": {
         "name": "OSS Weather"
     },
