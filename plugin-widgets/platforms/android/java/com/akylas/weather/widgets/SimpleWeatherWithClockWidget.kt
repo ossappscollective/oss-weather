@@ -45,26 +45,19 @@ class SimpleWeatherWithClockWidget : WeatherWidget() {
         // Initialize caches to populate StateFlows
         WeatherWidgetManager.loadWidgetDataCache(context)
         WeatherWidgetManager.getAllWidgetConfigs(context) // Initializes WidgetConfigStore
+        val widgetId = GlanceAppWidgetManager(context).getAppWidgetId(id)
+
+        val settingsFlow = WidgetConfigStore.getWidgetSettingsFlow(widgetId)
+        val dataFlow = WidgetDataStore.getWidgetDataFlow(widgetId)
 
         provideContent {
-            val widgetId = GlanceAppWidgetManager(context).getAppWidgetId(id)
 
             // Observe widget data from StateFlow - triggers automatic recomposition
-            val widgetDataWithVersion by WidgetDataStore.getWidgetDataFlow(widgetId).collectAsState()
+            val widgetDataWithVersion by dataFlow.collectAsState()
             val widgetData = widgetDataWithVersion.first
-
-//            val widgetData = WeatherWidgetData(
-//                temperature = "8°",
-//                iconPath = "icon_themes/meteocons/images/800d.png",
-//                description = "Partly Cloudy",
-//                locationName = "Grenoble",
-//                date = "Mon, Feb 24",
-//                lastUpdate = System.currentTimeMillis(),
-//                loadingState = WidgetLoadingState.LOADED
-//            )
             
             // Observe only this widget's settings - prevents unnecessary recomposition from other widgets
-            val widgetSettings by WidgetConfigStore.getWidgetSettingsFlow(widgetId).collectAsState()
+            val widgetSettings by settingsFlow.collectAsState()
             val widgetConfig = WidgetConfig(settings = widgetSettings)
       
             val backgroundColor = widgetConfig.settings?.get("backgroundColor")?.jsonPrimitive?.contentOrNull

@@ -51,16 +51,19 @@ class HourlyWeatherWidget : WeatherWidget() {
         // Initialize caches to populate StateFlows
         WeatherWidgetManager.loadWidgetDataCache(context)
         WeatherWidgetManager.getAllWidgetConfigs(context) // Initializes WidgetConfigStore
+        val widgetId = GlanceAppWidgetManager(context).getAppWidgetId(id)
+
+        val settingsFlow = WidgetConfigStore.getWidgetSettingsFlow(widgetId)
+        val dataFlow = WidgetDataStore.getWidgetDataFlow(widgetId)
 
         provideContent {
-            val widgetId = GlanceAppWidgetManager(context).getAppWidgetId(id)
 
             // Observe widget data from StateFlow - triggers automatic recomposition
-            val widgetDataWithVersion by WidgetDataStore.getWidgetDataFlow(widgetId).collectAsState()
+            val widgetDataWithVersion by dataFlow.collectAsState()
             val widgetData = widgetDataWithVersion.first
             
             // Observe only this widget's settings - prevents unnecessary recomposition from other widgets
-            val widgetSettings by WidgetConfigStore.getWidgetSettingsFlow(widgetId).collectAsState()
+            val widgetSettings by settingsFlow.collectAsState()
             val widgetConfig = WidgetConfig(settings = widgetSettings)
 
             val backgroundColor = widgetConfig.settings?.get("backgroundColor")?.jsonPrimitive?.contentOrNull

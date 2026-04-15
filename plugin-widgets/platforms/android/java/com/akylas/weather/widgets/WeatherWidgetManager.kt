@@ -9,6 +9,7 @@ import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
 import androidx.glance.ImageProvider
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.GlanceAppWidgetManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -33,8 +34,9 @@ import kotlinx.coroutines.flow.*
  * Reactive data store for widget data using StateFlow
  */
 object WidgetDataStore {
-     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    private const val LOG_TAG = "JS"
 
+    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val _widgetData = MutableStateFlow<Map<Int, WeatherWidgetData>>(emptyMap())
     val widgetData: StateFlow<Map<Int, WeatherWidgetData>> = _widgetData.asStateFlow()
 
@@ -55,7 +57,7 @@ object WidgetDataStore {
         _widgetVersions.update { current ->
             current + (widgetId to (current[widgetId]?.plus(1) ?: System.currentTimeMillis()))
         }
-        WidgetsLogger.d("WidgetDataStore", "Updated data for widgetId=$widgetId, total widgets=${_widgetData.value.size}")
+        WidgetsLogger.d(LOG_TAG, "Updated data for widgetId=$widgetId, total widgets=${_widgetData.value.size}")
     }
 
     fun removeWidgetData(widgetId: Int) {
@@ -67,7 +69,7 @@ object WidgetDataStore {
             m.remove(widgetId)
             m
         }
-        WidgetsLogger.d("WidgetDataStore", "Removed data for widgetId=$widgetId")
+        WidgetsLogger.d(LOG_TAG, "Removed data for widgetId=$widgetId")
     }
 
     fun initializeFromCache(cache: Map<Int, WeatherWidgetData>) {
@@ -75,7 +77,7 @@ object WidgetDataStore {
         // initialize versions so existing widgets have stable versions
         val versions = cache.keys.associateWith { System.currentTimeMillis() }
         _widgetVersions.value = versions
-        WidgetsLogger.d("WidgetDataStore", "Initialized with ${cache.size} cached widgets")
+        WidgetsLogger.d(LOG_TAG, "Initialized with ${cache.size} cached widgets")
     }
 
     /**
@@ -83,7 +85,7 @@ object WidgetDataStore {
      * version bumps even if the data payload is structurally identical.
      */
     fun getWidgetDataFlow(widgetId: Int): StateFlow<Pair<WeatherWidgetData?, Long>> {
-        WidgetsLogger.d("WidgetDataStore", "getWidgetDataFlow widgetId=$widgetId")
+        WidgetsLogger.d(LOG_TAG, "getWidgetDataFlow widgetId=$widgetId")
 
         return _widgetData
             .combine(_widgetVersions) { dataMap, versions ->
@@ -105,7 +107,7 @@ object WidgetDataStore {
         _widgetVersions.update { current ->
             current + (widgetId to (current[widgetId]?.plus(1) ?: System.currentTimeMillis()))
         }
-        WidgetsLogger.d("WidgetDataStore", "touchWidget bumped version for widgetId=$widgetId")
+        WidgetsLogger.d(LOG_TAG, "touchWidget bumped version for widgetId=$widgetId")
     }
 }
 
@@ -114,28 +116,42 @@ object WidgetDataStore {
  * Enables automatic widget recomposition when settings change
  */
 object WidgetConfigStore {
+    private const val LOG_TAG = "JS"
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val _widgetConfigs = MutableStateFlow<Map<Int, WidgetConfig>>(emptyMap())
     val widgetConfigs: StateFlow<Map<Int, WidgetConfig>> = _widgetConfigs.asStateFlow()
-    
+
+    // Cache per-widget settings flows so the same instance is reused across recompositions
+    private val settingsFlowCache = mutableMapOf<Int, StateFlow<JsonObject?>>()
+
+    // Track whether storage has been loaded at least once
+    @Volatile
+    private var storageLoaded = false
+
     fun updateWidgetConfig(widgetId: Int, config: WidgetConfig) {
         _widgetConfigs.update { current ->
             current + (widgetId to config)
         }
-        WidgetsLogger.d("WidgetConfigStore", "Updated config for widgetId=$widgetId, total widgets=${_widgetConfigs.value.size}, config=$config")
+        WidgetsLogger.d(LOG_TAG, "Updated config for widgetId=$widgetId, total widgets=${_widgetConfigs.value.size}, config=$config")
     }
-    
+
     fun removeWidgetConfig(widgetId: Int) {
         _widgetConfigs.update { current ->
             current - widgetId
         }
-        WidgetsLogger.d("WidgetConfigStore", "Removed config for widgetId=$widgetId")
+        synchronized(settingsFlowCache) { settingsFlowCache.remove(widgetId) }
+        WidgetsLogger.d(LOG_TAG, "Removed config for widgetId=$widgetId")
     }
-    
+
     fun initializeFromStorage(configs: Map<Int, WidgetConfig>) {
+        storageLoaded = true
         _widgetConfigs.value = configs
-        WidgetsLogger.d("WidgetConfigStore", "Initialized with ${configs.size} widget configs configs=$configs")
+        // Invalidate all cached flows — they were built before storage loaded and may
+        // have captured a null/empty initial value. They will be rebuilt on next access.
+        synchronized(settingsFlowCache) { settingsFlowCache.clear() }
+        WidgetsLogger.d(LOG_TAG, "Initialized with ${configs.size} widget configs, cleared settings flow cache")
     }
-    
+
     fun getConfig(widgetId: Int): WidgetConfig? {
         return _widgetConfigs.value[widgetId]
     }
@@ -143,21 +159,29 @@ object WidgetConfigStore {
     fun getIds(): Array<Int> {
         return _widgetConfigs.value.keys.toTypedArray()
     }
-    
+
     /**
-     * Returns a StateFlow that only emits when the specific widget's settings change.
-     * This prevents unnecessary recomposition of other widgets when a different widget's config changes.
+     * Returns a stable, cached StateFlow for a widget's settings.
+     * IMPORTANT: Call only AFTER getAllWidgetConfigs() has been called (storage loaded),
+     * otherwise the initial value will be null even if a config exists in prefs.
      */
     fun getWidgetSettingsFlow(widgetId: Int): StateFlow<JsonObject?> {
-        WidgetsLogger.d("WidgetConfigStore", "getWidgetSettingsFlow widgetId=$widgetId config=${_widgetConfigs.value[widgetId]} settings=${_widgetConfigs.value[widgetId]?.settings}")
-        return widgetConfigs
-            .map { configs -> configs[widgetId]?.settings }
-            .distinctUntilChanged()
-            .stateIn(
-                scope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
-                started = SharingStarted.Eagerly,
-                initialValue = _widgetConfigs.value[widgetId]?.settings
-            )
+        return synchronized(settingsFlowCache) {
+            settingsFlowCache.getOrPut(widgetId) {
+                WidgetsLogger.d(LOG_TAG, "Creating new settings flow for widgetId=$widgetId, storageLoaded=$storageLoaded, currentSettings=${_widgetConfigs.value[widgetId]?.settings}")
+                widgetConfigs
+                    .map { configs -> configs[widgetId]?.settings }
+                    .distinctUntilChanged { old, new ->
+                        // Compare by content (JSON string) not by reference
+                        old?.toString() == new?.toString()
+                    }
+                    .stateIn(
+                        scope = scope,
+                        started = SharingStarted.Eagerly,
+                        initialValue = _widgetConfigs.value[widgetId]?.settings
+                    )
+            }
+        }
     }
 }
 
@@ -175,7 +199,7 @@ object WeatherWidgetManager {
     private const val WIDGET_DATA_CACHE_KEY = "widget_data_cache"
     private const val DEFAULT_UPDATE_FREQUENCY = 30L
 
-    private const val LOG_TAG = "WeatherWidgetManager"
+    private const val LOG_TAG = "JS"
 
     private val JSON = Json { ignoreUnknownKeys = true; isLenient = true }
 
@@ -380,16 +404,23 @@ object WeatherWidgetManager {
     fun reRenderAllWidgets(context: Context) {
 
         // 
-        requestAllWidgetsUpdate(context, false)
-        // WidgetsLogger.d(LOG_TAG, "reRenderAllWidgets() called")
-        // coroutineScope.launch {
-        //     SimpleWeatherWithClockWidget().apply { updateAll(context) }
-        //     SimpleWeatherWithDateWidget().apply { updateAll(context) }
-        //     SimpleWeatherWidget().apply { updateAll(context) }
-        //     DailyWeatherWidget().apply { updateAll(context) }
-        //     HourlyWeatherWidget().apply { updateAll(context) }
-        //     ForecastWeatherWidget().apply { updateAll(context) }
-        // }
+        // requestAllWidgetsUpdate(context, false)
+        WidgetsLogger.d(LOG_TAG, "reRenderAllWidgets() called")
+        coroutineScope.launch {
+            SimpleWeatherWithClockWidget().apply { updateAll(context) }
+            SimpleWeatherWithDateWidget().apply { updateAll(context) }
+            SimpleWeatherWidget().apply { updateAll(context) }
+            DailyWeatherWidget().apply { updateAll(context) }
+            HourlyWeatherWidget().apply { updateAll(context) }
+            ForecastWeatherWidget().apply { updateAll(context) }
+        }
+    }
+    /**
+     * Re-render all widgets without fetching new data (e.g., for theme changes)
+     */
+    @JvmStatic
+    fun reRenderWidget(context: Context, widgetId: Int) {
+        forceGlanceUpdate(context, widgetId)
     }
 
 
@@ -749,39 +780,39 @@ object WeatherWidgetManager {
     * widgets automatically recompose when data changes via collectAsState.
     * Keeping this commented out for reference during transition period.
     */
-    // private fun forceGlanceUpdate(context: Context, widgetId: Int) {
-    //     WidgetsLogger.d(LOG_TAG, "forceGlanceUpdate for widget $widgetId=")
-    //     coroutineScope.launch {
-    //         try {
-    //             val widgetClass = getGlanceWidgetClass(context, widgetId)
-    //             
-    //             if (widgetClass != null) {
-    //                 val widget = widgetClass.getDeclaredConstructor().newInstance()
-    //                 
-    //                 val glanceManager = GlanceAppWidgetManager(context)
-    //                 val glanceIds = glanceManager.getGlanceIds(widgetClass)
-    //                 
-    //                 // Find matching GlanceId
-    //                 val matchingGlanceId = glanceIds.find { glanceManager.getAppWidgetId(it) == widgetId }
-    //                 WidgetsLogger.d(LOG_TAG, "Updating widget $widgetId of class=${widgetClass}")
-    //                 
-    //                 if (matchingGlanceId != null) {
-    //                     widget.update(context, matchingGlanceId)
-    //                     WidgetsLogger.d(LOG_TAG, "Updated Glance widget ${widgetId}")
-    //                 } else {
-    //                     // Update all widgets of this type
-    //                     widget.updateAll(context)
-    //                     WidgetsLogger.d(LOG_TAG, "Updated all widgets of type ${widgetClass.simpleName}")
-    //                 }
-    //                 // sendWidgetUpdate(context, widgetId, widgetClass)
-    //             } else {
-    //                 WidgetsLogger.w(LOG_TAG, "Could not find widget class for ${widgetId}")
-    //             }
-    //         } catch (e: Exception) {
-    //             WidgetsLogger.e(LOG_TAG, "Error updating Glance widget ${widgetId}", e)
-    //         }
-    //     }
-    // }
+    private fun forceGlanceUpdate(context: Context, widgetId: Int) {
+        WidgetsLogger.d(LOG_TAG, "forceGlanceUpdate for widget $widgetId=")
+        coroutineScope.launch {
+            try {
+                val widgetClass = getGlanceWidgetClass(context, widgetId)
+                
+                if (widgetClass != null) {
+                    val widget = widgetClass.getDeclaredConstructor().newInstance()
+                    
+                    val glanceManager = GlanceAppWidgetManager(context)
+                    val glanceIds = glanceManager.getGlanceIds(widgetClass)
+                    
+                    // Find matching GlanceId
+                    val matchingGlanceId = glanceIds.find { glanceManager.getAppWidgetId(it) == widgetId }
+                    WidgetsLogger.d(LOG_TAG, "Updating widget $widgetId of class=${widgetClass}")
+                    
+                    if (matchingGlanceId != null) {
+                        widget.update(context, matchingGlanceId)
+                        WidgetsLogger.d(LOG_TAG, "Updated Glance widget ${widgetId}")
+                    } else {
+                        // Update all widgets of this type
+                        widget.updateAll(context)
+                        WidgetsLogger.d(LOG_TAG, "Updated all widgets of type ${widgetClass.simpleName}")
+                    }
+                    // sendWidgetUpdate(context, widgetId, widgetClass)
+                } else {
+                    WidgetsLogger.w(LOG_TAG, "Could not find widget class for ${widgetId}")
+                }
+            } catch (e: Exception) {
+                WidgetsLogger.e(LOG_TAG, "Error updating Glance widget ${widgetId}", e)
+            }
+        }
+    }
     /**
      * Update widget with weather data received from JS
      *
@@ -904,10 +935,10 @@ object WeatherWidgetManager {
             WidgetsLogger.d(LOG_TAG, "Icon file path is null or blank")
             return null
         }
-        val drawable = com.nativescript.image.DrawableUtils.tryLoadExternalDrawable(context, android.net.Uri.parse(iconFilePath))
-        if (drawable is BitmapDrawable) {
-            return drawable.getBitmap()
-        }
+       val drawable = com.nativescript.image.DrawableUtils.tryLoadExternalDrawable(context, android.net.Uri.parse(iconFilePath))
+       if (drawable is BitmapDrawable) {
+           return drawable.getBitmap()
+       }
         // Try absolute path first (works at runtime with NativeScript)
         val file = File(iconFilePath)
         if (file.exists()) {
@@ -1190,6 +1221,7 @@ object WeatherWidgetManager {
         // Only update settings to avoid triggering data refetch
         WidgetConfigStore.updateWidgetConfig(widgetId, config)
         WidgetsLogger.i(LOG_TAG, "Updated WidgetConfigStore for widgetId=$widgetId - widgets will recompose automatically")
+        forceGlanceUpdate(context, widgetId)
     }
 
     /**
