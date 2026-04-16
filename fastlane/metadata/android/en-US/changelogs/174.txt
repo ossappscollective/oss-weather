@@ -1,0 +1,13 @@
+Features:
+- support for BreezyWeather/GeometryWeather icon packs
+
+Bug fixes:
+- new settings to define data alignment in daily list items
+- ask for api key if needed on manual refresh
+- more adaptive widgets layouts
+- widgets option to open app on tap
+- widgets not updating on config update
+- swipe provider ignore providers without api key and wont store it for current location
+- new radar map using maptiler (you need a key)
+- open meteo option to NOT augment with best match
+- Translations update
