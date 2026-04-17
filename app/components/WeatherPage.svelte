@@ -18,7 +18,6 @@
     import { globalObservable, navigate, showModal } from '@shared/utils/svelte/ui';
     import dayjs from 'dayjs';
     import type { FeatureCollection, MultiPolygon } from 'geojson';
-    import { isCurrentLocation as isCurrentLocationWidget, notifyWidgetsWeatherUpdated, notifyWidgetsWeatherUpdatedForLocation } from 'plugin-widgets';
     import PolygonLookup from 'polygon-lookup';
     import { onDestroy, onMount } from 'svelte';
     import WeatherComponent from '~/components/WeatherComponent.svelte';
@@ -278,6 +277,7 @@
                 }
 
                 if (WIDGETS) {
+                    const { isCurrentLocation: isCurrentLocationWidget, notifyWidgetsWeatherUpdated, notifyWidgetsWeatherUpdatedForLocation } = await import('plugin-widgets');
                     // Notify widgets that weather data has been updated
                     try {
                         if (isCurrentLocationWidget(weatherLocation)) {
