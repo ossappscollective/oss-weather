@@ -33,7 +33,6 @@
     "animations_desc": "prikaži animacijo če jih ikone podpriajo",
     "api_key": "Ključ za API",
     "api_key_required": "Obvezen Ključ za API",
-    "owm_api_key_required_description": "Ustvarite uporabnik na OpenWeather da pridpbite gratis ključza API obvezen za prejemanje informacije o vremenu.\nAplikacija namreč ima svoj ključ, ampak da ostane v mejah gratis, vsak uporabnik mora ustvariti svoj ključ za API.",
     "app": {
         "name": "OSS Vreme"
     },
@@ -215,6 +214,8 @@
     "main_chart_show_wind": "prikaži hitrost vetra v glavnem pogledu urnega grafikona",
     "map": "Zemljevid",
     "map_settings": "Nastavitve zemljevida",
+    "maptiler_api_key": "Maptiler API ključ",
+    "maptiler_api_key_required_description": "Da lahko uporabite radarsko sliko za Maptiler, se morate registrirati za brezplačni API ključ na %1$s",
     "max_temperature": "Najvišja Temperatura",
     "medium": "Zmerno",
     "meteoblue": "meteoblue",
@@ -244,10 +245,13 @@
     "o3": "O₃",
     "ok": "V redu",
     "olea": "oliva",
+    "open_meteo_augment_model": "Izboljšaj modele z najbolj približno možnostjo",
+    "open_meteo_augment_model_desc": "ko se drugi model uporabi namesto najbolj približna možnost, se še vedno uporabijo podatki iz najbolj približne možnosti",
     "open_meteo_model": "Open-Meteo model",
     "open_meteo_prefered_model": "Prednostni model za Open-Meteo",
     "open_website": "Odpri povezavo",
     "owm_api_key": "OpenWeather API ključ",
+    "owm_api_key_required_description": "Ustvarite uporabnik na OpenWeather da pridpbite gratis ključza API obvezen za prejemanje informacije o vremenu.\nAplikacija namreč ima svoj ključ, ampak da ostane v mejah gratis, vsak uporabnik mora ustvariti svoj ključ za API.",
     "owm_one_call_version": "OneCall verzija",
     "partly_cloudy": "Delno oblačno",
     "permission_error": "manjka dovoljenje",
@@ -269,6 +273,7 @@
     "pressure": "pritisk",
     "provider": {
         "accuweather": "AccuWeather",
+        "maptiler": "Maptiler",
         "meteofrance": "Méteo France",
         "openmeteo": "Open-Meteo",
         "openweathermap": "OpenWeather",
