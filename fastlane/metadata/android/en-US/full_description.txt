@@ -1,5 +1,39 @@
-Open Source app to access detailed weather data from OpenWeather, Open-Meteo and Meteo France. Weather radar provided by RainViewer.
+Meet OSS Weather — a lightweight, privacy-first weather app built from open-source components to give you fast, clear and trustworthy forecasts without tracking or bloat.
 
-You can create a free OWM key to access OpenWeather weather data.
+Beautiful, simple, and fully customizable OSS Weather brings the essentials and the extras you actually use: instant current conditions, hour-by-hour and 10-day forecasts, interactive radar and weather maps, home screen widgets, severe weather alerts, and themes that fit your style.
 
-There is a default key included in the app but the access is limited and you could get errors related to rate limits.
+Key features
+
+* Local current conditions: temperature, feels-like, humidity, wind, pressure, visibility
+* Hourly and daily forecasts: plan your day and week with clear timelines
+* Interactive maps & radar: precipitation, clouds, radar overlays and zoomable maps
+* Severe weather & push notifications: timely alerts for your location (when enabled)
+* Home screen widgets: configurable sizes and layouts for quick glanceability
+* Multiple units & locales: metric/imperial, 12/24-hour time, language-aware formatting
+* Offline caching & efficient updates: view recent data when connectivity is limited
+* Customizable UI: light/dark themes, adjustable refresh intervals, compact or detailed layouts
+* Privacy-first: no user tracking, minimal permissions required (location & network only for local forecasts)
+* Open source on GitHub: inspect, fork, contribute — https://github.com/Akylas/oss-weather
+
+Why choose OSS Weather?
+
+* Transparency: the whole app is open-source — review the code, suggest improvements, or add features.
+* No surprises: we don’t collect analytics or sell your data. Location is used locally to provide accurate forecasts and alerts.
+* Lightweight and fast: designed to deliver the weather information you need quickly and with low battery impact.
+
+Permissions
+
+* Location (approx. or precise): optional — used to show nearby forecasts and enable local alerts.
+* Network / Internet access: required to fetch forecasts, maps, and updates. All other permissions are minimized; no analytics or ad-tracking permissions are included.
+
+Getting started
+
+* Grant location permission (optional) or choose a city manually.
+* Add a widget for quick glances from your home screen.
+* Customize units, theme and refresh frequency in Settings.
+
+Privacy & License This app is open-source and built with privacy in mind. See the repository for license details and the full source.
+
+Questions, bugs, feature requests? Open an issue or a pull request on GitHub: https://github.com/Akylas/oss-weather
+
+Install OSS Weather now — clean, transparent weather that respects your privacy.

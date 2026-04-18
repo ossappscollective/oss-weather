@@ -1,1 +1,1 @@
-Get weather from OpenWeather, Open-Meteo or Meteo-France
+Open-source, privacy-first weather app — forecasts, radar, widgets & alerts
