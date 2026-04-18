@@ -17,7 +17,6 @@
     import { showError } from '@shared/utils/showError';
     import { navigate } from '@shared/utils/svelte/ui';
     import dayjs from 'dayjs';
-    import { WIDGET_KINDS, WIDGET_NAMES, WidgetConfigManager } from 'plugin-widgets';
     import { onDestroy, onMount } from 'svelte';
     import CActionBar from '~/components/common/CActionBar.svelte';
     import ListItemAutoSize from '~/components/common/ListItemAutoSize.svelte';
@@ -101,7 +100,7 @@
         { icon: 'mdi-github', id: 'github' }
     ];
     export let subSettingsOptions: string = null;
-    export let options: (page, updateItem) => any[] = null;
+    export let options: (page, updateItem) => Promise<any[]> = null;
     if (!options && subSettingsOptions) {
         options = getSubSettings(subSettingsOptions);
     }
@@ -137,7 +136,7 @@
     function getSubSettings(id: string) {
         switch (id) {
             case 'appearance':
-                return () => [
+                return async () => [
                     {
                         id: 'theme',
                         description: () => getThemeDisplayName(),
@@ -198,7 +197,7 @@
                     }
                 ];
             case 'locales':
-                return () => [
+                return async () => [
                     {
                         id: SETTINGS_LANGUAGE,
                         description: () => getLocaleDisplayName(),
@@ -230,7 +229,7 @@
                     }
                 ];
             case 'charts':
-                return () => [
+                return async () => [
                     {
                         type: 'switch',
                         id: 'charts_landscape',
@@ -245,7 +244,7 @@
                     }
                 ];
             case 'units':
-                return () => [
+                return async () => [
                     {
                         type: 'switch',
                         id: SETTINGS_IMPERIAL,
@@ -332,7 +331,7 @@
                     }
                 ];
             case 'icons':
-                return (page, updateItem) => [
+                return async (page, updateItem) => [
                     {
                         type: 'switch',
                         id: 'animations',
@@ -370,7 +369,7 @@
                     }
                 ];
             case 'providers':
-                return () => {
+                return async () => {
                     const options = [
                         {
                             key: SETTINGS_PROVIDER,
@@ -435,7 +434,7 @@
                     return options;
                 };
             case 'weather_data':
-                return () => {
+                return async () => {
                     const currentData = weatherDataService.currentWeatherData;
                     const currentSmallData = weatherDataService.currentSmallWeatherData;
                     const allData = currentData.concat(currentSmallData);
@@ -521,9 +520,9 @@
                         );
                 };
             case 'map':
-                return () => MaptilerProvider.getSettings();
+                return async () => MaptilerProvider.getSettings();
             case 'geolocation':
-                return () => [
+                return async () => [
                     {
                         type: 'switch',
                         id: 'refresh_location_on_pull',
@@ -533,9 +532,9 @@
                 ];
             case 'integrations':
                 if (!__ANDROID__) {
-                    return () => [];
+                    return async () => [];
                 }
-                return () => [
+                return async () => [
                     {
                         type: 'switch',
                         id: 'gadgetbridge_enabled',
@@ -545,7 +544,7 @@
                     }
                 ];
             case 'hourly':
-                return () => [
+                return async () => [
                     {
                         type: 'switch',
                         id: SETTINGS_HOURLY_ODD_COLORS,
@@ -579,8 +578,9 @@
                     }
                 ];
             case 'widgets':
-                return (page, updateItem) => {
+                return async (page, updateItem) => {
                     if (WIDGETS) {
+                        const { WIDGET_KINDS, WIDGET_NAMES, WidgetConfigManager } = await import('plugin-widgets');
                         const configs = WidgetConfigManager.getAllConfigs();
                         const items: any[] = [
                             {
@@ -683,9 +683,9 @@
         }, 500);
     }
 
-    function refresh() {
+    async function refresh() {
         const newItems: any[] =
-            options?.(page, updateItem) ||
+            (await options?.(page, updateItem)) ||
             [
                 {
                     type: 'header',
@@ -1033,6 +1033,7 @@
                 }
                 case 'widget_update_frequency': {
                     if (WIDGETS) {
+                        const { WidgetConfigManager } = await import('plugin-widgets');
                         const frequencyOptions = [15, 30, 60, 120, 240, 360, 720, 1440].map((mins) => ({
                             title: mins < 60 ? `${mins} min` : mins === 60 ? '1 hour' : `${mins / 60} hours`,
                             data: mins
@@ -1052,6 +1053,9 @@
                 }
                 case 'widget_open_app_on_tap': {
                     if (WIDGETS) {
+                        // import { WIDGET_KINDS, WIDGET_NAMES, WidgetConfigManager } from 'plugin-widgets';
+                        const { WidgetConfigManager } = await import('plugin-widgets');
+
                         const frequencyOptions = [15, 30, 60, 120, 240, 360, 720, 1440].map((mins) => ({
                             title: mins < 60 ? `${mins} min` : mins === 60 ? '1 hour' : `${mins / 60} hours`,
                             data: mins
@@ -1387,6 +1391,7 @@
                     break;
                 case 'widget_open_app_on_tap':
                     if (WIDGETS && __ANDROID__) {
+                        const { WidgetConfigManager } = await import('plugin-widgets');
                         WidgetConfigManager.setOpenAppOnWidgetTap(value);
                     }
                     break;
@@ -1499,12 +1504,12 @@
                 <label class="sectionHeader" {...item.additionalProps || {}} text={item.title} />
             </Template>
             <Template key="switch" let:item>
-                <ListItemAutoSize item={{ ...item, title: getTitle(item), subtitle: getDescription(item) }} leftIcon={item.icon} on:tap={(event) => onTap(item, event)}>
+                <ListItemAutoSize item={{ ...item, title: getTitle(item), subtitle: getDescription(item) }} on:tap={(event) => onTap(item, event)}>
                     <switch id="checkbox" checked={item.value} col={1} marginLeft={10} verticalAlignment="center" on:checkedChange={(e) => onCheckBox(item, e)} />
                 </ListItemAutoSize>
             </Template>
             <Template key="checkbox" let:item>
-                <ListItemAutoSize item={{ ...item, title: getTitle(item), subtitle: getDescription(item) }} leftIcon={item.icon} on:tap={(event) => onTap(item, event)}>
+                <ListItemAutoSize item={{ ...item, title: getTitle(item), subtitle: getDescription(item) }} on:tap={(event) => onTap(item, event)}>
                     <checkbox id="checkbox" checked={item.value} col={1} on:checkedChange={(e) => onCheckBox(item, e)} />
                 </ListItemAutoSize>
             </Template>
