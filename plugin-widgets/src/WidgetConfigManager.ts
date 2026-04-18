@@ -1,12 +1,9 @@
-// app/services/widgets/shared/WidgetConfigManager.ts
-// Shared configuration management for widgets (platform-agnostic)
-
 import { ApplicationSettings, Utils } from '@nativescript/core';
 import { DEFAULT_UPDATE_FREQUENCY, WidgetConfig } from './WidgetTypes';
 import { lc } from '@nativescript-community/l';
 import { getDefaultKindConfig } from './WidgetKindConfigs';
 import { WIDGET_KINDS } from './WidgetKindConfigs';
-import { widgetService } from 'plugin-widgets/WidgetBridge';
+import type { WidgetBridge } from 'plugin-widgets/WidgetBridge';
 
 const WIDGET_CONFIGS_KEY = 'widget_configs'; // per-instance configs
 const WIDGET_KIND_CONFIGS_KEY = 'widget_kind_configs'; // per-kind default configs
@@ -30,6 +27,14 @@ export const WIDGET_NAMES = {
 export class WidgetConfigManager {
     private static configs: { [widgetId: string]: WidgetConfig };
     private static kindConfigs: { [kind: string]: WidgetConfig };
+    private static widgetService: WidgetBridge;
+
+    static async getWidgetBridge() {
+        if (!WidgetConfigManager.widgetService) {
+            WidgetConfigManager.widgetService = (await import('plugin-widgets/WidgetBridge')).widgetService;
+        }
+        return WidgetConfigManager.widgetService;
+    }
 
     private static loadConfigs() {
         const data = ApplicationSettings.getString(WIDGET_CONFIGS_KEY);
@@ -157,12 +162,12 @@ export class WidgetConfigManager {
     /**
      * Save configuration for specific widget instance
      */
-    static saveConfig(widgetId: string, config: WidgetConfig, widgetKind?: string): void {
+    static async saveConfig(widgetId: string, config: WidgetConfig, widgetKind?: string) {
         const configs = this.getAllConfigs();
         config.widgetKind = widgetKind || config.widgetKind;
         configs[widgetId] = config;
         this.saveAllConfigs();
-        widgetService.saveWidgetConfig(widgetId, config);
+        (await this.getWidgetBridge()).saveWidgetConfig(widgetId, config);
         // DEV_LOG && console.log(TAG, 'saveConfig (instance)', widgetId, configs[widgetId]);
     }
 
@@ -252,13 +257,13 @@ export class WidgetConfigManager {
     /**
      * Set cache timeout in seconds
      */
-    static setCacheTimeout(seconds: number): void {
+    static async setCacheTimeout(seconds: number) {
         // DEV_LOG && console.log(TAG, 'setCacheTimeout', seconds);
         ApplicationSettings.setNumber(CACHE_TIMEOUT_KEY, seconds);
 
         if (__ANDROID__) {
             try {
-                widgetService.setCacheTimeout(seconds * 1000);
+                (await this.getWidgetBridge()).setCacheTimeout(seconds * 1000);
             } catch (error) {
                 console.error(TAG, 'Failed to update widget service cache timeout:', error, error.stack);
             }
