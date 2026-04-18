@@ -48,8 +48,8 @@
             "type": "stack",
             "fillWidth": true,
             "fillHeight": true,
-            "paddingHorizontal": ["min", ["*", ["get", "size.width"], 0.05], 10],
-            "paddingVertical": ["min", ["*", ["get", "size.height"], 0.07], 6],
+            "paddingHorizontal": ["min", ["*", ["get", "size.width"], 0.1], 16],
+            "paddingVertical": ["min", ["*", ["get", "size.height"], 0.14], 16],
             "children": [
                 {
                     "type": "label",

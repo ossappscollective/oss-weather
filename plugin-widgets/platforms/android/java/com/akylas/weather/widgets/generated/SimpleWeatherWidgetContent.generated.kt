@@ -120,7 +120,7 @@ fun SimpleWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
     }
     else {
         Box(
-            modifier = GlanceModifier.fillMaxWidth().fillMaxHeight().padding(horizontal = (min((size.width.value * 0.05f), 10.0f)).dp, vertical = (min((size.height.value * 0.07f), 6.0f)).dp)
+            modifier = GlanceModifier.fillMaxWidth().fillMaxHeight().padding(horizontal = (min((size.width.value * 0.1f), 16.0f)).dp, vertical = (min((size.height.value * 0.14f), 16.0f)).dp)
         ) {
             Text(
                 text = data.locationName,

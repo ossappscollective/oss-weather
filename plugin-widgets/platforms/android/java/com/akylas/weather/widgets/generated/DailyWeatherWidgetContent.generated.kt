@@ -173,7 +173,6 @@ fun DailyWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
                             verticalAlignment = Alignment.Vertical.CenterVertically,
                         ) {
                             Text(
-                                modifier = GlanceModifier.width((30 * fontScaleFactor).dp),
                                 text = item.day,
                                 style = TextStyle(fontSize = (12 * fontScaleFactor).sp, fontWeight = FontWeight.Medium, color = widgetColor),
                                 maxLines = 1

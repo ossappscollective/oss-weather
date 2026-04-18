@@ -725,6 +725,7 @@ object WeatherWidgetManager {
         
         // Also update cache for persistence
         widgetDataCache[widgetId] = loadingData
+        forceGlanceUpdate(context, widgetId)
     }
     
     /**
@@ -744,6 +745,7 @@ object WeatherWidgetManager {
         
         // Also update cache for persistence
         widgetDataCache[widgetId] = errorData
+        forceGlanceUpdate(context, widgetId)
     }
 
     /**
@@ -894,6 +896,7 @@ object WeatherWidgetManager {
         WidgetDataStore.updateWidgetData(widgetId, data)
         
         WidgetsLogger.i(LOG_TAG, "Widget data updated for widgetId=$widgetId (reactive)")
+        forceGlanceUpdate(context, widgetId)
     }
 
     /**

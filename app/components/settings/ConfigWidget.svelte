@@ -111,7 +111,7 @@
         config.settings = config.settings || {};
     }
 
-    function saveConfig(updateData = false) {
+    async function saveConfig(updateData = false) {
         DEV_LOG && console.log('saveConfig', isKindConfig, config);
         if (isKindConfig) {
             // Save per-kind default config
@@ -119,7 +119,7 @@
             showSnack({ message: lc('widget_kind_config_saved') });
         } else if (widgetId) {
             // Save per-instance config
-            WidgetConfigManager.saveConfig(widgetId, config, widgetClass);
+            await WidgetConfigManager.saveConfig(widgetId, config, widgetClass);
             showSnack({ message: lc('widget_config_saved') });
 
             // Trigger widget update
