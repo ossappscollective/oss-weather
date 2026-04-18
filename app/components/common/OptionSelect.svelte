@@ -427,6 +427,7 @@
                     on:tap={(event) => onTap(item, event)}>
                 </svelte:component>
             </Template>
+            <slot name="templates" />
         </collectionView>
     </gridlayout>
 </gesturerootview>
