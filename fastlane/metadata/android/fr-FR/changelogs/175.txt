@@ -1,0 +1,3 @@
+Bug fixes:
+- widgets not updating on update frequency
+- Translations update
