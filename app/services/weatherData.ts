@@ -67,7 +67,6 @@ export function propToUnit(prop: WeatherProps, item?: CommonWeatherData, options
         case WeatherProps.iso:
         case WeatherProps.cloudCeiling:
         case WeatherProps.rainSnowLimit:
-            return unitsSettings[UNIT_FAMILIES.Distance];
         case WeatherProps.waveHeight:
         case WeatherProps.waveHeightMax:
         case WeatherProps.swellHeight:
@@ -109,7 +108,6 @@ export function defaultPropUnit(prop: WeatherProps) {
             return UNITS.PressureHpa;
         case WeatherProps.iso:
         case WeatherProps.cloudCeiling:
-            return UNITS.Meters;
         case WeatherProps.waveHeight:
         case WeatherProps.waveHeightMax:
         case WeatherProps.swellHeight:

@@ -74,7 +74,7 @@ function cacheKey(prefix: string, lat: number, lon: number) {
 }
 
 /** Returns cached marine location info (or null if expired/absent) */
-function getCachedMarineLocation(lat: number, lon: number): MeteoConsultMarineLocation | null | false {
+function getCachedMarineLocation(lat: number, lon: number): MeteoConsultMarineLocation | null | undefined {
     const key = cacheKey('marine_location', lat, lon);
     const raw = ApplicationSettings.getString(key);
     if (!raw) {
