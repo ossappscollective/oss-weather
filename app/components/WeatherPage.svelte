@@ -44,6 +44,7 @@
         queryTimezone,
         renameFavorite,
         setFavoriteAqiProvider,
+        setFavoriteMarineProvider,
         setFavoriteOMProviderModel,
         setFavoriteProvider,
         toggleFavorite
@@ -56,7 +57,7 @@
     import { onIconPackChanged } from '~/services/icon';
     import { MFProvider } from '~/services/providers/mf';
     import { OpenMeteoModels, getOMPreferredModel } from '~/services/providers/om';
-    import type { AqiProviderType, DailyData, Hourly, ProviderType, WeatherData } from '~/services/providers/weather';
+    import type { AqiProviderType, DailyData, Hourly, MarineProviderType, ProviderType, WeatherData } from '~/services/providers/weather';
     import {
         Providers,
         ProvidersClasses,
@@ -71,6 +72,7 @@
         providerRequiresApiKey,
         providers
     } from '~/services/providers/weatherproviderfactory';
+    import { getMarineWeather, searchMarineLocation } from '~/services/providers/meteoconsult';
     import { WeatherProps, mergeWeatherData, onWeatherDataChanged, weatherDataService } from '~/services/weatherData';
     import { parseUrlQueryParameters } from '~/utils/http';
     import { hideLoading, selectValue, showLoading, showPopoverMenu, showToast, tryCatchFunction } from '~/utils/ui';
@@ -162,6 +164,12 @@
                             iconFontSize: 15,
                             id: 'meteo_blue',
                             name: lc('meteoblue')
+                        },
+                        {
+                            icon: 'mdi-waves',
+                            id: 'provider_marine',
+                            subtitle: lc('provider_marine.' + (weatherLocation?.providerMarine ?? 'none')),
+                            name: lc('provider_marine.title')
                         }
                     ] as any)
                 );
@@ -215,6 +223,9 @@
                                 case 'meteo_blue':
                                     const MeteoBlue = (await import('~/components/MeteoBlue.svelte')).default;
                                     navigate({ page: MeteoBlue, props: { weatherLocation } });
+                                    break;
+                                case 'provider_marine':
+                                    await selectMarineProvider(weatherLocation);
                                     break;
                                 case 'bra':
                                     DEV_LOG && console.log('finding bra');
@@ -273,6 +284,19 @@
                     if (aqiData) {
                         mergeWeatherData(weatherData, aqiData);
                         await updateView();
+                    }
+                }
+
+                if (weatherLocation.providerMarine === 'meteoconsult') {
+                    try {
+                        const { lat, lon } = weatherLocation.coord;
+                        const marineLocation = await searchMarineLocation(lat, lon);
+                        if (marineLocation) {
+                            await getMarineWeather(weatherData, lat, lon);
+                            await updateView();
+                        }
+                    } catch (marineError) {
+                        DEV_LOG && console.error('marine weather fetch failed', marineError);
                     }
                 }
 
@@ -624,7 +648,7 @@
             getDailyPageProps,
             itemIndex: items.indexOf(item),
             items,
-            item: { ...item, hourly: startIndex >= 0 && endIndex - startIndex >= 2 ? hourly.slice(startIndex, endIndex) : [] },
+            item: { ...item, hourly: startIndex >= 0 && endIndex - startIndex >= 2 ? hourly.slice(startIndex, endIndex) : [], tides: weatherData?.tides },
             location: weatherLocation,
             startTime: dayjs(item.time),
             weatherLocation,
@@ -715,6 +739,18 @@
         }
     }
 
+    async function selectMarineProvider(location: WeatherLocation) {
+        const marineProviders: { data: MarineProviderType; title: string }[] = [
+            { data: null, title: lc('provider_marine.none') },
+            { data: 'meteoconsult', title: lc('provider_marine.meteoconsult') }
+        ];
+        const current: MarineProviderType = location.providerMarine ?? null;
+        const value = await selectValue<MarineProviderType>(marineProviders, current, { title: lc('provider_marine.title') });
+        if (value !== undefined) {
+            setWeatherLocationMarineProvider(value, location);
+        }
+    }
+
     // function swipeMenuTranslationFunction(side, width, value, delta, progress) {
     //     const result = {
     //         mainContent: {
@@ -771,6 +807,15 @@
             setFavoriteAqiProvider(location, provider);
         } else if (isCurrentLocation(location)) {
             saveWeatherLocation();
+            refreshWeather();
+        }
+    }
+    function setWeatherLocationMarineProvider(provider: MarineProviderType, location: WeatherLocation = weatherLocation) {
+        location.providerMarine = provider;
+        saveWeatherLocation();
+        if (isFavorite(location)) {
+            setFavoriteMarineProvider(location, provider);
+        } else if (isCurrentLocation(location)) {
             refreshWeather();
         }
     }
@@ -958,6 +1003,12 @@
                     name: lc('provider_aqi.title')
                 },
                 {
+                    icon: 'mdi-waves',
+                    id: 'provider_marine',
+                    subtitle: lc('provider_marine.' + (favItem?.providerMarine ?? 'none')),
+                    name: lc('provider_marine.title')
+                },
+                {
                     icon: 'mdi-chart-bar',
                     id: 'compare',
                     name: lc('compare_models')
@@ -1047,6 +1098,9 @@
                                     break;
                                 case 'provider_aqi':
                                     await selectProviderAQI(favItem);
+                                    break;
+                                case 'provider_marine':
+                                    await selectMarineProvider(favItem);
                                     break;
                                 case 'om_model':
                                     await selectOMProviderModel(favItem);

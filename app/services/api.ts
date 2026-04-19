@@ -12,7 +12,7 @@ import { FavoriteLocation } from '~/helpers/favorites';
 import { getStartOfDay, lang } from '~/helpers/locale';
 import { NominatimResult } from '../../typings/nominatim';
 import { Photon, PhotonProperties } from '../../typings/photon';
-import { AqiProviderType, ProviderType, WeatherData } from './providers/weather';
+import { AqiProviderType, MarineProviderType, ProviderType, WeatherData } from './providers/weather';
 import { WeatherProps } from './weatherData';
 import { OpenMeteoModels } from './providers/om';
 
@@ -426,6 +426,7 @@ export interface WeatherLocation {
     provider?: ProviderType;
     omModel?: OpenMeteoModels;
     providerAqi?: AqiProviderType;
+    providerMarine?: MarineProviderType;
 }
 const PHOTON_SUPPORTED_LANGUAGES = ['en', 'de', 'fr'];
 
