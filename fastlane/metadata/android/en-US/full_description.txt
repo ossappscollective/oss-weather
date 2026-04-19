@@ -1,39 +1,43 @@
-Meet OSS Weather — a lightweight, privacy-first weather app built from open-source components to give you fast, clear and trustworthy forecasts without tracking or bloat.
+OSS Weather — a lightweight, privacy-first, open-source weather app for Android that gives you fast, clear, and trustworthy forecasts without tracking or ads.
 
-Beautiful, simple, and fully customizable OSS Weather brings the essentials and the extras you actually use: instant current conditions, hour-by-hour and 10-day forecasts, interactive radar and weather maps, home screen widgets, severe weather alerts, and themes that fit your style.
+Key Android features
 
-Key features
+* Local current conditions: temperature, feels‑like, humidity, wind (speed & direction), pressure, and visibility.
+* Hourly, minutely and multi-day forecasts: interactive timelines with up to 48‑hour hourly data and 7–14 day daily summaries (provider dependent).
+* Radar maps: animated precipitation radar (MapTiler), zoom / pan and time layers — note: the map interface currently shows radar overlays.
+* Home screen widgets: multiple widget sizes and configurable layouts for quick glances and real‑time updates.
+* Multiple weather providers: switch between OpenWeather, Open‑Meteo, AccuWeather and Meteo France; supply your own API key if necessary.
+* Offline caching & efficient updates: recent data stays available when connectivity is limited and background refresh is optimized for low battery impact.
+* Customizable UI & appearance: light/dark/auto theme, compact or detailed layouts, and locale‑aware formatting.
+* Privacy & open source: no ads, no tracking or analytics (only optional crash reporting); full source code under MIT license.
 
-* Local current conditions: temperature, feels-like, humidity, wind, pressure, visibility
-* Hourly and daily forecasts: plan your day and week with clear timelines
-* Interactive maps & radar: precipitation, clouds, radar overlays and zoomable maps
-* Severe weather & push notifications: timely alerts for your location (when enabled)
-* Home screen widgets: configurable sizes and layouts for quick glanceability
-* Multiple units & locales: metric/imperial, 12/24-hour time, language-aware formatting
-* Offline caching & efficient updates: view recent data when connectivity is limited
-* Customizable UI: light/dark themes, adjustable refresh intervals, compact or detailed layouts
-* Privacy-first: no user tracking, minimal permissions required (location & network only for local forecasts)
-* Open source on GitHub: inspect, fork, contribute — https://github.com/Akylas/oss-weather
+Astronomy & sun/moon data
 
-Why choose OSS Weather?
+* Sun information: sunrise, sunset
+* Moon information: moonrise, moonset, moon phase, moon position and related path/visuals.
 
-* Transparency: the whole app is open-source — review the code, suggest improvements, or add features.
-* No surprises: we don’t collect analytics or sell your data. Location is used locally to provide accurate forecasts and alerts.
-* Lightweight and fast: designed to deliver the weather information you need quickly and with low battery impact.
+Data you can view (examples)
 
-Permissions
+* Temperatures: current, hourly, daily high/low, feels‑like
+* Precipitation: probability, amount, minute‑by‑minute (where supported)
+* Wind: speed, gusts, bearing/direction
+* Atmospheric: pressure trends, humidity, dew point, cloud cover
+* UV index, visibility, and other provider‑specific metrics
+* Air Quality (AQI) and individual pollutant breakdowns when the selected provider supplies that data
 
-* Location (approx. or precise): optional — used to show nearby forecasts and enable local alerts.
-* Network / Internet access: required to fetch forecasts, maps, and updates. All other permissions are minimized; no analytics or ad-tracking permissions are included.
+Settings & customization
 
-Getting started
+* Icons style: choose between multiple icon styles. Supports icon providers from Breezy Weather and Geometric Weather
+* Units: temperature, wind, pressure, precipitation, distance, ...
+* Time format: 12/24‑hour toggle and locale‑aware formatting
+* Provider & API keys: choose provider and enter your own API key to avoid rate limits or use the included default key (rate limits may apply)
+* Refresh frequency: configurable background refresh intervals and widget update cadence
+* Widget options: choose saved location, select displayed metrics, and pick widget style/size
+* Location: use device location (approximate or precise) or add/manage locations manually
 
-* Grant location permission (optional) or choose a city manually.
-* Add a widget for quick glances from your home screen.
-* Customize units, theme and refresh frequency in Settings.
+Permissions (minimal)
 
-Privacy & License This app is open-source and built with privacy in mind. See the repository for license details and the full source.
+* Location (optional): used only to provide local forecasts and radar centered on your location
+* Network / Internet: required to fetch forecasts, maps and provider data
 
-Questions, bugs, feature requests? Open an issue or a pull request on GitHub: https://github.com/Akylas/oss-weather
-
-Install OSS Weather now — clean, transparent weather that respects your privacy.
+Privacy & contributions OSS Weather is designed to respect your privacy — no tracking, no ads. The project is open source (MIT). Inspect, fork, report bugs or contribute on GitHub: https://github.com/Akylas/oss-weather
