@@ -17,6 +17,7 @@
     import CActionBar from './common/CActionBar.svelte';
     import HourlyChartView from './HourlyChartView.svelte';
     import HourlyView from './HourlyView.svelte';
+    import TidesChartView from './TidesChartView.svelte';
     import WeatherIcon from './WeatherIcon.svelte';
     const weatherIconSize = 100;
     const PADDING_LEFT = 7;
@@ -77,45 +78,6 @@
         const end = startTime.endOf('day').valueOf();
         return item.tides.filter((t) => t.time >= start && t.time <= end);
     })();
-
-    function drawTides({ canvas }: { canvas: Canvas }) {
-        const w = canvas.getWidth();
-        const h = canvas.getHeight();
-        const dx = 25;
-        canvas.drawText(lc('tides'), dx - 5, 25 * $fontScale, titlesPaint);
-
-        // Draw a simple tide chart: plot tide heights as a mini bar/point chart
-        if (dayTides.length === 0) return;
-
-        const maxH = Math.max(...dayTides.map((t) => t.height), 0.1);
-        const chartTop = 40 * $fontScale;
-        const chartBottom = h - 25 * $fontScale;
-        const chartHeight = chartBottom - chartTop;
-        const colWidth = (w - 2 * dx) / dayTides.length;
-
-        dayTides.forEach((tide, index) => {
-            const x = dx + index * colWidth + colWidth / 2;
-            const barH = (tide.height / maxH) * chartHeight;
-            const y = chartBottom - barH;
-
-            indicatorPaint.color = tide.type === 'high' ? '#0288d1' : '#80cbc4';
-            canvas.drawRect(x - colWidth * 0.3, y, x + colWidth * 0.3, chartBottom, indicatorPaint);
-
-            dataPaint.setTextAlign(Align.CENTER);
-            dataPaint.textSize = 11 * $fontScale;
-            dataPaint.color = colorOnSurface;
-            const timeStr = dayjs(tide.time).format('HH:mm');
-            canvas.drawText(timeStr, x, chartBottom + 15 * $fontScale, dataPaint);
-            canvas.drawText(tide.height.toFixed(2) + 'm', x, y - 4 * $fontScale, dataPaint);
-            if (tide.coef != null) {
-                subtitlesPaint.setTextAlign(Align.CENTER);
-                subtitlesPaint.textSize = 10 * $fontScale;
-                canvas.drawText(`(${tide.coef})`, x, y - 15 * $fontScale, subtitlesPaint);
-            }
-            dataPaint.setTextAlign(Align.LEFT);
-        });
-        canvas.drawLine(0, h - 1, w, h - 1, subtitlesPaint);
-    }
 
     onIconAnimationsChanged((event) => (animated = event.animated));
     onFontScaleChanged(redraw);
@@ -491,7 +453,7 @@
                     <canvasview height={Math.ceil((Object.keys(item.pollens).length / 2) * 40 + 55) * $fontScale} on:draw={drawPollens} />
                 {/if}
                 {#if dayTides.length > 0}
-                    <canvasview height={(dayTides.length * 70 + 55) * $fontScale} on:draw={drawTides} />
+                    <TidesChartView tides={dayTides} {startTime} {timezoneOffset} />
                 {/if}
                 <AstronomyView {isCurrentDay} {location} selectableDate={false} startTime={isCurrentDay ? dayjs() : startTime} {timezoneOffset} />
             </stacklayout>
