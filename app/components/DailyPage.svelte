@@ -453,8 +453,10 @@
                     <canvasview height={Math.ceil((Object.keys(item.pollens).length / 2) * 40 + 55) * $fontScale} on:draw={drawPollens} />
                 {/if}
                 {#if dayTides.length > 0}
-                    <TidesChartView tides={dayTides} {startTime} {timezoneOffset} />
+                    <label color="#0288d1" fontSize={17} fontWeight="bold" padding={10} text={lc('tides')} />
+                    <TidesChartView {startTime} tides={dayTides} {timezoneOffset} />
                 {/if}
+                <label color="#ffa500" fontSize={17} fontWeight="bold" padding={10} text={lc('astronomy')} />
                 <AstronomyView {isCurrentDay} {location} selectableDate={false} startTime={isCurrentDay ? dayjs() : startTime} {timezoneOffset} />
             </stacklayout>
         </scrollview>

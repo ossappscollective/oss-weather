@@ -26,6 +26,7 @@
 
 <script lang="ts">
     import type { Dayjs } from 'dayjs';
+    import { Rounding } from '@nativescript-community/ui-chart/data/DataSet';
 
     export let tides: Tide[] = [];
     export let startTime: Dayjs;
@@ -63,9 +64,9 @@
     }
 
     function tidesToEntries() {
-        const computeStartTime = getComputeStartTime();
+        const computeStartTime = Math.min(getComputeStartTime().valueOf(), tides[0].time);
         return tides.map((tide) => ({
-            x: (tide.time - computeStartTime.valueOf()) / 60000 / 10,
+            x: (tide.time - computeStartTime) / 60000,
             y: tide.height
         }));
     }
@@ -86,7 +87,7 @@
             const xAxis = chart.xAxis;
 
             leftAxis.textColor = xAxis.textColor = highlightPaint.color = colorOnSurface;
-            chart.setExtraOffsets(0, 0, 0, 0);
+            chart.setExtraOffsets(0, 10, 0, 40);
             chart.minOffset = 0;
             chart.clipDataToContent = false;
             chart.highlightPerTapEnabled = true;
@@ -94,16 +95,13 @@
             chart.customRenderer = {
                 drawHighlight(c: Canvas, h: Highlight<any>, set: LineDataSet, paint: Paint) {
                     highlightPaint.setTextSize(10 * $fontScale);
-                    c.drawLine(h.drawX, 0, h.drawX, c.getHeight(), highlightPaint);
+                    c.drawLine(h.drawX, 0, h.drawX, c.getHeight() - 46, highlightPaint);
                     const x = h.x;
-                    const closest = tides.reduce((prev, curr) => {
-                        const prevX = (prev.time - computeStartTime.valueOf()) / 60000 / 10;
-                        const currX = (curr.time - computeStartTime.valueOf()) / 60000 / 10;
-                        return Math.abs(currX - x) < Math.abs(prevX - x) ? curr : prev;
-                    });
+                    const tideIndex = set.getEntryIndexForXValue(x, NaN, Rounding.CLOSEST);
+                    const tide = tides[tideIndex];
                     highlightPaint.setTextAlign(Align.LEFT);
                     let xPos = h.drawX + 4;
-                    const text = formatTime(closest.time, undefined, timezoneOffset);
+                    const text = formatTime(tide.time, undefined, timezoneOffset);
                     const size = Utils.calcTextSize(highlightPaint, text);
                     if (xPos > c.getWidth() - size.width) {
                         xPos = h.drawX - 4;
@@ -117,11 +115,13 @@
             const minH = Math.max(0, Math.min(...heights) - 0.5);
             const maxH = Math.max(...heights) + 0.3;
 
-            leftAxis.labelCount = 3;
+            leftAxis.drawLabels = false;
             leftAxis.drawGridLines = false;
             leftAxis.drawAxisLine = false;
-            leftAxis.axisMinimum = minH;
-            leftAxis.axisMaximum = maxH;
+            // leftAxis.axisMinimum = minH;
+            // leftAxis.axisMaximum = maxH;
+            // leftAxis.spaceBottom = 100;
+            // leftAxis.spaceTop = 100;
 
             xAxis.position = XAxisPosition.BOTTOM_INSIDE;
             xAxis.drawAxisLine = false;
@@ -129,11 +129,26 @@
             xAxis.ensureVisible = true;
             xAxis.labelTextAlign = Align.CENTER;
             xAxis.drawLabels = true;
-            xAxis.forcedInterval = 24;
-            xAxis.valueFormatter = {
-                getAxisLabel(value: any, axis: AxisBase) {
-                    const time = computeStartTime.add(value * 10, 'minutes').valueOf();
-                    return formatTime(time, undefined, timezoneOffset);
+            xAxis.forceLabelsEnabled = true;
+            xAxis.labelCount = tides.length;
+            xAxis.spaceMin = 100;
+            xAxis.spaceMax = 100;
+
+            labelPaint.textSize = 13 * $fontScale;
+            labelPaint.color = colorOnSurface;
+            labelPaint.setTextAlign(Align.CENTER);
+            xAxis.customRenderer = {
+                drawLabel: (c: Canvas, axis: AxisBase, text: string, x: number, y: number, paint: Paint, anchor, angleDegrees?: number) => {
+                    const w = c.getWidth();
+                    const h = chart.getHighlightByTouchPoint(x, y);
+                    const tide = tides[h.entryIndex];
+                    const timeStr = formatTime(tide.time, undefined, timezoneOffset);
+                    const heightStr = tide.height.toFixed(0) + 'm' + (tide.coef != null ? ` (${tide.coef})` : '');
+                    const isHigh = tide.type === 'high';
+                    labelPaint.color = isHigh ? '#0288d1' : '#80cbc4';
+                    c.drawText((isHigh ? '▲ ' : '▼ ') + timeStr, h.xPx, y + 35 - 2 * $fontScale, labelPaint);
+                    labelPaint.color = colorOnSurface;
+                    c.drawText(heightStr, h.xPx, y + 35 + 14 * $fontScale, labelPaint);
                 }
             };
 
@@ -149,19 +164,19 @@
             set.mode = Mode.CUBIC_BEZIER;
             set.drawCirclesEnabled = true;
             set.circleRadius = 5;
-            set.setCircleColor('#0288d1');
+            // set.setCircleColor('#0288d1');
             set.drawValuesEnabled = true;
             set.valueTextSize = 11 * $fontScale;
             set.valueTextColor = colorOnSurface;
             set.valueFormatter = {
-                getFormattedValue(value: number) {
+                getFormattedValue(value: number, entry?) {
                     return value.toFixed(2) + 'm';
                 }
-            };
+            } as any;
 
             chart.data = new LineData([set]);
         } else {
-            const dataSet = chart.data?.getDataSetByIndex(0) as LineDataSet;
+            const dataSet = chart.data?.getDataSetByIndex(0);
             if (dataSet) {
                 dataSet.values = entries;
                 dataSet.notifyDataSetChanged();
@@ -206,9 +221,7 @@
     }
 </script>
 
-<gridlayout rows="200,50" {...$$restProps}>
-    <linechart bind:this={chartView} row={0} />
-    {#if tides.length}
+<linechart bind:this={chartView} height={200} {...$$restProps} />
+<!-- {#if tides.length}
         <canvasview padding="0 10 0 10" row={1} on:draw={drawTideLabels} />
-    {/if}
-</gridlayout>
+    {/if} -->
