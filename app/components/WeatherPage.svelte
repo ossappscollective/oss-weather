@@ -289,14 +289,13 @@
 
                 if (weatherLocation.providerMarine === 'meteoconsult') {
                     try {
-                        const { lat, lon } = weatherLocation.coord;
-                        const marineLocation = await searchMarineLocation(lat, lon);
+                        const marineLocation = await searchMarineLocation(weatherLocation);
                         if (marineLocation) {
-                            await getMarineWeather(weatherData, lat, lon);
+                            await getMarineWeather(weatherData, marineLocation, weatherLocation);
                             await updateView();
                         }
-                    } catch (marineError) {
-                        DEV_LOG && console.error('marine weather fetch failed', marineError);
+                    } catch (error) {
+                        DEV_LOG && console.error('marine weather fetch failed', error, error.stack);
                     }
                 }
 
@@ -648,7 +647,7 @@
             getDailyPageProps,
             itemIndex: items.indexOf(item),
             items,
-            item: { ...item, hourly: startIndex >= 0 && endIndex - startIndex >= 2 ? hourly.slice(startIndex, endIndex) : [], tides: weatherData?.tides },
+            item: { ...item, hourly: startIndex >= 0 && endIndex - startIndex >= 2 ? hourly.slice(startIndex, endIndex) : [] },
             location: weatherLocation,
             startTime: dayjs(item.time),
             weatherLocation,

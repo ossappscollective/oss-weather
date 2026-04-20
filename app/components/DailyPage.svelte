@@ -71,6 +71,7 @@
 
     /** Tides that fall within the current day (start of day → end of day) */
     $: dayTides = (() => {
+        DEV_LOG && console.log('dayTides', JSON.stringify(item.tides), JSON.stringify(item));
         if (!item.tides?.length) return [];
         const start = startTime.startOf('day').valueOf();
         const end = startTime.endOf('day').valueOf();

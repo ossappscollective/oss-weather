@@ -221,10 +221,10 @@ const WEATHER_DATA_ICONS = {
     [WeatherProps.precipAccumulation]: (item: CommonWeatherData) => item.precipIcon,
     [WeatherProps.rainPrecipitation]: 'wi-raindrop',
     [WeatherProps.snowfall]: 'wi-snowflake-cold',
-    [WeatherProps.seaTemperature]: 'mdi-thermometer-water',
-    [WeatherProps.waveHeight]: 'wi-waves',
-    [WeatherProps.waveHeightMax]: 'wi-waves',
-    [WeatherProps.swellHeight]: 'wi-waves'
+    [WeatherProps.seaTemperature]: 'mdi-coolant-temperature',
+    [WeatherProps.waveHeight]: 'mdi-waves-arrow-up',
+    [WeatherProps.waveHeightMax]: 'mdi-waves-arrow-up',
+    [WeatherProps.swellHeight]: 'mdi-wave-arrow-up'
 };
 const WEATHER_DATA_SHORT_TITLES = {
     [WeatherProps.snowfall]: lt('snow'),
@@ -825,6 +825,41 @@ export class DataService extends Observable {
                         paint: wiPaint,
                         iconFontSize,
                         icon
+                    };
+                }
+                break;
+            case WeatherProps.waveHeight:
+                if (Math.round(item.waveHeight) > 0 || Math.round(item.waveHeightMax) > 0) {
+                    return {
+                        key,
+                        iconFontSize,
+                        iconColor: getWeatherDataColor(key),
+                        paint: mdiPaint,
+                        icon,
+                        value: formatValueToUnit(item.waveHeight, propToUnit(key, item), defaultPropUnit(key)),
+                        subvalue: lc('max') + ': ' + formatValueToUnit(item.waveHeightMax, propToUnit(key, item), defaultPropUnit(key))
+                    };
+                }
+                break;
+            case WeatherProps.seaTemperature:
+                return {
+                    key,
+                    iconFontSize,
+                    iconColor: getWeatherDataColor(key),
+                    paint: mdiPaint,
+                    icon,
+                    value: formatWeatherValue(item, key)
+                };
+                break;
+            case WeatherProps.swellHeight:
+                if (Math.round(item.swellHeight) > 0) {
+                    return {
+                        key,
+                        iconFontSize,
+                        iconColor: getWeatherDataColor(key),
+                        paint: mdiPaint,
+                        icon,
+                        value: formatValueToUnit(item.waveHeight, propToUnit(key, item), defaultPropUnit(key))
                     };
                 }
                 break;

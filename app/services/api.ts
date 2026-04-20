@@ -288,7 +288,7 @@ export function prepareItems(weatherLocation: WeatherLocation, weatherData: Weat
     const firstDailyIndex = weatherDailyData.findIndex((d) => d.time >= startOfDay);
 
     weatherDailyData.slice(firstDailyIndex).forEach((d, index) => {
-        // DEV_LOG && console.log('d', index,JSON.stringify(d));
+        DEV_LOG && console.log('d', index,JSON.stringify(d));
         if (index === 0) {
             const hours = firstHourIndex >= 0 ? weatherData.hourly.slice(firstHourIndex) : [];
             // eslint-disable-next-line prefer-const

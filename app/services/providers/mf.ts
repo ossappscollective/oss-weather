@@ -30,7 +30,7 @@ export class MFProvider extends WeatherProvider {
 
     static getBRA(massifId) {
         const url = `https://public-api.meteofrance.fr/public/DPBRA/v1/massif/BRA?id-massif=${massifId}&format=pdf`;
-        DEV_LOG && console.log('getBRA', massifId, url , this.apiKey);
+        DEV_LOG && console.log('getBRA', massifId, url, this.apiKey);
         return getFile({
             url,
             method: 'GET',

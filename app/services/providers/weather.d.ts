@@ -132,6 +132,7 @@ export interface DailyData extends CommonWeatherData {
     rainSnowLimit?: number;
 
     last24?: DailyData;
+    tides?: Tide[];
 }
 
 export interface Hourly extends CommonWeatherData {

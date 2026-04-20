@@ -31,7 +31,7 @@ import androidx.compose.ui.graphics.Color
 import com.akylas.weather.widgets.toColorIntRgba
 import androidx.glance.unit.ColorProvider
 
-private const val LOG_TAG = "JS"
+private const val LOG_TAG = "ForecastWeatherWidget"
 
 class ForecastWeatherWidget : WeatherWidget() {
     

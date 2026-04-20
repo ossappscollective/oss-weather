@@ -76,7 +76,7 @@ const ProvidersClassMap: ProvidersMap = {
     [Providers.OpenMeteo]: OMProvider
 };
 
-export type ProvidersClasses = ProvidersMap[keyof ProvidersMap]
+export type ProvidersClasses = ProvidersMap[keyof ProvidersMap];
 
 export function getProviderForType(newType: ProviderType): WeatherProvider {
     return ProvidersClassMap[newType].getInstance();
@@ -218,10 +218,9 @@ export async function getWeather(weatherLocation: WeatherLocation, options?: Get
     // Augment with marine data if a marine provider is configured
     if (weatherLocation.providerMarine === 'meteoconsult' && data) {
         try {
-            const { lat, lon } = weatherLocation.coord;
-            const marineLocation = await searchMarineLocation(lat, lon);
+            const marineLocation = await searchMarineLocation(weatherLocation);
             if (marineLocation) {
-                await getMarineWeather(data, lat, lon);
+                await getMarineWeather(data, marineLocation, weatherLocation);
             }
         } catch (error) {
             DEV_LOG && console.error('marine weather augmentation failed', error);
