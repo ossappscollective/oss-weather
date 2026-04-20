@@ -117,9 +117,8 @@ export async function searchMarineLocation(weatherLocation: WeatherLocation): Pr
             queryParams: { lat, lon, type: 48 }
         });
         locations = result.content.contenu;
-        DEV_LOG && console.log('searchMarineLocation', JSON.stringify(result.content));
     } catch (error) {
-        DEV_LOG && console.error('meteoconsult searchMarineLocation error', error);
+        console.error('meteoconsult searchMarineLocation error', error);
         return null;
     }
 
@@ -130,7 +129,6 @@ export async function searchMarineLocation(weatherLocation: WeatherLocation): Pr
 
     const first = locations[0];
     const dist = distanceKm(lat, lon, first.lat, first.lon);
-    DEV_LOG && console.log('meteoconsult marine location distance', dist, 'km', first.nom);
 
     if (dist > MAX_DISTANCE_KM) {
         setCachedMarineLocation(lat, lon, null);
@@ -164,7 +162,7 @@ export async function getMarineWeather(weatherData: WeatherData, marineLocation:
         });
         response = result.content.contenu;
     } catch (error) {
-        DEV_LOG && console.error('meteoconsult getMarineWeather error', error);
+        console.error('meteoconsult getMarineWeather error', error);
         return;
     }
 
@@ -229,7 +227,6 @@ export async function getMarineWeather(weatherData: WeatherData, marineLocation:
             if (tidesByTime[day.time]) {
                 day.tides = tidesByTime[day.time];
             }
-            DEV_LOG && console.log('day', day.time, JSON.stringify(day.tides));
             const startTs = day.time;
             const endTs = startTs + 24 * 60 * 60 * 1000;
 
