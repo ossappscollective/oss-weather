@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.toJavaDuration
 
-private const val LOG_TAG = "JS"
+private const val LOG_TAG = "WeatherWidget"
 abstract class WeatherWidget : GlanceAppWidget() {
     class WeatherWidgetWorker(
         appContext: Context,

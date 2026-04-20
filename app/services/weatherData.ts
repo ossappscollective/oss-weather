@@ -43,7 +43,11 @@ export enum WeatherProps {
     sealevelPressure = 'sealevelPressure',
     apparentTemperature = 'apparentTemperature',
     relativeHumidity = 'relativeHumidity',
-    dewpoint = 'dewpoint'
+    dewpoint = 'dewpoint',
+    seaTemperature = 'seaTemperature',
+    waveHeight = 'waveHeight',
+    waveHeightMax = 'waveHeightMax',
+    swellHeight = 'swellHeight'
 }
 
 export function propToUnit(prop: WeatherProps, item?: CommonWeatherData, options?: { canForcePrecipUnit?: boolean }) {
@@ -56,12 +60,16 @@ export function propToUnit(prop: WeatherProps, item?: CommonWeatherData, options
         case WeatherProps.temperatureMax:
         case WeatherProps.temperatureMin:
         case WeatherProps.dewpoint:
+        case WeatherProps.seaTemperature:
             return unitsSettings[UNIT_FAMILIES.Temperature];
         case WeatherProps.sealevelPressure:
             return unitsSettings[UNIT_FAMILIES.Pressure];
         case WeatherProps.iso:
         case WeatherProps.cloudCeiling:
         case WeatherProps.rainSnowLimit:
+        case WeatherProps.waveHeight:
+        case WeatherProps.waveHeightMax:
+        case WeatherProps.swellHeight:
             return unitsSettings[UNIT_FAMILIES.Distance];
         case WeatherProps.cloudCover:
         case WeatherProps.precipProbability:
@@ -94,11 +102,15 @@ export function defaultPropUnit(prop: WeatherProps) {
         case WeatherProps.temperatureMax:
         case WeatherProps.temperatureMin:
         case WeatherProps.dewpoint:
+        case WeatherProps.seaTemperature:
             return UNITS.Celcius;
         case WeatherProps.sealevelPressure:
             return UNITS.PressureHpa;
         case WeatherProps.iso:
         case WeatherProps.cloudCeiling:
+        case WeatherProps.waveHeight:
+        case WeatherProps.waveHeightMax:
+        case WeatherProps.swellHeight:
             return UNITS.Meters;
         case WeatherProps.cloudCover:
         case WeatherProps.precipProbability:
@@ -143,7 +155,11 @@ export const AVAILABLE_WEATHER_DATA = [
     WeatherProps.relativeHumidity,
     WeatherProps.dewpoint,
     WeatherProps.iso,
-    WeatherProps.rainSnowLimit
+    WeatherProps.rainSnowLimit,
+    WeatherProps.seaTemperature,
+    WeatherProps.waveHeight,
+    WeatherProps.waveHeightMax,
+    WeatherProps.swellHeight
 ];
 export const AVAILABLE_COMPARE_WEATHER_DATA = [
     WeatherProps.precipProbability,
@@ -204,7 +220,11 @@ const WEATHER_DATA_ICONS = {
     [WeatherProps.windSpeed]: (item: CommonWeatherData) => item.windIcon,
     [WeatherProps.precipAccumulation]: (item: CommonWeatherData) => item.precipIcon,
     [WeatherProps.rainPrecipitation]: 'wi-raindrop',
-    [WeatherProps.snowfall]: 'wi-snowflake-cold'
+    [WeatherProps.snowfall]: 'wi-snowflake-cold',
+    [WeatherProps.seaTemperature]: 'mdi-coolant-temperature',
+    [WeatherProps.waveHeight]: 'mdi-waves-arrow-up',
+    [WeatherProps.waveHeightMax]: 'mdi-waves-arrow-up',
+    [WeatherProps.swellHeight]: 'mdi-wave-arrow-up'
 };
 const WEATHER_DATA_SHORT_TITLES = {
     [WeatherProps.snowfall]: lt('snow'),
@@ -233,7 +253,11 @@ const WEATHER_DATA_TITLES = {
     [WeatherProps.temperatureMin]: lt('min_temperature'),
     [WeatherProps.temperatureMax]: lt('max_temperature'),
     [WeatherProps.rainPrecipitation]: lt('rain_precipitation'),
-    [WeatherProps.windBearing]: lt('wind_bearing')
+    [WeatherProps.windBearing]: lt('wind_bearing'),
+    [WeatherProps.seaTemperature]: lt('sea_temperature'),
+    [WeatherProps.waveHeight]: lt('wave_height'),
+    [WeatherProps.waveHeightMax]: lt('wave_height_max'),
+    [WeatherProps.swellHeight]: lt('swell_height')
 };
 const WEATHER_DATA_COLORS = {
     [WeatherProps.moon]: '#845987',
@@ -252,7 +276,11 @@ const WEATHER_DATA_COLORS = {
     [WeatherProps.precipAccumulation]: rainColor,
     [WeatherProps.rainPrecipitation]: rainColor,
     [WeatherProps.snowfall]: snowColor,
-    [WeatherProps.aqi]: colorForAqi(0)
+    [WeatherProps.aqi]: colorForAqi(0),
+    [WeatherProps.seaTemperature]: '#0288d1',
+    [WeatherProps.waveHeight]: '#0288d1',
+    [WeatherProps.waveHeightMax]: '#0277bd',
+    [WeatherProps.swellHeight]: '#01579b'
 };
 
 export function getWeatherDataIcon(key: string) {
@@ -797,6 +825,41 @@ export class DataService extends Observable {
                         paint: wiPaint,
                         iconFontSize,
                         icon
+                    };
+                }
+                break;
+            case WeatherProps.waveHeight:
+                if (Math.round(item.waveHeight) > 0 || Math.round(item.waveHeightMax) > 0) {
+                    return {
+                        key,
+                        iconFontSize,
+                        iconColor: getWeatherDataColor(key),
+                        paint: mdiPaint,
+                        icon,
+                        value: formatValueToUnit(item.waveHeight, propToUnit(key, item), defaultPropUnit(key)),
+                        subvalue: lc('max') + ': ' + formatValueToUnit(item.waveHeightMax, propToUnit(key, item), defaultPropUnit(key))
+                    };
+                }
+                break;
+            case WeatherProps.seaTemperature:
+                return {
+                    key,
+                    iconFontSize,
+                    iconColor: getWeatherDataColor(key),
+                    paint: mdiPaint,
+                    icon,
+                    value: formatWeatherValue(item, key)
+                };
+                break;
+            case WeatherProps.swellHeight:
+                if (Math.round(item.swellHeight) > 0) {
+                    return {
+                        key,
+                        iconFontSize,
+                        iconColor: getWeatherDataColor(key),
+                        paint: mdiPaint,
+                        icon,
+                        value: formatValueToUnit(item.waveHeight, propToUnit(key, item), defaultPropUnit(key))
                     };
                 }
                 break;

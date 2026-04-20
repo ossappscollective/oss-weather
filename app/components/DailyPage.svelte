@@ -11,12 +11,13 @@
     import { POLLENS_POLLUTANTS_TITLES } from '~/services/airQualityData';
     import { WeatherLocation } from '~/services/api';
     import { iconService, onIconAnimationsChanged } from '~/services/icon';
-    import type { DailyData, Hourly } from '~/services/providers/weather';
+    import type { DailyData, Hourly, Tide } from '~/services/providers/weather';
     import { WeatherProps, formatWeatherValue, getWeatherDataShortTitle, weatherDataService } from '~/services/weatherData';
     import { colors, fontScale, onFontScaleChanged, weatherDataLayout, windowInset } from '~/variables';
     import CActionBar from './common/CActionBar.svelte';
     import HourlyChartView from './HourlyChartView.svelte';
     import HourlyView from './HourlyView.svelte';
+    import TidesChartView from './TidesChartView.svelte';
     import WeatherIcon from './WeatherIcon.svelte';
     const weatherIconSize = 100;
     const PADDING_LEFT = 7;
@@ -46,7 +47,7 @@
     export let itemIndex: number;
     export let items: any[];
 
-    export let item: DailyData & { hourly: Hourly[] };
+    export let item: DailyData & { hourly: Hourly[]; tides?: Tide[] };
     export let location: WeatherLocation;
     export let weatherLocation: WeatherLocation;
     export let timezoneOffset;
@@ -68,6 +69,15 @@
     let topCanvasView: NativeViewElementNode<CanvasView>;
     let animated = iconService.animated;
     $: ({ colorOnSurface, colorOnSurfaceVariant, colorOutline } = $colors);
+
+    /** Tides that fall within the current day (start of day → end of day) */
+    $: dayTides = (() => {
+        DEV_LOG && console.log('dayTides', JSON.stringify(item.tides), JSON.stringify(item));
+        if (!item.tides?.length) return [];
+        const start = startTime.startOf('day').valueOf();
+        const end = startTime.endOf('day').valueOf();
+        return item.tides.filter((t) => t.time >= start && t.time <= end);
+    })();
 
     onIconAnimationsChanged((event) => (animated = event.animated));
     onFontScaleChanged(redraw);
@@ -442,6 +452,11 @@
                 {#if item.pollens}
                     <canvasview height={Math.ceil((Object.keys(item.pollens).length / 2) * 40 + 55) * $fontScale} on:draw={drawPollens} />
                 {/if}
+                {#if dayTides.length > 0}
+                    <label color="#0288d1" fontSize={17} fontWeight="bold" padding={10} text={lc('tides')} />
+                    <TidesChartView {startTime} tides={dayTides} {timezoneOffset} />
+                {/if}
+                <label color="#ffa500" fontSize={17} fontWeight="bold" padding={10} text={lc('astronomy')} />
                 <AstronomyView {isCurrentDay} {location} selectableDate={false} startTime={isCurrentDay ? dayjs() : startTime} {timezoneOffset} />
             </stacklayout>
         </scrollview>

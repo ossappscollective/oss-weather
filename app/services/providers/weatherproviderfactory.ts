@@ -11,6 +11,7 @@ import { GetWeatherOptions, WeatherProvider } from './weatherprovider';
 import { AtmoProvider } from './atmo';
 import { SETTINGS_PROVIDER, SETTINGS_PROVIDER_AQI } from '~/helpers/constants';
 import { WeatherLocation } from '../api';
+import { getMarineWeather, searchMarineLocation } from './meteoconsult';
 
 export enum Providers {
     MeteoFrance = 'meteofrance',
@@ -75,7 +76,7 @@ const ProvidersClassMap: ProvidersMap = {
     [Providers.OpenMeteo]: OMProvider
 };
 
-export type ProvidersClasses = ProvidersMap[keyof ProvidersMap]
+export type ProvidersClasses = ProvidersMap[keyof ProvidersMap];
 
 export function getProviderForType(newType: ProviderType): WeatherProvider {
     return ProvidersClassMap[newType].getInstance();
@@ -213,6 +214,18 @@ export async function getWeather(weatherLocation: WeatherLocation, options?: Get
 
     // Fetch fresh data
     const data = await provider.getWeather(weatherLocation, options);
+
+    // Augment with marine data if a marine provider is configured
+    if (weatherLocation.providerMarine === 'meteoconsult' && data) {
+        try {
+            const marineLocation = await searchMarineLocation(weatherLocation);
+            if (marineLocation) {
+                await getMarineWeather(data, marineLocation, weatherLocation);
+            }
+        } catch (error) {
+            DEV_LOG && console.error('marine weather augmentation failed', error);
+        }
+    }
 
     // Save to cache
     setCachedWeather(providerId, weatherLocation, data, options);

@@ -5,7 +5,7 @@ import { colors } from '~/variables';
 import { get } from 'svelte/store';
 import { globalObservable } from '@shared/utils/svelte/ui';
 import PolygonLookup from 'polygon-lookup';
-import { AqiProviderType, ProviderType } from '~/services/providers/weather';
+import { AqiProviderType, MarineProviderType, ProviderType } from '~/services/providers/weather';
 import { SETTINGS_FAVORITES } from './constants';
 import { OpenMeteoModels } from '~/services/providers/om';
 import { confirm } from '@nativescript-community/ui-material-dialogs';
@@ -136,6 +136,16 @@ export async function setFavoriteAqiProvider(item: FavoriteLocation, provider: A
     const index = favoritesKeys.indexOf(key);
     if (index !== -1) {
         item.providerAqi = provider;
+        updateOnSettingChanged = false;
+        favorites.setItem(index, item);
+        globalObservable.notify({ eventName: EVENT_FAVORITE, data: item });
+    }
+}
+export async function setFavoriteMarineProvider(item: FavoriteLocation, provider: MarineProviderType) {
+    const key = getFavoriteKey(item);
+    const index = favoritesKeys.indexOf(key);
+    if (index !== -1) {
+        item.providerMarine = provider;
         updateOnSettingChanged = false;
         favorites.setItem(index, item);
         globalObservable.notify({ eventName: EVENT_FAVORITE, data: item });

@@ -34,7 +34,7 @@ import kotlinx.coroutines.flow.*
  * Reactive data store for widget data using StateFlow
  */
 object WidgetDataStore {
-    private const val LOG_TAG = "JS"
+    private const val LOG_TAG = "WidgetDataStore"
 
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val _widgetData = MutableStateFlow<Map<Int, WeatherWidgetData>>(emptyMap())
@@ -116,7 +116,7 @@ object WidgetDataStore {
  * Enables automatic widget recomposition when settings change
  */
 object WidgetConfigStore {
-    private const val LOG_TAG = "JS"
+    private const val LOG_TAG = "WidgetConfigStore"
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val _widgetConfigs = MutableStateFlow<Map<Int, WidgetConfig>>(emptyMap())
     val widgetConfigs: StateFlow<Map<Int, WidgetConfig>> = _widgetConfigs.asStateFlow()
@@ -199,7 +199,7 @@ object WeatherWidgetManager {
     private const val WIDGET_DATA_CACHE_KEY = "widget_data_cache"
     private const val DEFAULT_UPDATE_FREQUENCY = 30L
 
-    private const val LOG_TAG = "JS"
+    private const val LOG_TAG = "WeatherWidgetManager"
 
     private val JSON = Json { ignoreUnknownKeys = true; isLenient = true }
 

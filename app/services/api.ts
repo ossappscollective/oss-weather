@@ -12,7 +12,7 @@ import { FavoriteLocation } from '~/helpers/favorites';
 import { getStartOfDay, lang } from '~/helpers/locale';
 import { NominatimResult } from '../../typings/nominatim';
 import { Photon, PhotonProperties } from '../../typings/photon';
-import { AqiProviderType, ProviderType, WeatherData } from './providers/weather';
+import { AqiProviderType, MarineProviderType, ProviderType, WeatherData } from './providers/weather';
 import { WeatherProps } from './weatherData';
 import { OpenMeteoModels } from './providers/om';
 
@@ -288,7 +288,7 @@ export function prepareItems(weatherLocation: WeatherLocation, weatherData: Weat
     const firstDailyIndex = weatherDailyData.findIndex((d) => d.time >= startOfDay);
 
     weatherDailyData.slice(firstDailyIndex).forEach((d, index) => {
-        // DEV_LOG && console.log('d', index,JSON.stringify(d));
+        DEV_LOG && console.log('d', index,JSON.stringify(d));
         if (index === 0) {
             const hours = firstHourIndex >= 0 ? weatherData.hourly.slice(firstHourIndex) : [];
             // eslint-disable-next-line prefer-const
@@ -426,6 +426,7 @@ export interface WeatherLocation {
     provider?: ProviderType;
     omModel?: OpenMeteoModels;
     providerAqi?: AqiProviderType;
+    providerMarine?: MarineProviderType;
 }
 const PHOTON_SUPPORTED_LANGUAGES = ['en', 'de', 'fr'];
 

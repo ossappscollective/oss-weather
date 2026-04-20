@@ -430,5 +430,19 @@
   "maptiler_api_key_required_description": "to use maptiler radar you need to register a free API key on %1$s",
   "maptiler_api_key": "Maptiler API key",
   "open_meteo_augment_model": "augment models with Best Match",
-  "open_meteo_augment_model_desc": "when a different model than Best Match is used, we still query Best Match to augment data"
+  "open_meteo_augment_model_desc": "when a different model than Best Match is used, we still query Best Match to augment data",
+  "provider_marine": {
+    "meteoconsult": "MétéoConsult",
+    "none": "None",
+    "title": "Marine Weather Provider"
+  },
+  "sea_temperature": "Sea Temperature",
+  "wave_height": "Wave Height",
+  "wave_height_max": "Max Wave Height",
+  "swell_height": "Swell Height",
+  "tides": "Tides",
+  "tide_high": "High Tide",
+  "tide_low": "Low Tide",
+  "marine_weather": "Marine Weather",
+  "astronomy": "astronomy"
 }

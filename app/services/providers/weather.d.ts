@@ -6,6 +6,14 @@ import { UNIT_FAMILIES } from '~/helpers/units';
 // export { Pollutants };
 export type ProviderType = (typeof providers)[number];
 export type AqiProviderType = (typeof aqi_providers)[number];
+export type MarineProviderType = 'meteoconsult' | null;
+
+export interface Tide {
+    time: number;
+    height: number;
+    type: 'high' | 'low';
+    coef?: number;
+}
 
 export interface WeatherData {
     time: number;
@@ -14,6 +22,7 @@ export interface WeatherData {
     minutely: Minutely;
     alerts: Alert[];
     hourly: Hourly[];
+    tides?: Tide[];
 }
 export interface AirQualityData {
     time: number;
@@ -108,6 +117,10 @@ export interface CommonWeatherData extends CommonAirQualityData {
     moonIcon?: string;
     iso?: number;
     snowDepth?: number;
+    seaTemperature?: number;
+    waveHeight?: number;
+    waveHeightMax?: number;
+    swellHeight?: number;
 }
 
 export interface DailyData extends CommonWeatherData {
@@ -119,6 +132,7 @@ export interface DailyData extends CommonWeatherData {
     rainSnowLimit?: number;
 
     last24?: DailyData;
+    tides?: Tide[];
 }
 
 export interface Hourly extends CommonWeatherData {

@@ -223,7 +223,7 @@
             }
             default:
             case 'default': {
-                const iconsTop = h / 2 - 20 * $fontScale;
+                const iconsTop = h / 2 - 24 * $fontScale;
                 for (let index = 0; index < centeredItemsToDraw.length; index++) {
                     const c = centeredItemsToDraw[index];
 
