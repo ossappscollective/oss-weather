@@ -72,7 +72,6 @@
 
     /** Tides that fall within the current day (start of day → end of day) */
     $: dayTides = (() => {
-        DEV_LOG && console.log('dayTides', JSON.stringify(item.tides), JSON.stringify(item));
         if (!item.tides?.length) return [];
         const start = startTime.startOf('day').valueOf();
         const end = startTime.endOf('day').valueOf();
@@ -381,7 +380,6 @@
     function onSwipe(e) {
         if (e.direction === 1 && itemIndex > minIndex) {
             const data = getDailyPageProps(items[itemIndex - 1]);
-            DEV_LOG && console.log('swiping left', startTime, data.startTime);
             startTime = data.startTime;
             item = data.item;
             itemIndex = data.itemIndex;
@@ -391,7 +389,6 @@
         } else if (e.direction === 2 && itemIndex < itemsCount - 1) {
             const delta = showDayDataInCurrent && itemIndex === 0 ? 2 : 1;
             const data = getDailyPageProps(items[itemIndex + delta]);
-            DEV_LOG && console.log('swiping right', startTime, data.startTime);
             startTime = data.startTime;
             item = data.item;
             itemIndex = data.itemIndex;
