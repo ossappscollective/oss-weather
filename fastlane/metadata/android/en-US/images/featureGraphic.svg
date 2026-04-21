@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="500" viewBox="0 0 1024 500">
+  <rect width="1024" height="500" fill="#2f2d2e"/>
+  <circle cx="392.5" cy="227.5" r="142.5" fill="#f4c542"/>
+  <rect x="610" y="50" width="80" height="80" rx="20" fill="#151516"/>
+  <circle cx="650" cy="90" r="24" fill="#f4c542"/>
+  <rect x="36" y="410" width="526" height="2" rx="1" fill="#4a4642"/>
+  <rect x="36" y="438" width="526" height="2" rx="1" fill="#4a4642"/>
+
+  <g transform="translate(26 174)">
+    <rect x="10" y="12" width="196" height="264" rx="30" fill="#1b1a1a"/>
+    <rect width="196" height="264" rx="30" fill="#0f0f10"/>
+    <rect x="7" y="7" width="182" height="250" rx="24" fill="#f4efe9"/>
+    <rect x="68.6" y="10" width="58.8" height="10" rx="5" fill="#262526"/>
+    <rect x="24" y="52" width="148" height="186" rx="18" fill="none" stroke="#8d877f" stroke-width="3" stroke-dasharray="12 10"/>
+    <text x="98" y="138" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-weight="700" font-size="20" fill="#423d39">SCREENSHOT 1</text>
+    <text x="98" y="168" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" fill="#8d877f">Replace with app UI</text>
+  </g>
+
+  <g transform="translate(126 20)">
+    <rect x="10" y="12" width="270" height="372" rx="30" fill="#1b1a1a"/>
+    <rect width="270" height="372" rx="30" fill="#0f0f10"/>
+    <rect x="7" y="7" width="256" height="358" rx="24" fill="#151516"/>
+    <rect x="94.5" y="10" width="81" height="10" rx="5" fill="#262526"/>
+    <rect x="24" y="52" width="222" height="294" rx="18" fill="none" stroke="#8d877f" stroke-width="3" stroke-dasharray="12 10"/>
+    <text x="135" y="184" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-weight="700" font-size="20" fill="#f1eee8">SCREENSHOT 2</text>
+    <text x="135" y="214" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" fill="#8d877f">Replace with app UI</text>
+  </g>
+
+  <g transform="translate(279 228)">
+    <rect x="10" y="12" width="240" height="304" rx="30" fill="#1b1a1a"/>
+    <rect width="240" height="304" rx="30" fill="#0f0f10"/>
+    <rect x="7" y="7" width="226" height="290" rx="24" fill="#151516"/>
+    <rect x="84" y="10" width="72" height="10" rx="5" fill="#262526"/>
+    <rect x="24" y="52" width="192" height="226" rx="18" fill="none" stroke="#8d877f" stroke-width="3" stroke-dasharray="12 10"/>
+    <text x="120" y="160" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-weight="700" font-size="20" fill="#f1eee8">SCREENSHOT 3</text>
+    <text x="120" y="190" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" fill="#8d877f">Replace with app UI</text>
+  </g>
+
+  <g font-family="DejaVu Sans, Arial, sans-serif">
+    <text x="575" y="180" font-size="56" font-weight="700" fill="#f7f4ef">OSS Weather</text>
+    <text x="575" y="224" font-size="22" fill="#c8c3bb">Privacy-first forecasts, radar</text>
+    <text x="575" y="252" font-size="22" fill="#c8c3bb">and widgets.</text>
+
+    <circle cx="580" cy="284" r="5" fill="#f4c542"/>
+    <text x="599" y="288" font-size="23" font-weight="700" fill="#f7f4ef">Forecasts</text>
+    <text x="599" y="315" font-size="18" fill="#c8c3bb">Current, hourly &amp; 7–14 day views.</text>
+
+    <circle cx="580" cy="336" r="5" fill="#f4c542"/>
+    <text x="599" y="340" font-size="23" font-weight="700" fill="#f7f4ef">Radar map</text>
+    <text x="599" y="367" font-size="18" fill="#c8c3bb">Animated precipitation layers.</text>
+
+    <circle cx="580" cy="388" r="5" fill="#f4c542"/>
+    <text x="599" y="392" font-size="23" font-weight="700" fill="#f7f4ef">Widgets</text>
+    <text x="599" y="419" font-size="18" fill="#c8c3bb">Configurable home screen layouts.</text>
+
+    <circle cx="580" cy="440" r="5" fill="#f4c542"/>
+    <text x="599" y="444" font-size="23" font-weight="700" fill="#f7f4ef">Customize</text>
+    <text x="599" y="471" font-size="18" fill="#c8c3bb">Providers, units, themes, sun/moon, AQI.</text>
+
+    <text x="575" y="489" font-size="16" fill="#aca69d">Editable source: featureGraphic.svg</text>
+  </g>
+</svg>
