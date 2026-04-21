@@ -54,7 +54,7 @@ export class AtmoProvider extends AirQualityProvider {
         const daily: { tempDatas: { [k: string]: { sum: number; count: number; unit: string; path: string } }; [k: string]: any }[] = [];
         let lastDay: { tempDatas: { [k: string]: { sum: number; count: number; unit: string; path: string } }; [k: string]: any };
         const polluants = result.content.polluants;
-        if (polluants.length === 0) {
+        if (polluants.length === 0 || !polluants[0].horaires) {
             return;
         }
         const keys = polluants.map((p) => p.polluant).filter((s) => !!s);

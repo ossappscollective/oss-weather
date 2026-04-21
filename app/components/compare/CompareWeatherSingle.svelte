@@ -177,7 +177,7 @@
                 ...dataToCompare
             };
         } catch (err) {
-            showError(err);
+            showError(err, { reportError: err.statusCode === undefined, showAsSnack: PRODUCTION });
         } finally {
             loading = false;
         }

@@ -326,7 +326,7 @@
                 providerClass.setApiKey(null);
                 askForApiKey(provider);
             } else {
-                showError(err);
+                showError(err, { reportError: err.statusCode === undefined, showAsSnack: PRODUCTION });
             }
         } finally {
             loading = false;
