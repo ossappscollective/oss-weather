@@ -37,7 +37,13 @@
     let mapCenter = focusPos;
     let animated = false;
     const layerOpacity = ApplicationSettings.getNumber(SETTINGS_WEATHER_MAP_LAYER_OPACITY, WEATHER_MAP_LAYER_OPACITY);
-    let colors = ApplicationSettings.getString(SETTINGS_WEATHER_MAP_COLORS, WEATHER_MAP_COLORS);
+    let colors = WEATHER_MAP_COLORS;
+    try {
+        colors = ApplicationSettings.getString(SETTINGS_WEATHER_MAP_COLORS, WEATHER_MAP_COLORS);
+    } catch (error) {
+        // we moved from number to string...
+        ApplicationSettings.remove(SETTINGS_WEATHER_MAP_COLORS);
+    }
     const animationSpeed = ApplicationSettings.getNumber(SETTINGS_WEATHER_MAP_ANIMATION_SPEED, WEATHER_MAP_ANIMATION_SPEED);
     const timeInterval = ApplicationSettings.getNumber(SETTINGS_WEATHER_MAP_TIME_INTERVAL, 30);
 
