@@ -43,7 +43,7 @@
 
     <circle cx="580" cy="284" r="5" fill="#f4c542"/>
     <text x="599" y="288" font-size="23" font-weight="700" fill="#f7f4ef">Forecasts</text>
-    <text x="599" y="315" font-size="18" fill="#c8c3bb">Current, hourly &amp; 7–14 day views.</text>
+    <text x="599" y="315" font-size="18" fill="#c8c3bb">Current, hourly &amp; 7-14 day views.</text>
 
     <circle cx="580" cy="336" r="5" fill="#f4c542"/>
     <text x="599" y="340" font-size="23" font-weight="700" fill="#f7f4ef">Radar map</text>
