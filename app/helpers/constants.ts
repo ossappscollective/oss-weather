@@ -9,6 +9,8 @@ export const SETTINGS_LANGUAGE = 'language';
 export const SETTINGS_IMPERIAL = 'imperial';
 export const SETTINGS_FONTSCALE = 'fontscale';
 export const SETTINGS_COLOR_THEME = 'color_theme';
+export const SETTINGS_ENABLE_CRASH_REPORT = 'enable_crash_report';
+
 export const SETTINGS_DAILY_PAGE_HOURLY_CHART = 'daily_page_hourly_chart';
 export const SETTINGS_MAIN_PAGE_HOURLY_CHART = 'main_page_hourly_chart';
 export const SETTINGS_SWIPE_ACTION_BAR_PROVIDER = 'swipe_actionbar_provider';

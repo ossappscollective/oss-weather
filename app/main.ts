@@ -13,7 +13,7 @@ import { ImageViewTraceCategory, initialize } from '@nativescript-community/ui-i
 import { Label } from '@nativescript-community/ui-label';
 import { install as installBottomSheets } from '@nativescript-community/ui-material-bottomsheet';
 import { installMixins, themer } from '@nativescript-community/ui-material-core';
-import { Application, Trace, Utils } from '@nativescript/core';
+import { Application, ApplicationSettings, Trace, Utils } from '@nativescript/core';
 import { init as sharedInit } from '@shared/index';
 import { startSentry } from '@shared/utils/sentry';
 import WeatherPage from '~/components/WeatherPage.svelte';
@@ -21,9 +21,13 @@ import { start as startThemeHelper } from '~/helpers/theme';
 
 import { networkService } from './services/api';
 import { navigate } from '@shared/utils/svelte/ui';
+import { SETTINGS_ENABLE_CRASH_REPORT } from '~/helpers/constants';
 
 try {
-    startSentry();
+    const shouldEnableSentry = ApplicationSettings.getBoolean(SETTINGS_ENABLE_CRASH_REPORT, PLAY_STORE_BUILD);
+    if (shouldEnableSentry) {
+        startSentry();
+    }
     setGeoLocationKeys('lat', 'lon', 'altitude');
     installGestures(true);
     overrideSpanAndFormattedString();

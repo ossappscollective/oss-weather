@@ -445,5 +445,9 @@
   "tide_low": "Low Tide",
   "marine_weather": "Marine Weather",
   "astronomy": "astronomy",
-  "weather_map_layer": "default weather map layer"
+  "weather_map_layer": "default weather map layer",
+  "debugging": "debugging",
+  "debugging_settings_desc": "debugging settings",
+  "crash_report": "enable crash reports",
+  "crash_report_desc": "when enabled crash reports will be sent to a private instance data of Sentry. No data shared, data regularly deleted. Only used for debugging"
 }

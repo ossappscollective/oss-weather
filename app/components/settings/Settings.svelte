@@ -13,7 +13,7 @@
     import { TextView } from '@nativescript-community/ui-material-textview';
     import { Application, ApplicationSettings, File, ObservableArray, Page, ScrollView, StackLayout, TouchGestureEventData, Utils, View } from '@nativescript/core';
     import { inappItems, presentInAppSponsorBottomsheet } from '@shared/utils/inapp-purchase';
-    import { Sentry } from '@shared/utils/sentry';
+    import { Sentry, startSentry, stopSentry } from '@shared/utils/sentry';
     import { showError } from '@shared/utils/showError';
     import { navigate } from '@shared/utils/svelte/ui';
     import dayjs from 'dayjs';
@@ -42,6 +42,7 @@
         SETTINGS_DAILY_DATA_ALIGNMENT,
         SETTINGS_DAILY_DATE_FORMAT,
         SETTINGS_DAILY_PAGE_HOURLY_CHART,
+        SETTINGS_ENABLE_CRASH_REPORT,
         SETTINGS_FEELS_LIKE_TEMPERATURES,
         SETTINGS_HOURLY_ODD_COLORS,
         SETTINGS_IMPERIAL,
@@ -196,6 +197,19 @@
                         rightValue: () => lc(ApplicationSettings.getString(SETTINGS_DAILY_DATA_ALIGNMENT, DEFAULT_DAILY_DATA_ALIGNMENT))
                     }
                 ];
+            case 'debugging':
+                return async () =>
+                    PLAY_STORE_BUILD
+                        ? [
+                              {
+                                  type: 'switch',
+                                  id: SETTINGS_ENABLE_CRASH_REPORT,
+                                  title: lc('crash_report'),
+                                  description: lc('crash_report_desc'),
+                                  value: ApplicationSettings.getBoolean(SETTINGS_ENABLE_CRASH_REPORT, PLAY_STORE_BUILD)
+                              }
+                          ]
+                        : [];
             case 'locales':
                 return async () => [
                     {
@@ -801,6 +815,19 @@
                           ]
                         : ([] as any)
                 )
+                .concat(
+                    PLAY_STORE_BUILD
+                        ? ([
+                              {
+                                  id: 'sub_settings',
+                                  icon: 'mdi-bug-outline',
+                                  title: lc('debugging'),
+                                  description: lc('debugging_settings_desc'),
+                                  options: () => getSubSettings('debugging')
+                              }
+                          ] as any[])
+                        : []
+                )
                 .concat([
                     {
                         id: 'third_party',
@@ -1382,6 +1409,15 @@
         try {
             ignoreNextOnCheckBoxChange = true;
             switch (item.id) {
+                case SETTINGS_ENABLE_CRASH_REPORT: {
+                    ApplicationSettings.setBoolean(item.key || item.id, value);
+                    if (value) {
+                        startSentry();
+                    } else {
+                        stopSentry();
+                    }
+                    break;
+                }
                 case 'gadgetbridge_enabled':
                     ApplicationSettings.setBoolean(item.id, value);
                     if (__ANDROID__) {
