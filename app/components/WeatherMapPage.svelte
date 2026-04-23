@@ -26,9 +26,7 @@
         WEATHER_MAP_LAYER,
         WEATHER_MAP_LAYERS,
         WEATHER_MAP_LAYER_OPACITY,
-
         getLayerTitle
-
     } from '~/services/providers/maptiler';
     import { hideLoading, openLink, showPopoverMenu } from '~/utils/ui';
     import { fontScale, screenWidthDips, windowInset } from '~/variables';
