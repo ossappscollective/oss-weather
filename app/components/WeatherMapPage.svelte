@@ -17,12 +17,18 @@
         SETTINGS_WEATHER_MAP_ANIMATION_SPEED,
         SETTINGS_WEATHER_MAP_COLORS,
         SETTINGS_WEATHER_MAP_CUSTOM_TILE_SOURCE,
+        SETTINGS_WEATHER_MAP_LAYER,
         SETTINGS_WEATHER_MAP_LAYER_OPACITY,
         SETTINGS_WEATHER_MAP_TIME_INTERVAL,
         WEATHER_MAP_ANIMATION_SPEED,
         WEATHER_MAP_COLORS,
         WEATHER_MAP_COLOR_SCHEMES,
-        WEATHER_MAP_LAYER_OPACITY
+        WEATHER_MAP_LAYER,
+        WEATHER_MAP_LAYERS,
+        WEATHER_MAP_LAYER_OPACITY,
+
+        getLayerTitle
+
     } from '~/services/providers/maptiler';
     import { hideLoading, openLink, showPopoverMenu } from '~/utils/ui';
     import { fontScale, screenWidthDips, windowInset } from '~/variables';
@@ -44,11 +50,13 @@
         // we moved from number to string...
         ApplicationSettings.remove(SETTINGS_WEATHER_MAP_COLORS);
     }
+    let layer = ApplicationSettings.getString(SETTINGS_WEATHER_MAP_LAYER, WEATHER_MAP_LAYER);
+
     const animationSpeed = ApplicationSettings.getNumber(SETTINGS_WEATHER_MAP_ANIMATION_SPEED, WEATHER_MAP_ANIMATION_SPEED);
     const timeInterval = ApplicationSettings.getNumber(SETTINGS_WEATHER_MAP_TIME_INTERVAL, 30);
 
     function updateUrl() {
-        url = `~/assets/map/index.html?apiKey=${MaptilerProvider.apiKey}&zoom=${zoom}&animated=${animated}&animationSpeed=${animationSpeed}&colors=${colors}&position=${focusPos.lat},${focusPos.lon}&mapCenter=${mapCenter.lat},${mapCenter.lon}&timeInterval=${timeInterval}&lang=${lang}&hideAttribution=${networkService.devMode}&opacity=${layerOpacity}&dark=${$currentTheme}${customSource ? `&source=${encodeURIComponent(customSource)}` : ''}`;
+        url = `~/assets/map/index.html?apiKey=${MaptilerProvider.apiKey}&zoom=${zoom}&animated=${animated}&animationSpeed=${animationSpeed}&colors=${colors}&position=${focusPos.lat},${focusPos.lon}&mapCenter=${mapCenter.lat},${mapCenter.lon}&timeInterval=${timeInterval}&lang=${lang}&hideAttribution=${networkService.devMode}&layer=${layer}&opacity=${layerOpacity}&dark=${$currentTheme}${customSource ? `&source=${encodeURIComponent(customSource)}` : ''}`;
     }
 
     onThemeChanged(updateUrl);
@@ -99,6 +107,43 @@
                         await saveCurrentMapParameters();
                         updateUrl();
                         ApplicationSettings.setString(SETTINGS_WEATHER_MAP_COLORS, item.data);
+                    }
+                },
+                selectedIndex
+            }
+        });
+    }
+
+    async function selectLayer(event) {
+        const values = WEATHER_MAP_LAYERS;
+        const currentValue = ApplicationSettings.getString(SETTINGS_WEATHER_MAP_LAYER, WEATHER_MAP_LAYER);
+        let selectedIndex = -1;
+        const options = values.map((k, index) => {
+            const selected = currentValue === k;
+            if (selected) {
+                selectedIndex = index;
+            }
+            return {
+                name: getLayerTitle(k),
+                data: k,
+                boxType: 'circle',
+                type: 'checkbox',
+                value: selected
+            };
+        });
+        const result = await showPopoverMenu({
+            options,
+            anchor: event.object,
+            vertPos: VerticalPosition.BELOW,
+            props: {
+                width: 300 * $fontScale,
+                async onCheckBox(item, value, e) {
+                    closePopover();
+                    if (item !== undefined) {
+                        layer = item.data;
+                        await saveCurrentMapParameters();
+                        updateUrl();
+                        ApplicationSettings.setString(SETTINGS_WEATHER_MAP_LAYER, item.data);
                     }
                 },
                 selectedIndex
@@ -244,6 +289,7 @@
     <gridlayout class="pageContent" rows="auto,*" android:paddingBottom={$windowInset.bottom}>
         <CActionBar title={lc('weather_map')}>
             <mdbutton class="actionBarButton" text="mdi-palette" variant="text" verticalAlignment="middle" on:tap={seletMapColors} />
+            <mdbutton class="actionBarButton" text="mdi-layers-triple" variant="text" verticalAlignment="middle" on:tap={selectLayer} />
             <mdbutton class="actionBarButton" text="mdi-dots-vertical" variant="text" verticalAlignment="middle" on:tap={showOptions} />
         </CActionBar>
         <awebview

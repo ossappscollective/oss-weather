@@ -10,11 +10,14 @@ export const SETTINGS_WEATHER_MAP_LAYER_OPACITY = 'weather_map_layer_opacity';
 export const SETTINGS_WEATHER_MAP_SHOW_SNOW = 'weather_map_show_snow';
 export const SETTINGS_WEATHER_MAP_CUSTOM_TILE_SOURCE = 'weather_map_custom_tile_source';
 export const SETTINGS_WEATHER_MAP_TIME_INTERVAL = 'weather_map_time_interval';
+export const SETTINGS_WEATHER_MAP_LAYER = 'weather_map_layer';
 
 export const WEATHER_MAP_COLORS = 'RADAR';
+export const WEATHER_MAP_LAYER = 'radar';
 export const WEATHER_MAP_ANIMATION_SPEED = 100;
 export const WEATHER_MAP_LAYER_OPACITY = 0.8;
 export const WEATHER_MAP_SHOW_SNOW = true;
+export const WEATHER_MAP_LAYERS = ['radar', 'precipitation', 'wind', 'temperature', 'pressure'];
 export const WEATHER_MAP_COLOR_SCHEMES = [
     /**
      * A fully transparent [0, 0, 0, 0] colorramp to hide data.
@@ -352,6 +355,28 @@ export const WEATHER_MAP_COLOR_SCHEMES = [
     'TEMPERATURE_TURBO'
 ];
 
+export function getLayerTitle(layer: string) {
+    switch (layer) {
+        case 'precipitation':
+            return lc('precipitation');
+
+        case 'radar':
+            return lc('radar');
+
+        case 'pressure':
+            return lc('pressure');
+
+        case 'wind':
+            return lc('wind');
+
+        case 'temperature':
+            return lc('temperature');
+
+        default:
+            break;
+    }
+}
+
 const API_KEY_SETTING = 'maptilerApiKey';
 
 export class MaptilerProvider extends WeatherProvider {
@@ -411,10 +436,26 @@ export class MaptilerProvider extends WeatherProvider {
             {
                 key: SETTINGS_WEATHER_MAP_COLORS,
                 id: 'setting',
+                valueType: 'string',
                 title: lc('weather_map_colors'),
-                currentValue: () => ApplicationSettings.setString(SETTINGS_WEATHER_MAP_COLORS, WEATHER_MAP_COLORS),
-                values: WEATHER_MAP_COLOR_SCHEMES,
-                description: () => WEATHER_MAP_COLOR_SCHEMES.find((d) => d === ApplicationSettings.getString(SETTINGS_WEATHER_MAP_COLORS, WEATHER_MAP_COLORS))
+                currentValue: () => ApplicationSettings.getString(SETTINGS_WEATHER_MAP_COLORS, WEATHER_MAP_COLORS),
+                values: WEATHER_MAP_COLOR_SCHEMES.map((value) => ({
+                    value,
+                    title: value.replaceAll('_', ' ').toLowerCase()
+                })),
+                description: () => ApplicationSettings.getString(SETTINGS_WEATHER_MAP_COLORS, WEATHER_MAP_COLORS).replaceAll('_', ' ').toLowerCase()
+            },
+            {
+                key: SETTINGS_WEATHER_MAP_LAYER,
+                id: 'setting',
+                valueType: 'string',
+                title: lc('weather_map_layer'),
+                currentValue: () => ApplicationSettings.getString(SETTINGS_WEATHER_MAP_LAYER, WEATHER_MAP_LAYER),
+                values: WEATHER_MAP_LAYERS.map((value) => ({
+                    value,
+                    title: getLayerTitle(value)
+                })),
+                description: () => getLayerTitle(ApplicationSettings.getString(SETTINGS_WEATHER_MAP_LAYER, WEATHER_MAP_LAYER))
             },
             {
                 id: 'setting',

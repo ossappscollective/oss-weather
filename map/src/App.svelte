@@ -1,14 +1,13 @@
 <script lang="ts">
-    import { ColorRamp, RadarLayer, type WeatherPayload } from '@maptiler/weather';
+    import { ColorRamp, PrecipitationLayer, PressureLayer, RadarLayer, TemperatureLayer, TileLayer, type WeatherPayload, WindLayer } from '@maptiler/weather';
     import { type LngLatLike, Map, MapStyle, Marker, type StyleSpecification, config } from '@maptiler/sdk';
-
-
+    import '@maptiler/sdk/dist/maptiler-sdk.css';
     import './global.css';
     import './rainviewer.css';
     import { onDestroy } from 'svelte';
     // import RainViewerLegend from './RainViewerLegend.svelte';
     import RangeSlider from 'svelte-range-slider-pips';
-    let weatherLayer: RadarLayer;
+    let weatherLayer: TileLayer;
     let isPlaying = false;
     let currentTime = null;
     let sliderMin = 0;
@@ -32,6 +31,7 @@
     let options = {
         apiKey: urlParamers['apiKey'],
         source: urlParamers['source'],
+        layer: urlParamers['layer'] ?? 'radar',
         position: urlParamers['position']?.split(',').map(parseFloat).reverse() as LngLatLike,
         mapCenter: (urlParamers['mapCenter'] || '45.18453,5.75').split(',').map(parseFloat).reverse() as LngLatLike,
         zoom: parseFloat(urlParamers['zoom'] || '8'),
@@ -51,9 +51,6 @@
     config.apiKey = options.apiKey;
     // console.log(`options ${JSON.stringify(options)}`);
 
-    const catalog = {};
-    const data: any[] = [];
-    const dataLength: number = 0;
     document.documentElement.style.setProperty('--bottom-padding', options.useToPickLocation ? '0px' : '100px');
 
     document.documentElement.setAttribute('data-dark', options.dark === 'black' ? 'dark' : options.dark);
@@ -89,14 +86,14 @@
             map = new Map({
                 fadeDuration: 0,
                 validateStyle: false,
-                attributionControl: options.hideAttribution
-                    ? null
-                    : {
-                          compact: true,
-                          customAttribution: ['<a href="https://maplibre.org/">MapLibre</a>', '<a href="https://www.openstreetmap.org">OpenStreetMap</a>'].concat(
-                              options.useToPickLocation ? [] : ['<a href="https://www.rainviewer.com/api.html">RainViewer</a>']
+                attributionControl: {
+                    compact: true,
+                    customAttribution: options.hideAttribution
+                        ? []
+                        : ['<a href="https://maplibre.org/">MapLibre</a>', '<a href="https://www.openstreetmap.org">OpenStreetMap</a>'].concat(
+                              options.useToPickLocation ? [] : ['<a href="https://www.maptiler.com/weather/">MapTiler</a>']
                           )
-                      },
+                },
                 container,
                 style,
                 center: options.mapCenter,
@@ -138,31 +135,30 @@
         });
     }
 
-    class colorRampLegendControl {
+    class ColorRampLegendControl {
         private _options: any;
         private _container: HTMLDivElement;
         private _map: any;
         constructor(options) {
             this._options = { ...options };
-            this._container = document.createElement('div');
-            this._container.classList.add('maplibregl-ctrl');
-            this._container.classList.add('maplibregl-ctrl-color-ramp');
         }
         onAdd(map) {
             this._map = map;
-            const canvas = colorramp.getCanvasStrip({ horizontal: false, smooth: true });
-            canvas.style.height = '200px';
-            canvas.style.width = '30px';
-            canvas.style.border = '1px dashed #00000059';
+            this._container = document.createElement('div');
+            this._container.className = 'maplibregl-ctrl-group maplibregl-ctrl';
+            const canvas = colorramp.getCanvasStrip({ horizontal: false, smooth: true, size: 100 });
+            canvas.style.height = '150px';
+            canvas.style.width = '20px';
+            canvas.style.margin = '6px';
+            canvas.style.borderRadius = '3px';
 
-            const bounds = colorramp.getBounds();
+            // const desc = document.createElement('div');
+            // desc.classList.add('color-ramp-label');
+            // // desc.innerHTML = `(min: ${bounds.min}, max: ${bounds.max})`;
 
-            const desc = document.createElement('div');
-            desc.classList.add('color-ramp-label');
-            // desc.innerHTML = `(min: ${bounds.min}, max: ${bounds.max})`;
-
-            // this._container.appendChild(desc);
+            // // this._container.appendChild(desc);
             this._container.appendChild(canvas);
+
             return this._container;
         }
         onRemove() {
@@ -175,7 +171,7 @@
         }
     }
 
-    let legendControl: colorRampLegendControl;
+    let legendControl: ColorRampLegendControl;
     function refreshWeatherLayer() {
         if (legendControl) {
             map.removeControl(legendControl);
@@ -184,10 +180,42 @@
             map.removeLayer(weatherLayer.id);
         }
         colorramp = ColorRamp.builtin[options.colors];
-        weatherLayer = new RadarLayer({
-            opacity: options.layerOpacity,
-            colorramp: ColorRamp.builtin[options.colors]
-        });
+        switch (options.layer) {
+            case 'precipitation':
+                weatherLayer = new PrecipitationLayer({
+                    opacity: options.layerOpacity,
+                    colorramp: ColorRamp.builtin[options.colors]
+                });
+                break;
+
+            case 'pressure':
+                weatherLayer = new PressureLayer({
+                    opacity: options.layerOpacity,
+                    colorramp: ColorRamp.builtin[options.colors]
+                });
+                break;
+
+            case 'temperature':
+                weatherLayer = new TemperatureLayer({
+                    opacity: options.layerOpacity,
+                    colorramp: ColorRamp.builtin[options.colors]
+                });
+                break;
+
+            case 'wind':
+                weatherLayer = new WindLayer({
+                    opacity: options.layerOpacity,
+                    colorramp: ColorRamp.builtin[options.colors]
+                });
+                break;
+
+            default:
+                weatherLayer = new RadarLayer({
+                    opacity: options.layerOpacity,
+                    colorramp: ColorRamp.builtin[options.colors]
+                });
+                break;
+        }
         // console.log('creating radar layer');
         weatherLayer.on('sourceReady', (event) => {
             // console.log('sourceReady');
@@ -208,9 +236,13 @@
         });
         currentTime = weatherLayer.getAnimationTime();
         map.addLayer(weatherLayer as any);
-        // console.log('added radar layer');
-        legendControl = new colorRampLegendControl({ colorRamp: colorramp });
-        map.addControl(legendControl, 'top-right');
+        console.log('added radar layer');
+        try {
+            legendControl = new ColorRampLegendControl({ colorRamp: colorramp });
+            map.addControl(legendControl, 'top-left');
+        } catch (error) {
+            console.error('failed to create legendControl', error.toString());
+        }
     }
     function mapAction(container) {
         createMap(container)

@@ -444,5 +444,6 @@
   "tide_high": "High Tide",
   "tide_low": "Low Tide",
   "marine_weather": "Marine Weather",
-  "astronomy": "astronomy"
+  "astronomy": "astronomy",
+  "weather_map_layer": "default weather map layer"
 }
