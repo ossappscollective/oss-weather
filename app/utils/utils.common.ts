@@ -119,7 +119,7 @@ export function getIndexedColor(value: number, indexes: number[], colors: string
 const WIND_SPEED_INDEXES = [10, 20, 30, 40, 45, 55, 65, 80];
 const WIND_SPEED_COLORS = ['#b3d9ff', '#4db8ff', '#00cccc', '#00cc44', '#ffee00', '#ff8800', '#ff0000', '#ff0000'];
 
-export function windSpeedColor(speedKmh: number): string {
+export function windSpeedColor(speedKmh: number): string | null {
     if (!speedKmh || speedKmh < 10) {
         return null;
     }

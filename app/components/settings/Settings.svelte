@@ -139,6 +139,15 @@
         }
         return storeSettings[k];
     }
+    function saveReorderedSection(items: any[], enabledId: string, disabledId: string, settingsKey: string) {
+        const enabledPosition = items.findIndex((d) => d.id === enabledId);
+        const disabledPosition = items.findIndex((d) => d.id === disabledId);
+        if (enabledPosition !== -1 && disabledPosition !== -1) {
+            const newData = [...items.slice(enabledPosition + 1, disabledPosition)].map((d) => d.id);
+            ApplicationSettings.setString(settingsKey, JSON.stringify(newData));
+        }
+    }
+
     function getSubSettings(id: string) {
         switch (id) {
             case 'appearance':
@@ -850,18 +859,9 @@
                         description: lc('hourly_settings'),
                         reorderEnabled: true,
                         onReordered: (items) => {
-                            const disabledPosition = items.findIndex((d) => d.id === 'disabled');
-                            const enabledPosition = items.findIndex((d) => d.id === 'enabled');
-                            DEV_LOG && console.log('onReordered', disabledPosition, enabledPosition);
-                            const newHourlyData = [...items.slice(enabledPosition + 1, disabledPosition)].map((d) => d.id);
-                            ApplicationSettings.setString(SETTINGS_HOURLY_MAIN_DATA, JSON.stringify(newHourlyData));
-                            // Also save windy data ordering
-                            const windyEnabledPosition = items.findIndex((d) => d.id === 'windy_enabled');
-                            const windyDisabledPosition = items.findIndex((d) => d.id === 'windy_disabled');
-                            if (windyEnabledPosition !== -1 && windyDisabledPosition !== -1) {
-                                const newWindyData = [...items.slice(windyEnabledPosition + 1, windyDisabledPosition)].map((d) => d.id);
-                                ApplicationSettings.setString(SETTINGS_WINDY_DATA, JSON.stringify(newWindyData));
-                            }
+                            DEV_LOG && console.log('onReordered hourly');
+                            saveReorderedSection(items, 'enabled', 'disabled', SETTINGS_HOURLY_MAIN_DATA);
+                            saveReorderedSection(items, 'windy_enabled', 'windy_disabled', SETTINGS_WINDY_DATA);
                         },
                         icon: 'mdi-clock-outline',
                         options: getSubSettings('hourly')

@@ -1,6 +1,5 @@
 <script context="module" lang="ts">
     import { Align, LinearGradient, Paint, Path, Style, TileMode } from '@nativescript-community/ui-canvas';
-    import { Color } from '@nativescript/core';
     import { showError } from '@shared/utils/showError';
     import WeatherIcon from '~/components/WeatherIcon.svelte';
     import { formatDate, formatTime, getLocalTime } from '~/helpers/locale';
@@ -177,7 +176,7 @@
                             const barH = (precip / item.maxPrecip) * rh * 0.9;
                             fillPaint.setColor(item.precipColor || rainColor.hex);
                             const precipProbability = item.precipProbability;
-                            fillPaint.setAlpha(precipProbability === -1 || precipProbability === undefined ? 180 : Math.round(precipProbability * 2.55));
+                            fillPaint.setAlpha(precipProbability === -1 || precipProbability === undefined ? 180 : Math.round(precipProbability * 2.55)); // 2.55 = 255/100, converts 0-100% to 0-255 alpha
                             canvas.drawRect(0, rowTop + rh - barH, w, rowTop + rh, fillPaint);
                             fillPaint.setAlpha(255);
                         }
