@@ -451,5 +451,10 @@
   "crash_report": "enable crash reports",
   "crash_report_desc": "when enabled crash reports will be sent to a private instance data of Sentry. No data shared, data regularly deleted. Only used for debugging",
   "available_weather_data": "available weather data",
-  "weather_data_to_show_on_main": "weather data to show on main"
+  "weather_data_to_show_on_main": "weather data to show on main",
+  "main_hourly_view_mode": "main view hourly display mode",
+  "classic_view": "classic",
+  "chart_view": "chart",
+  "windy_view": "windy",
+  "weather_data_to_show_on_windy": "weather data to show in windy view"
 }

@@ -169,6 +169,19 @@ export const AVAILABLE_WEATHER_DATA_MAIN_HOURLY = [
     WeatherProps.cloudCover,
     WeatherProps.windGust
 ];
+export const AVAILABLE_WEATHER_DATA_WINDY = [
+    WeatherProps.iconId,
+    WeatherProps.temperature,
+    WeatherProps.precipAccumulation,
+    WeatherProps.windSpeed,
+    WeatherProps.windGust,
+    WeatherProps.aqi,
+    WeatherProps.windBearing,
+    WeatherProps.apparentTemperature,
+    WeatherProps.relativeHumidity,
+    WeatherProps.uvIndex,
+    WeatherProps.cloudCover
+];
 export const AVAILABLE_COMPARE_WEATHER_DATA = [
     WeatherProps.precipProbability,
     WeatherProps.windBearing,

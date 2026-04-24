@@ -14,11 +14,15 @@
     import WeatherIcon from '~/components/WeatherIcon.svelte';
     import {
         DEFAULT_HOURLYMAIN_DATA,
+        DEFAULT_WINDY_DATA,
         MAIN_CHART_NB_HOURS,
+        MAIN_HOURLY_VIEW_MODE,
         MAIN_PAGE_HOURLY_CHART,
         SETTINGS_HOURLY_MAIN_DATA,
         SETTINGS_MAIN_CHART_NB_HOURS,
-        SETTINGS_MAIN_PAGE_HOURLY_CHART
+        SETTINGS_MAIN_HOURLY_VIEW_MODE,
+        SETTINGS_MAIN_PAGE_HOURLY_CHART,
+        SETTINGS_WINDY_DATA
     } from '~/helpers/constants';
     import type { FavoriteLocation } from '~/helpers/favorites';
     import { isFavorite, toggleFavorite } from '~/helpers/favorites';
@@ -29,6 +33,7 @@
     import { WeatherProps, formatWeatherValue, weatherDataService } from '~/services/weatherData';
     import { colors, fontScale, fonts, rainColor, weatherDataLayout } from '~/variables';
     import HourlyChartView from './HourlyChartView.svelte';
+    import WindyView from './WindyView.svelte';
 
     const PADDING_LEFT = 7;
     const einkBmpShader = isEInk ? new BitmapShader(ImageSource.fromFileSync('~/assets/images/pattern.png'), TileMode.REPEAT, TileMode.REPEAT) : null;
@@ -50,13 +55,29 @@
             return formatTime(date, 'LT');
         }
     }
+
+    function getHourlyViewMode(): string {
+        // Migration: if old boolean setting was true, use 'chart'
+        const stored = ApplicationSettings.getString(SETTINGS_MAIN_HOURLY_VIEW_MODE, null);
+        if (stored !== null) {
+            return stored;
+        }
+        if (ApplicationSettings.getBoolean(SETTINGS_MAIN_PAGE_HOURLY_CHART, MAIN_PAGE_HOURLY_CHART)) {
+            return 'chart';
+        }
+        return MAIN_HOURLY_VIEW_MODE;
+    }
 </script>
 
 <script lang="ts">
     const currentData = weatherDataService.currentWeatherData;
-    let showHourlyChart = ApplicationSettings.getBoolean(SETTINGS_MAIN_PAGE_HOURLY_CHART, MAIN_PAGE_HOURLY_CHART);
+    let hourlyViewMode = getHourlyViewMode();
+    prefs.on(`key:${SETTINGS_MAIN_HOURLY_VIEW_MODE}`, () => {
+        hourlyViewMode = ApplicationSettings.getString(SETTINGS_MAIN_HOURLY_VIEW_MODE, MAIN_HOURLY_VIEW_MODE);
+    });
+    // Keep legacy listener so old setting also triggers update if somehow still written
     prefs.on(`key:${SETTINGS_MAIN_PAGE_HOURLY_CHART}`, () => {
-        showHourlyChart = ApplicationSettings.getBoolean(SETTINGS_MAIN_PAGE_HOURLY_CHART, MAIN_PAGE_HOURLY_CHART);
+        hourlyViewMode = getHourlyViewMode();
     });
 
     let currentHourlyData: WeatherProps[], dataToShow: WeatherProps[];
@@ -78,6 +99,16 @@
     prefs.on(`key:${SETTINGS_HOURLY_MAIN_DATA}`, () => {
         updateDataToShow();
     });
+
+    let windyDataToShow: WeatherProps[];
+    function updateWindyDataToShow() {
+        windyDataToShow = JSON.parse(ApplicationSettings.getString(SETTINGS_WINDY_DATA, DEFAULT_WINDY_DATA));
+    }
+    updateWindyDataToShow();
+    prefs.on(`key:${SETTINGS_WINDY_DATA}`, () => {
+        updateWindyDataToShow();
+    });
+
     $: ({ colorOnSurface, colorOnSurfaceVariant, colorOutline } = $colors);
 
     // const arcPaint = new Paint();
@@ -578,7 +609,7 @@
         size={(weatherIconSize * 0.9) / Math.sqrt($fontScale)}
         verticalAlignment="middle"
         on:tap />
-    {#if showHourlyChart}
+    {#if hourlyViewMode === 'chart'}
         <HourlyChartView
             barWidth={1}
             borderBottomColor={colorOutline}
@@ -592,6 +623,8 @@
             row={1}
             showCurrentTimeLimitLine={false}
             temperatureLineWidth={3} />
+    {:else if hourlyViewMode === 'windy'}
+        <WindyView colSpan={2} dataToShow={windyDataToShow} items={item.hourly} row={1} />
     {:else}
         <HourlyView colSpan={2} items={item.hourly} row={1} />
     {/if}

@@ -30,8 +30,10 @@
         DEFAULT_DAILY_DATE_FORMAT,
         DEFAULT_HOURLYMAIN_DATA,
         DEFAULT_HOURLY_ODD_COLORS,
+        DEFAULT_WINDY_DATA,
         FEELS_LIKE_TEMPERATURE,
         MAIN_CHART_NB_HOURS,
+        MAIN_HOURLY_VIEW_MODE,
         MAIN_PAGE_HOURLY_CHART,
         MAX_NB_DAYS_FORECAST,
         MIN_UV_INDEX,
@@ -49,6 +51,7 @@
         SETTINGS_IMPERIAL,
         SETTINGS_LANGUAGE,
         SETTINGS_MAIN_CHART_NB_HOURS,
+        SETTINGS_MAIN_HOURLY_VIEW_MODE,
         SETTINGS_MAIN_PAGE_HOURLY_CHART,
         SETTINGS_METRIC_CM_TO_MM,
         SETTINGS_METRIC_TEMP_DECIMAL,
@@ -60,6 +63,7 @@
         SETTINGS_SWIPE_ACTION_BAR_PROVIDER,
         SETTINGS_UNITS,
         SETTINGS_WEATHER_DATA_LAYOUT,
+        SETTINGS_WINDY_DATA,
         SHOW_CURRENT_DAY_DAILY,
         SHOW_DAILY_IN_CURRENTLY,
         SWIPE_ACTION_BAR_PROVIDER,
@@ -73,7 +77,7 @@
     import { iconService } from '~/services/icon';
     import { MaptilerProvider } from '~/services/providers/maptiler';
     import { aqi_providers, getAqiProviderType, getProviderSettins, getProviderType, providers } from '~/services/providers/weatherproviderfactory';
-    import { AVAILABLE_WEATHER_DATA, AVAILABLE_WEATHER_DATA_MAIN_HOURLY, getWeatherDataTitle, weatherDataService } from '~/services/weatherData';
+    import { AVAILABLE_WEATHER_DATA, AVAILABLE_WEATHER_DATA_MAIN_HOURLY, AVAILABLE_WEATHER_DATA_WINDY, getWeatherDataTitle, weatherDataService } from '~/services/weatherData';
     import { confirmRestartApp, createView, getDateFormatHTMLArgs, hideLoading, openLink, selectValue, showLoading, showSliderPopover } from '~/utils/ui';
     import { colors, fontScale, fonts, iconColor, imperial, metricDecimalTemp, onFontScaleChanged, onUnitsChanged, unitCMToMM, unitsSettings, windowInset } from '~/variables';
     import IconButton from '../common/IconButton.svelte';
@@ -562,6 +566,9 @@
                 return async () => {
                     const currentData = JSON.parse(ApplicationSettings.getString(SETTINGS_HOURLY_MAIN_DATA, DEFAULT_HOURLYMAIN_DATA));
                     const disabledData = AVAILABLE_WEATHER_DATA_MAIN_HOURLY.filter((d) => currentData.indexOf(d) === -1);
+                    const windyData = JSON.parse(ApplicationSettings.getString(SETTINGS_WINDY_DATA, DEFAULT_WINDY_DATA));
+                    const windyDisabledData = AVAILABLE_WEATHER_DATA_WINDY.filter((d) => windyData.indexOf(d) === -1);
+                    const currentViewMode = ApplicationSettings.getString(SETTINGS_MAIN_HOURLY_VIEW_MODE, MAIN_HOURLY_VIEW_MODE);
                     return [
                         {
                             type: 'switch',
@@ -570,10 +577,16 @@
                             value: ApplicationSettings.getBoolean(SETTINGS_HOURLY_ODD_COLORS, DEFAULT_HOURLY_ODD_COLORS)
                         },
                         {
-                            type: 'switch',
-                            id: SETTINGS_MAIN_PAGE_HOURLY_CHART,
-                            title: lc('show_hourly_chart_on_main'),
-                            value: ApplicationSettings.getBoolean(SETTINGS_MAIN_PAGE_HOURLY_CHART, MAIN_PAGE_HOURLY_CHART)
+                            key: SETTINGS_MAIN_HOURLY_VIEW_MODE,
+                            id: 'setting',
+                            valueType: 'string',
+                            title: lc('main_hourly_view_mode'),
+                            values: [
+                                { value: 'classic', title: lc('classic_view') },
+                                { value: 'chart', title: lc('chart_view') },
+                                { value: 'windy', title: lc('windy_view') }
+                            ],
+                            rightValue: () => lc(ApplicationSettings.getString(SETTINGS_MAIN_HOURLY_VIEW_MODE, MAIN_HOURLY_VIEW_MODE) + '_view')
                         },
                         {
                             type: 'switch',
@@ -615,6 +628,39 @@
                                 id: k,
                                 reorder: true,
                                 type: 'reorder',
+                                title: getWeatherDataTitle(k)
+                            })) as any
+                        )
+                        .concat([
+                            {
+                                type: 'sectionheader',
+                                id: 'windy_enabled',
+                                title: lc('weather_data_to_show_on_windy')
+                            }
+                        ] as any)
+                        .concat(
+                            windyData.map((k) => ({
+                                id: k,
+                                reorder: true,
+                                type: 'reorder',
+                                settingsKey: SETTINGS_WINDY_DATA,
+                                title: getWeatherDataTitle(k)
+                            })) as any
+                        )
+                        .concat([
+                            {
+                                type: 'sectionheader',
+                                id: 'windy_disabled',
+                                reorder: true,
+                                title: lc('available_weather_data')
+                            }
+                        ] as any)
+                        .concat(
+                            windyDisabledData.map((k) => ({
+                                id: k,
+                                reorder: true,
+                                type: 'reorder',
+                                settingsKey: SETTINGS_WINDY_DATA,
                                 title: getWeatherDataTitle(k)
                             })) as any
                         );
@@ -809,6 +855,13 @@
                             DEV_LOG && console.log('onReordered', disabledPosition, enabledPosition);
                             const newHourlyData = [...items.slice(enabledPosition + 1, disabledPosition)].map((d) => d.id);
                             ApplicationSettings.setString(SETTINGS_HOURLY_MAIN_DATA, JSON.stringify(newHourlyData));
+                            // Also save windy data ordering
+                            const windyEnabledPosition = items.findIndex((d) => d.id === 'windy_enabled');
+                            const windyDisabledPosition = items.findIndex((d) => d.id === 'windy_disabled');
+                            if (windyEnabledPosition !== -1 && windyDisabledPosition !== -1) {
+                                const newWindyData = [...items.slice(windyEnabledPosition + 1, windyDisabledPosition)].map((d) => d.id);
+                                ApplicationSettings.setString(SETTINGS_WINDY_DATA, JSON.stringify(newWindyData));
+                            }
                         },
                         icon: 'mdi-clock-outline',
                         options: getSubSettings('hourly')
