@@ -274,7 +274,7 @@
                 Object.assign(weatherLocation, timezoneData);
                 saveWeatherLocation();
             }
-            weatherData = await getWeatherProvider(weatherLocation.provider).getWeather(weatherLocation, { model: weatherLocation.omModel });
+            weatherData = await getWeatherProvider(provider).getWeather(weatherLocation, { model: weatherLocation.omModel });
             DEV_LOG && console.log('refreshWeather', timezoneData, weatherLocation.timezone);
 
             if (weatherData) {
