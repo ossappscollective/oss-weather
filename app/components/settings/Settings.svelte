@@ -28,10 +28,10 @@
         DAILY_PAGE_HOURLY_CHART,
         DEFAULT_DAILY_DATA_ALIGNMENT,
         DEFAULT_DAILY_DATE_FORMAT,
+        DEFAULT_HOURLYMAIN_DATA,
         DEFAULT_HOURLY_ODD_COLORS,
         FEELS_LIKE_TEMPERATURE,
         MAIN_CHART_NB_HOURS,
-        MAIN_CHART_SHOW_WIND,
         MAIN_PAGE_HOURLY_CHART,
         MAX_NB_DAYS_FORECAST,
         MIN_UV_INDEX,
@@ -44,11 +44,11 @@
         SETTINGS_DAILY_PAGE_HOURLY_CHART,
         SETTINGS_ENABLE_CRASH_REPORT,
         SETTINGS_FEELS_LIKE_TEMPERATURES,
+        SETTINGS_HOURLY_MAIN_DATA,
         SETTINGS_HOURLY_ODD_COLORS,
         SETTINGS_IMPERIAL,
         SETTINGS_LANGUAGE,
         SETTINGS_MAIN_CHART_NB_HOURS,
-        SETTINGS_MAIN_CHART_SHOW_WIND,
         SETTINGS_MAIN_PAGE_HOURLY_CHART,
         SETTINGS_METRIC_CM_TO_MM,
         SETTINGS_METRIC_TEMP_DECIMAL,
@@ -73,7 +73,7 @@
     import { iconService } from '~/services/icon';
     import { MaptilerProvider } from '~/services/providers/maptiler';
     import { aqi_providers, getAqiProviderType, getProviderSettins, getProviderType, providers } from '~/services/providers/weatherproviderfactory';
-    import { AVAILABLE_WEATHER_DATA, getWeatherDataTitle, weatherDataService } from '~/services/weatherData';
+    import { AVAILABLE_WEATHER_DATA, AVAILABLE_WEATHER_DATA_MAIN_HOURLY, getWeatherDataTitle, weatherDataService } from '~/services/weatherData';
     import { confirmRestartApp, createView, getDateFormatHTMLArgs, hideLoading, openLink, selectValue, showLoading, showSliderPopover } from '~/utils/ui';
     import { colors, fontScale, fonts, iconColor, imperial, metricDecimalTemp, onFontScaleChanged, onUnitsChanged, unitCMToMM, unitsSettings, windowInset } from '~/variables';
     import IconButton from '../common/IconButton.svelte';
@@ -96,6 +96,7 @@
 
     export let title = null;
     export let reorderEnabled = false;
+    export let onReordered: (items) => void = null;
     export let actionBarButtons = [
         { icon: 'mdi-share-variant', id: 'share' },
         { icon: 'mdi-github', id: 'github' }
@@ -558,39 +559,66 @@
                     }
                 ];
             case 'hourly':
-                return async () => [
-                    {
-                        type: 'switch',
-                        id: SETTINGS_HOURLY_ODD_COLORS,
-                        title: lc('use_odd_colors_in_hourly'),
-                        value: ApplicationSettings.getBoolean(SETTINGS_HOURLY_ODD_COLORS, DEFAULT_HOURLY_ODD_COLORS)
-                    },
-                    {
-                        type: 'switch',
-                        id: SETTINGS_MAIN_PAGE_HOURLY_CHART,
-                        title: lc('show_hourly_chart_on_main'),
-                        value: ApplicationSettings.getBoolean(SETTINGS_MAIN_PAGE_HOURLY_CHART, MAIN_PAGE_HOURLY_CHART)
-                    },
-                    {
-                        type: 'switch',
-                        id: SETTINGS_DAILY_PAGE_HOURLY_CHART,
-                        title: lc('show_hourly_chart_on_daily'),
-                        value: ApplicationSettings.getBoolean(SETTINGS_DAILY_PAGE_HOURLY_CHART, DAILY_PAGE_HOURLY_CHART)
-                    },
-                    {
-                        key: SETTINGS_MAIN_CHART_NB_HOURS,
-                        id: 'setting',
-                        title: lc('main_chart_nb_hours'),
-                        values: Array.from(Array(MAX_NB_DAYS_FORECAST * 2), (_, index) => ({ value: (index + 1) * 12, title: (index + 1) * 12 })),
-                        rightValue: () => ApplicationSettings.getNumber(SETTINGS_MAIN_CHART_NB_HOURS, MAIN_CHART_NB_HOURS)
-                    },
-                    {
-                        type: 'switch',
-                        id: SETTINGS_MAIN_CHART_SHOW_WIND,
-                        title: lc('main_chart_show_wind'),
-                        value: ApplicationSettings.getBoolean(SETTINGS_MAIN_CHART_SHOW_WIND, MAIN_CHART_SHOW_WIND)
-                    }
-                ];
+                return async () => {
+                    const currentData = JSON.parse(ApplicationSettings.getString(SETTINGS_HOURLY_MAIN_DATA, DEFAULT_HOURLYMAIN_DATA));
+                    const disabledData = AVAILABLE_WEATHER_DATA_MAIN_HOURLY.filter((d) => currentData.indexOf(d) === -1);
+                    return [
+                        {
+                            type: 'switch',
+                            id: SETTINGS_HOURLY_ODD_COLORS,
+                            title: lc('use_odd_colors_in_hourly'),
+                            value: ApplicationSettings.getBoolean(SETTINGS_HOURLY_ODD_COLORS, DEFAULT_HOURLY_ODD_COLORS)
+                        },
+                        {
+                            type: 'switch',
+                            id: SETTINGS_MAIN_PAGE_HOURLY_CHART,
+                            title: lc('show_hourly_chart_on_main'),
+                            value: ApplicationSettings.getBoolean(SETTINGS_MAIN_PAGE_HOURLY_CHART, MAIN_PAGE_HOURLY_CHART)
+                        },
+                        {
+                            type: 'switch',
+                            id: SETTINGS_DAILY_PAGE_HOURLY_CHART,
+                            title: lc('show_hourly_chart_on_daily'),
+                            value: ApplicationSettings.getBoolean(SETTINGS_DAILY_PAGE_HOURLY_CHART, DAILY_PAGE_HOURLY_CHART)
+                        },
+                        {
+                            key: SETTINGS_MAIN_CHART_NB_HOURS,
+                            id: 'setting',
+                            title: lc('main_chart_nb_hours'),
+                            values: Array.from(Array(MAX_NB_DAYS_FORECAST * 2), (_, index) => ({ value: (index + 1) * 12, title: (index + 1) * 12 })),
+                            rightValue: () => ApplicationSettings.getNumber(SETTINGS_MAIN_CHART_NB_HOURS, MAIN_CHART_NB_HOURS)
+                        },
+                        {
+                            type: 'sectionheader',
+                            id: 'enabled',
+                            title: lc('weather_data_to_show_on_main')
+                        }
+                    ]
+                        .concat(
+                            currentData.map((k) => ({
+                                id: k,
+                                reorder: true,
+                                type: 'reorder',
+                                title: getWeatherDataTitle(k)
+                            }))
+                        )
+                        .concat([
+                            {
+                                type: 'sectionheader',
+                                id: 'disabled',
+                                reorder: true,
+                                title: lc('available_weather_data')
+                            }
+                        ] as any)
+                        .concat(
+                            disabledData.map((k) => ({
+                                id: k,
+                                reorder: true,
+                                type: 'reorder',
+                                title: getWeatherDataTitle(k)
+                            })) as any
+                        );
+                };
             case 'widgets':
                 return async (page, updateItem) => {
                     if (WIDGETS) {
@@ -751,7 +779,15 @@
                         title: lc('weather_data'),
                         description: lc('weather_data_settings'),
                         reorderEnabled: true,
-                        onReordered: () => {},
+                        onReordered: (items) => {
+                            const disabledPosition = items.findIndex((d) => d.id === 'disabled');
+                            const enabledSmallPosition = items.findIndex((d) => d.id === 'enabled_small');
+                            const enabledPosition = items.findIndex((d) => d.id === 'enabled');
+                            weatherDataService.updateCurrentWeatherData(
+                                [...items.slice(enabledPosition + 1, enabledSmallPosition)].map((d) => d.id),
+                                [...items.slice(enabledSmallPosition + 1, disabledPosition)].map((d) => d.id)
+                            );
+                        },
                         icon: 'mdi-gauge',
                         options: getSubSettings('weather_data')
                     },
@@ -759,8 +795,6 @@
                         id: 'sub_settings',
                         title: lc('charts'),
                         description: lc('charts_settings'),
-                        reorderEnabled: true,
-                        onReordered: () => {},
                         icon: 'mdi-chart-bar',
                         options: getSubSettings('charts')
                     },
@@ -769,7 +803,13 @@
                         title: lc('hourly'),
                         description: lc('hourly_settings'),
                         reorderEnabled: true,
-                        onReordered: () => {},
+                        onReordered: (items) => {
+                            const disabledPosition = items.findIndex((d) => d.id === 'disabled');
+                            const enabledPosition = items.findIndex((d) => d.id === 'enabled');
+                            DEV_LOG && console.log('onReordered', disabledPosition, enabledPosition);
+                            const newHourlyData = [...items.slice(enabledPosition + 1, disabledPosition)].map((d) => d.id);
+                            ApplicationSettings.setString(SETTINGS_HOURLY_MAIN_DATA, JSON.stringify(newHourlyData));
+                        },
                         icon: 'mdi-clock-outline',
                         options: getSubSettings('hourly')
                     },
@@ -939,23 +979,22 @@
                     return;
                 }
                 const position = items.indexOf(item);
-                let disabledPosition = items.findIndex((d) => d.id === 'disabled');
-                let enabledSmallPosition = items.findIndex((d) => d.id === 'enabled_small');
-                let enabledPosition = items.findIndex((d) => d.id === 'enabled');
+                const disabledPosition = items.findIndex((d) => d.id === 'disabled');
+                const enabledSmallPosition = items.findIndex((d) => d.id === 'enabled_small');
+                const enabledPosition = items.findIndex((d) => d.id === 'enabled');
+                DEV_LOG && console.log('click', position, disabledPosition, enabledSmallPosition, enabledPosition);
                 if (position > disabledPosition) {
                     items.splice(position, 1);
-                    items.splice(enabledSmallPosition, 0, item);
+                    if (enabledSmallPosition > -1) {
+                        items.splice(enabledSmallPosition, 0, item);
+                    } else {
+                        items.splice(disabledPosition, 0, item);
+                    }
                 } else if (position > enabledPosition) {
                     items.splice(position, 1);
                     items.splice(disabledPosition, 0, item);
                 }
-                disabledPosition = items.findIndex((d) => d.id === 'disabled');
-                enabledSmallPosition = items.findIndex((d) => d.id === 'enabled_small');
-                enabledPosition = items.findIndex((d) => d.id === 'enabled');
-                weatherDataService.updateCurrentWeatherData(
-                    [...items.slice(enabledPosition + 1, enabledSmallPosition)].map((d) => d.id),
-                    [...items.slice(enabledSmallPosition + 1, disabledPosition)].map((d) => d.id)
-                );
+                onReordered(items);
                 return;
             }
             DEV_LOG && console.log('onTap', item.id);
@@ -966,6 +1005,7 @@
                         page: component,
                         props: {
                             title: item.title,
+                            onReordered: item.onReordered,
                             reorderEnabled: item.reorderEnabled,
                             options: item.options,
                             subSettingsOptions: item.subSettingsOptions,
@@ -1461,14 +1501,7 @@
             if (__IOS__) {
                 ignoreNextReorderTap = true;
             }
-            const newIndex = e.data.targetIndex;
-            const disabledPosition = items.findIndex((d) => d.id === 'disabled');
-            const enabledSmallPosition = items.findIndex((d) => d.id === 'enabled_small');
-            const enabledPosition = items.findIndex((d) => d.id === 'enabled');
-            weatherDataService.updateCurrentWeatherData(
-                [...items.slice(enabledPosition + 1, enabledSmallPosition)].map((d) => d.id),
-                [...items.slice(enabledSmallPosition + 1, disabledPosition)].map((d) => d.id)
-            );
+            onReordered(items);
         } catch (error) {
             showError(error);
         }

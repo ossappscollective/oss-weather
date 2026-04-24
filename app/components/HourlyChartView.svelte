@@ -1,7 +1,7 @@
 <svelte:options accessors />
 
 <script context="module" lang="ts">
-    import { Align, Canvas, CanvasView, DashPathEffect, LinearGradient, Paint, Rect, RectF } from '@nativescript-community/ui-canvas';
+    import { Align, Canvas, CanvasView, DashPathEffect, LinearGradient, Paint, Path, Rect, RectF } from '@nativescript-community/ui-canvas';
     import { CombinedChart } from '@nativescript-community/ui-chart';
     import { ScatterShape } from '@nativescript-community/ui-chart/charts/ScatterChart';
     import { LimitLine } from '@nativescript-community/ui-chart/components/LimitLine';
@@ -20,7 +20,7 @@
     import { formatTime, getLocalTime, lc } from '~/helpers/locale';
     import { isEInk, onThemeChanged } from '~/helpers/theme';
     import type { CommonWeatherData, DailyData, Hourly } from '~/services/providers/weather';
-    import { colors, dailyDateFormat, fontScale, rainColor, screenWidthDips, snowColor } from '~/variables';
+    import { cloudyColor, colors, dailyDateFormat, fontScale, rainColor, screenWidthDips, snowColor } from '~/variables';
 
     import { AxisDependency } from '@nativescript-community/ui-chart/components/YAxis';
     import { BarData } from '@nativescript-community/ui-chart/data/BarData';
@@ -43,7 +43,7 @@
 
     const CHART_TYPE = {
         [WeatherProps.precipAccumulation]: 'precipitationchart',
-        [WeatherProps.cloudCover]: 'scatterchart'
+        [WeatherProps.cloudCover]: 'linechart'
     };
 </script>
 
@@ -85,6 +85,8 @@
     let highlightedMargin: string;
     let highlightedAlignment: CoreTypes.HorizontalAlignmentType;
 
+    $: DEV_LOG && console.log('dataToShow', dataToShow);
+
     export function getChart() {
         return chartView?.nativeElement;
     }
@@ -123,6 +125,7 @@
     let hasSnowFall = false;
     function updateLineChart(setData = true) {
         try {
+            DEV_LOG && console.log('updateLineChart');
             const chart = chartView?.nativeView;
             if (chart) {
                 chart.maxVisibleValueCount = 10000;
@@ -160,6 +163,17 @@
                     leftAxis.spaceTop = rightAxis.spaceTop = 5;
                     chart.data = combinedChartData;
                     chart.customRenderer = {
+                        drawFill(canvas: Canvas, dataSet: LineDataSet, spline: Path, trans: any, min: number, max: number, superMethod: Function) {
+                            if (dataSet.label === WeatherProps.cloudCover) {
+                                const scale = chart.yChartMax / 100;
+                                canvas.save();
+                                canvas.scale(1, scale, 0, chart.viewPortHandler.contentRect.bottom);
+                                superMethod();
+                                canvas.restore();
+                            } else {
+                                superMethod();
+                            }
+                        },
                         drawIcon(canvas: Canvas, chart: CombinedChart, dataSet, dataSetIndex, entry, entryIndex, icon: any, x: number, y: number) {
                             const date = getLocalTime(startTimestamp + entry['deltaHours'] * 3600 * 1000, timezoneOffset);
                             const scaleX = chart.viewPortHandler.scaleX;
@@ -364,8 +378,8 @@
                     return result;
                 });
 
-                leftAxis.spaceMax = 2; // add space so that highest values does not show over icons
-                rightAxis.spaceMax = 2; // add space so that highest bars does not show over icons
+                leftAxis.spaceMax = 0; // add space so that highest values does not show over icons
+                rightAxis.spaceMax = 0; // add space so that highest bars does not show over icons
                 rightAxis.axisSuggestedMaximum = rightAxisSuggestedMaximum; // we set a max to get hourly precipitations at a "correct" level
 
                 maxDatalength = Math.round((data[data.length - 1].time - data[0].time) / (1000 * 3600));
@@ -495,6 +509,19 @@
                                     };
                                     set.drawIconsEnabled = true;
                                     break;
+                                case WeatherProps.cloudCover:
+                                    set.color = cloudyColor;
+                                    set.lineWidth = 0;
+                                    set.ignoreForMinMax = true;
+                                    set.mode = Mode.CUBIC_BEZIER;
+                                    set.drawFilledEnabled = true;
+                                    set.fillFormatter = {
+                                        getFillLinePosition(dataSet, dataProvider) {
+                                            return dataProvider.yChartMin;
+                                        }
+                                    };
+                                    set.fillColor = cloudyColor.setAlpha(100);
+                                    break;
                                 case WeatherProps.temperature:
                                     // if (!lastGradient) {
                                     updateGradient();
@@ -565,7 +592,7 @@
             showError(error);
         }
     }
-    $: if (chartView && hourly) {
+    $: if (dataToShow && chartView && hourly) {
         updateLineChart(true);
     }
 

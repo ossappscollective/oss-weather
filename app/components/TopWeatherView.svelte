@@ -13,11 +13,11 @@
     import HourlyView from '~/components/HourlyView.svelte';
     import WeatherIcon from '~/components/WeatherIcon.svelte';
     import {
+        DEFAULT_HOURLYMAIN_DATA,
         MAIN_CHART_NB_HOURS,
-        MAIN_CHART_SHOW_WIND,
         MAIN_PAGE_HOURLY_CHART,
+        SETTINGS_HOURLY_MAIN_DATA,
         SETTINGS_MAIN_CHART_NB_HOURS,
-        SETTINGS_MAIN_CHART_SHOW_WIND,
         SETTINGS_MAIN_PAGE_HOURLY_CHART
     } from '~/helpers/constants';
     import type { FavoriteLocation } from '~/helpers/favorites';
@@ -59,22 +59,24 @@
         showHourlyChart = ApplicationSettings.getBoolean(SETTINGS_MAIN_PAGE_HOURLY_CHART, MAIN_PAGE_HOURLY_CHART);
     });
 
-    let showWind = ApplicationSettings.getBoolean(SETTINGS_MAIN_CHART_SHOW_WIND, MAIN_CHART_SHOW_WIND);
-    let dataToShow = [
-        ...new Set(
-            [WeatherProps.precipAccumulation]
-                .filter((s) => currentData.includes(s))
-                .concat([WeatherProps.windBearing, WeatherProps.iconId, WeatherProps.temperature])
-                .concat(showWind ? [WeatherProps.windSpeed] : [])
-        )
-    ];
-    prefs.on(`key:${SETTINGS_MAIN_CHART_SHOW_WIND}`, () => {
-        showWind = ApplicationSettings.getBoolean(SETTINGS_MAIN_CHART_SHOW_WIND, MAIN_CHART_SHOW_WIND);
-        if (showWind) {
-            dataToShow = [...new Set([WeatherProps.windSpeed].concat(dataToShow))];
-        } else {
-            dataToShow = dataToShow.filter((d) => d !== WeatherProps.windSpeed);
-        }
+    let currentHourlyData: WeatherProps[], dataToShow: WeatherProps[];
+
+    function updateDataToShow() {
+        currentHourlyData = JSON.parse(ApplicationSettings.getString(SETTINGS_HOURLY_MAIN_DATA, DEFAULT_HOURLYMAIN_DATA));
+        DEV_LOG && console.log('currentHourlyData', currentHourlyData);
+        dataToShow = [
+            ...new Set(
+                currentHourlyData
+                    .filter((s) => currentData.includes(s))
+                    .concat(currentHourlyData.indexOf(WeatherProps.iconId) !== -1 ? [WeatherProps.iconId] : [])
+                    .concat(currentHourlyData.indexOf(WeatherProps.temperature) !== -1 ? [WeatherProps.temperature] : [])
+                    .concat(currentHourlyData.indexOf(WeatherProps.windBearing) !== -1 ? [WeatherProps.windBearing] : [])
+            )
+        ];
+    }
+    updateDataToShow();
+    prefs.on(`key:${SETTINGS_HOURLY_MAIN_DATA}`, () => {
+        updateDataToShow();
     });
     $: ({ colorOnSurface, colorOnSurfaceVariant, colorOutline } = $colors);
 

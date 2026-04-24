@@ -161,6 +161,14 @@ export const AVAILABLE_WEATHER_DATA = [
     WeatherProps.waveHeightMax,
     WeatherProps.swellHeight
 ];
+export const AVAILABLE_WEATHER_DATA_MAIN_HOURLY = [
+    WeatherProps.iconId,
+    WeatherProps.windSpeed,
+    WeatherProps.windBearing,
+    WeatherProps.precipAccumulation,
+    WeatherProps.cloudCover,
+    WeatherProps.windGust
+];
 export const AVAILABLE_COMPARE_WEATHER_DATA = [
     WeatherProps.precipProbability,
     WeatherProps.windBearing,

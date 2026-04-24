@@ -24,7 +24,6 @@ export const SETTINGS_SHOW_CURRENT_DAY_DAILY = 'show_current_day_daily';
 export const SETTINGS_WEATHER_DATA_LAYOUT = 'weather_data_layout';
 export const SETTINGS_MIN_UV_INDEX = 'min_uv_index';
 export const SETTINGS_MAIN_CHART_NB_HOURS = 'main_chart_nb_hours';
-export const SETTINGS_MAIN_CHART_SHOW_WIND = 'main_chart_show_wind';
 export const SETTINGS_HOURLY_ODD_COLORS = 'hourly_odd_colors';
 export const SETTINGS_PROVIDER = 'provider';
 export const SETTINGS_PROVIDER_AQI = 'provider_aqi';
@@ -34,6 +33,7 @@ export const SETTINGS_FAVORITES = 'favorites';
 export const SETTINGS_DAILY_DATE_FORMAT = 'daily_date_format';
 export const SETTINGS_DAILY_DATA_ALIGNMENT = 'daily_data_alignment';
 export const SETTINGS_MAPTILER_DEFAULT_KEY = 'maptiler_api_key';
+export const SETTINGS_HOURLY_MAIN_DATA = 'hourly_main_data';
 
 export const DEFAULT_COLOR_THEME = 'default';
 export const DEFAULT_LOCALE = 'auto';
@@ -61,8 +61,8 @@ export const NB_DAYS_FORECAST = 7;
 export const NB_HOURS_FORECAST = 72;
 export const MAIN_CHART_NB_HOURS = 72;
 export const NB_MINUTES_FORECAST = 60;
-export const MAIN_CHART_SHOW_WIND = false;
 export const DEFAULT_HOURLY_ODD_COLORS = true;
+export const DEFAULT_HOURLYMAIN_DATA = '["precipAccumulation", "windBearing", "iconId", "temperature"]';
 
 export const MIN_UV_INDEX = 0;
 

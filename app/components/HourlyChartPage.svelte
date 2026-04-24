@@ -39,7 +39,13 @@
     export let weatherData: WeatherData;
     export let forecast = 'hourly';
     const currentData = weatherDataService.currentWeatherData;
-    export let dataToShow = [...new Set([WeatherProps.windSpeed, WeatherProps.precipAccumulation].filter((s) => currentData.includes(s)).concat([WeatherProps.iconId, WeatherProps.temperature]))];
+    export let dataToShow = [
+        ...new Set(
+            [WeatherProps.windSpeed, WeatherProps.precipAccumulation, WeatherProps.cloudCover]
+                .filter((s) => currentData.includes(s))
+                .concat([WeatherProps.windSpeed, WeatherProps.windBearing, WeatherProps.iconId, WeatherProps.temperature])
+        )
+    ];
 
     let page: NativeViewElementNode<Page>;
     // let pullRefresh: NativeViewElementNode<PullToRefresh>;
