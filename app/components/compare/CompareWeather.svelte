@@ -35,7 +35,7 @@
         id: k,
         type: CHART_TYPE[k] || 'linechart',
         title: getWeatherDataTitle(k),
-        icon: getWeatherDataIcon(k)
+        ...getWeatherDataIcon(k)
     }));
 
     export let weatherLocation: FavoriteLocation;

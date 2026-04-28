@@ -10,13 +10,17 @@ import {
     DEFAULT_COLOR_THEME,
     DEFAULT_DAILY_DATA_ALIGNMENT,
     DEFAULT_DAILY_DATE_FORMAT,
+    DEFAULT_HOURLYMAIN_DATA,
     DEFAULT_METRIC_CM_TO_MM,
+    HOURLY_VIEW_MODE,
     SETTINGS_ALWAYS_SHOW_PRECIP_PROB,
     SETTINGS_COLOR_THEME,
     SETTINGS_DAILY_DATA_ALIGNMENT,
     SETTINGS_DAILY_DATE_FORMAT,
     SETTINGS_FEELS_LIKE_TEMPERATURES,
     SETTINGS_FONTSCALE,
+    SETTINGS_HOURLY_MAIN_DATA,
+    SETTINGS_HOURLY_VIEW_MODE,
     SETTINGS_IMPERIAL,
     SETTINGS_METRIC_CM_TO_MM,
     SETTINGS_METRIC_TEMP_DECIMAL,
@@ -28,6 +32,7 @@ import {
 import { ColorThemes, getRealTheme, useDynamicColors } from '~/helpers/theme';
 import { DEFAULT_IMPERIAL_UINTS, DEFAULT_METRIC_UINTS } from '~/helpers/units';
 import { prefs } from '~/services/preferences';
+import { WeatherProps } from '~/services/weatherData';
 
 export const colors = writable({
     colorPrimary: '',
@@ -84,7 +89,7 @@ export const systemFontScale = writable(1);
 
 export const iconColor = new Color('#FFC82F');
 export const sunnyColor = new Color('#FFC930');
-// export const nightColor = new Color('#845987');
+export const nightColor = new Color('#845987');
 export const scatteredCloudyColor = new Color('#aaa');
 export const cloudyColor = new Color('#929292');
 export const rainColor = new Color('#4681C3');
@@ -98,6 +103,8 @@ export const dailyDataAlignment = writable(ApplicationSettings.getString(SETTING
 export const weatherDataLayout = writable(ApplicationSettings.getString(SETTINGS_WEATHER_DATA_LAYOUT, WEATHER_DATA_LAYOUT));
 export const imperial = writable(imperialUnits);
 export let dailyDateFormat = ApplicationSettings.getString(SETTINGS_DAILY_DATE_FORMAT, DEFAULT_DAILY_DATE_FORMAT);
+export const hourlyViewMode = writable(ApplicationSettings.getString(SETTINGS_HOURLY_VIEW_MODE, HOURLY_VIEW_MODE));
+export const hourlyViewData = writable<WeatherProps[]>(JSON.parse(ApplicationSettings.getString(SETTINGS_HOURLY_MAIN_DATA, DEFAULT_HOURLYMAIN_DATA)));
 
 let storedFontScale = ApplicationSettings.getNumber(SETTINGS_FONTSCALE, 1);
 if (isNaN(storedFontScale)) {
@@ -105,6 +112,7 @@ if (isNaN(storedFontScale)) {
 }
 export const fontScale = writable(storedFontScale);
 export const isRTL = writable(false);
+export const topViewHeight = writable(220 * Math.max(1, storedFontScale / 1.2));
 
 export const onUnitsChanged = createGlobalEventListener(SETTINGS_UNITS);
 export const onFontScaleChanged = createGlobalEventListener(SETTINGS_FONTSCALE);
@@ -176,9 +184,19 @@ prefs.on('change', (event: EventData & { key: string }) => {
             // we notify imperial to update ui
             globalObservable.notify({ eventName: SETTINGS_WEATHER_DATA_LAYOUT, data: weatherDataLayout });
             break;
-        case SETTINGS_ALWAYS_SHOW_PRECIP_PROB:
-            alwaysShowPrecipProb.set(ApplicationSettings.getBoolean(SETTINGS_ALWAYS_SHOW_PRECIP_PROB, ALWAYS_SHOW_PRECIP_PROB));
-            DEV_LOG && console.log(`key:${SETTINGS_ALWAYS_SHOW_PRECIP_PROB}`, get(alwaysShowPrecipProb));
+        case SETTINGS_WEATHER_DATA_LAYOUT:
+            weatherDataLayout.set(ApplicationSettings.getString(SETTINGS_WEATHER_DATA_LAYOUT, WEATHER_DATA_LAYOUT));
+            DEV_LOG && console.log(`key:${SETTINGS_WEATHER_DATA_LAYOUT}`, weatherDataLayout);
+            // we notify imperial to update ui
+            globalObservable.notify({ eventName: SETTINGS_WEATHER_DATA_LAYOUT, data: weatherDataLayout });
+            break;
+        case SETTINGS_HOURLY_VIEW_MODE:
+            hourlyViewMode.set(ApplicationSettings.getString(SETTINGS_HOURLY_VIEW_MODE, HOURLY_VIEW_MODE));
+            DEV_LOG && console.log(`key:${SETTINGS_HOURLY_VIEW_MODE}`, get(hourlyViewMode));
+            break;
+        case SETTINGS_HOURLY_MAIN_DATA:
+            hourlyViewData.set(JSON.parse(ApplicationSettings.getString(SETTINGS_HOURLY_MAIN_DATA, DEFAULT_HOURLYMAIN_DATA)));
+            DEV_LOG && console.log(`key:${SETTINGS_HOURLY_MAIN_DATA}`, get(hourlyViewData));
             break;
         case SETTINGS_DAILY_DATA_ALIGNMENT:
             dailyDataAlignment.set(ApplicationSettings.getString(SETTINGS_DAILY_DATA_ALIGNMENT, DEFAULT_DAILY_DATA_ALIGNMENT));
@@ -197,6 +215,7 @@ prefs.on('change', (event: EventData & { key: string }) => {
             } else {
                 fontScale.set(storedFontScale);
             }
+            topViewHeight.set(220 * Math.max(1, get(fontScale) / 1.2));
             globalObservable.notify({ eventName: SETTINGS_FONTSCALE, data: get(fontScale) });
             break;
         default:

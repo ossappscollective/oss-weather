@@ -25,14 +25,13 @@
         ANIMATIONS_ENABLED,
         CHARTS_LANDSCAPE,
         CHARTS_PORTRAIT_FULLSCREEN,
-        DAILY_PAGE_HOURLY_CHART,
         DEFAULT_DAILY_DATA_ALIGNMENT,
         DEFAULT_DAILY_DATE_FORMAT,
         DEFAULT_HOURLYMAIN_DATA,
         DEFAULT_HOURLY_ODD_COLORS,
         FEELS_LIKE_TEMPERATURE,
+        HOURLY_VIEW_MODE,
         MAIN_CHART_NB_HOURS,
-        MAIN_PAGE_HOURLY_CHART,
         MAX_NB_DAYS_FORECAST,
         MIN_UV_INDEX,
         NB_DAYS_FORECAST,
@@ -41,15 +40,14 @@
         SETTINGS_ALWAYS_SHOW_PRECIP_PROB,
         SETTINGS_DAILY_DATA_ALIGNMENT,
         SETTINGS_DAILY_DATE_FORMAT,
-        SETTINGS_DAILY_PAGE_HOURLY_CHART,
         SETTINGS_ENABLE_CRASH_REPORT,
         SETTINGS_FEELS_LIKE_TEMPERATURES,
         SETTINGS_HOURLY_MAIN_DATA,
         SETTINGS_HOURLY_ODD_COLORS,
+        SETTINGS_HOURLY_VIEW_MODE,
         SETTINGS_IMPERIAL,
         SETTINGS_LANGUAGE,
         SETTINGS_MAIN_CHART_NB_HOURS,
-        SETTINGS_MAIN_PAGE_HOURLY_CHART,
         SETTINGS_METRIC_CM_TO_MM,
         SETTINGS_METRIC_TEMP_DECIMAL,
         SETTINGS_MIN_UV_INDEX,
@@ -135,6 +133,15 @@
         }
         return storeSettings[k];
     }
+    function saveReorderedSection(items: any[], enabledId: string, disabledId: string, settingsKey: string) {
+        const enabledPosition = items.findIndex((d) => d.id === enabledId);
+        const disabledPosition = items.findIndex((d) => d.id === disabledId);
+        if (enabledPosition !== -1 && disabledPosition !== -1) {
+            const newData = [...items.slice(enabledPosition + 1, disabledPosition)].map((d) => d.id);
+            ApplicationSettings.setString(settingsKey, JSON.stringify(newData));
+        }
+    }
+
     function getSubSettings(id: string) {
         switch (id) {
             case 'appearance':
@@ -570,16 +577,16 @@
                             value: ApplicationSettings.getBoolean(SETTINGS_HOURLY_ODD_COLORS, DEFAULT_HOURLY_ODD_COLORS)
                         },
                         {
-                            type: 'switch',
-                            id: SETTINGS_MAIN_PAGE_HOURLY_CHART,
-                            title: lc('show_hourly_chart_on_main'),
-                            value: ApplicationSettings.getBoolean(SETTINGS_MAIN_PAGE_HOURLY_CHART, MAIN_PAGE_HOURLY_CHART)
-                        },
-                        {
-                            type: 'switch',
-                            id: SETTINGS_DAILY_PAGE_HOURLY_CHART,
-                            title: lc('show_hourly_chart_on_daily'),
-                            value: ApplicationSettings.getBoolean(SETTINGS_DAILY_PAGE_HOURLY_CHART, DAILY_PAGE_HOURLY_CHART)
+                            key: SETTINGS_HOURLY_VIEW_MODE,
+                            id: 'setting',
+                            valueType: 'string',
+                            title: lc('main_hourly_view_mode'),
+                            values: [
+                                { value: 'classic', title: lc('classic_view') },
+                                { value: 'chart', title: lc('chart_view') },
+                                { value: 'windy', title: lc('windy_view') }
+                            ],
+                            rightValue: () => lc(ApplicationSettings.getString(SETTINGS_HOURLY_VIEW_MODE, HOURLY_VIEW_MODE) + '_view')
                         },
                         {
                             key: SETTINGS_MAIN_CHART_NB_HOURS,
@@ -804,11 +811,8 @@
                         description: lc('hourly_settings'),
                         reorderEnabled: true,
                         onReordered: (items) => {
-                            const disabledPosition = items.findIndex((d) => d.id === 'disabled');
-                            const enabledPosition = items.findIndex((d) => d.id === 'enabled');
-                            DEV_LOG && console.log('onReordered', disabledPosition, enabledPosition);
-                            const newHourlyData = [...items.slice(enabledPosition + 1, disabledPosition)].map((d) => d.id);
-                            ApplicationSettings.setString(SETTINGS_HOURLY_MAIN_DATA, JSON.stringify(newHourlyData));
+                            DEV_LOG && console.log('onReordered hourly');
+                            saveReorderedSection(items, 'enabled', 'disabled', SETTINGS_HOURLY_MAIN_DATA);
                         },
                         icon: 'mdi-clock-outline',
                         options: getSubSettings('hourly')

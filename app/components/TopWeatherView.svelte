@@ -1,4 +1,5 @@
 <script context="module" lang="ts">
+    import type { NativeViewElementNode } from '@nativescript-community/svelte-native/dom';
     import { createNativeAttributedString } from '@nativescript-community/text';
     import { Align, BitmapShader, Canvas, LayoutAlignment, Paint, StaticLayout, TileMode } from '@nativescript-community/ui-canvas';
     import { CombinedChart, LineChart } from '@nativescript-community/ui-chart';
@@ -9,26 +10,19 @@
     import { LineDataSet, Mode } from '@nativescript-community/ui-chart/data/LineDataSet';
     import { ApplicationSettings, Color, ImageSource, Utils } from '@nativescript/core';
     import dayjs from 'dayjs';
-    import type { NativeViewElementNode } from '@nativescript-community/svelte-native/dom';
     import HourlyView from '~/components/HourlyView.svelte';
     import WeatherIcon from '~/components/WeatherIcon.svelte';
-    import {
-        DEFAULT_HOURLYMAIN_DATA,
-        MAIN_CHART_NB_HOURS,
-        MAIN_PAGE_HOURLY_CHART,
-        SETTINGS_HOURLY_MAIN_DATA,
-        SETTINGS_MAIN_CHART_NB_HOURS,
-        SETTINGS_MAIN_PAGE_HOURLY_CHART
-    } from '~/helpers/constants';
+    import { HOURLY_VIEW_MODE, MAIN_CHART_NB_HOURS, SETTINGS_HOURLY_VIEW_MODE, SETTINGS_MAIN_CHART_NB_HOURS } from '~/helpers/constants';
     import type { FavoriteLocation } from '~/helpers/favorites';
-    import { isFavorite, toggleFavorite } from '~/helpers/favorites';
+    import { isFavorite } from '~/helpers/favorites';
     import { formatDate, formatTime, l, lc } from '~/helpers/locale';
     import { isEInk, onThemeChanged } from '~/helpers/theme';
     import { prefs } from '~/services/preferences';
     import type { Currently, Hourly, MinutelyData } from '~/services/providers/weather';
     import { WeatherProps, formatWeatherValue, weatherDataService } from '~/services/weatherData';
-    import { colors, fontScale, fonts, rainColor, weatherDataLayout } from '~/variables';
+    import { colors, fontScale, fonts, hourlyViewData, hourlyViewMode, rainColor, topViewHeight, weatherDataLayout } from '~/variables';
     import HourlyChartView from './HourlyChartView.svelte';
+    import WindyView from './WindyView.svelte';
 
     const PADDING_LEFT = 7;
     const einkBmpShader = isEInk ? new BitmapShader(ImageSource.fromFileSync('~/assets/images/pattern.png'), TileMode.REPEAT, TileMode.REPEAT) : null;
@@ -50,19 +44,19 @@
             return formatTime(date, 'LT');
         }
     }
+
+    function getHourlyViewMode(): string {
+        return ApplicationSettings.getString(SETTINGS_HOURLY_VIEW_MODE, HOURLY_VIEW_MODE);
+    }
 </script>
 
 <script lang="ts">
     const currentData = weatherDataService.currentWeatherData;
-    let showHourlyChart = ApplicationSettings.getBoolean(SETTINGS_MAIN_PAGE_HOURLY_CHART, MAIN_PAGE_HOURLY_CHART);
-    prefs.on(`key:${SETTINGS_MAIN_PAGE_HOURLY_CHART}`, () => {
-        showHourlyChart = ApplicationSettings.getBoolean(SETTINGS_MAIN_PAGE_HOURLY_CHART, MAIN_PAGE_HOURLY_CHART);
-    });
 
     let currentHourlyData: WeatherProps[], dataToShow: WeatherProps[];
 
-    function updateDataToShow() {
-        currentHourlyData = JSON.parse(ApplicationSettings.getString(SETTINGS_HOURLY_MAIN_DATA, DEFAULT_HOURLYMAIN_DATA));
+    function updateDataToShow(hourlyViewData: WeatherProps[]) {
+        currentHourlyData = hourlyViewData;
         DEV_LOG && console.log('currentHourlyData', currentHourlyData);
         dataToShow = [
             ...new Set(
@@ -74,10 +68,8 @@
             )
         ];
     }
-    updateDataToShow();
-    prefs.on(`key:${SETTINGS_HOURLY_MAIN_DATA}`, () => {
-        updateDataToShow();
-    });
+    $: updateDataToShow($hourlyViewData);
+
     $: ({ colorOnSurface, colorOnSurfaceVariant, colorOutline } = $colors);
 
     // const arcPaint = new Paint();
@@ -91,7 +83,6 @@
     export let animated = false;
     let lineChart: NativeViewElementNode<LineChart>;
     const weatherIconSize = 110;
-    $: topViewHeight = 220 * Math.max(1, $fontScale / 1.2);
     let chartInitialized = false;
     let precipChartSet: LineDataSet;
     let cloudChartSet: LineDataSet;
@@ -423,7 +414,7 @@
                 textPaint.setTextAlign(Align.LEFT);
                 textIconPaint.setTextAlign(Align.CENTER);
                 textIconPaint.color = colorOutline;
-                const iconsTop = hasPrecip ? 45 * $fontScale : topViewHeight / 2 - 20 * $fontScale;
+                const iconsTop = hasPrecip ? 45 * $fontScale : $topViewHeight / 2 - 20 * $fontScale;
                 const lineHeight = 20 * $fontScale;
                 const lineWidth = 100 * $fontScale;
                 const nbLines = Math.ceil(centeredItemsToDraw.length / 2);
@@ -495,7 +486,7 @@
             }
             default:
             case 'default': {
-                const iconsTop = hasPrecip ? 45 * $fontScale : topViewHeight / 2 - 20 * $fontScale;
+                const iconsTop = hasPrecip ? 45 * $fontScale : $topViewHeight / 2 - 20 * $fontScale;
                 const iconsLeft = 26;
                 centeredItemsToDraw.forEach((c, index) => {
                     const x = index * 45 * $fontScale + iconsLeft;
@@ -542,7 +533,7 @@
     });
 </script>
 
-<gridlayout columns="*,auto" {height} rows={`${topViewHeight},*`}>
+<gridlayout columns="*,auto" {height} rows={`${$topViewHeight},*`}>
     <canvasview bind:this={canvasView} id="topweather" colSpan={2} paddingBottom={10} paddingLeft={10} paddingRight={10} on:draw={drawOnCanvas}>
         <!-- <cgroup fontSize={14 * $fontScale} verticalAlignment="bottom">
             <cspan color="#ffa500" fontFamily={$fonts.wi} text="wi-sunrise " />
@@ -578,7 +569,7 @@
         size={(weatherIconSize * 0.9) / Math.sqrt($fontScale)}
         verticalAlignment="middle"
         on:tap />
-    {#if showHourlyChart}
+    {#if $hourlyViewMode === 'chart'}
         <HourlyChartView
             barWidth={1}
             borderBottomColor={colorOutline}
@@ -592,6 +583,8 @@
             row={1}
             showCurrentTimeLimitLine={false}
             temperatureLineWidth={3} />
+    {:else if $hourlyViewMode === 'windy'}
+        <WindyView colSpan={2} {dataToShow} items={item.hourly} row={1} />
     {:else}
         <HourlyView colSpan={2} items={item.hourly} row={1} />
     {/if}

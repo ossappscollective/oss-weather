@@ -100,7 +100,7 @@ export interface CommonWeatherData extends CommonAirQualityData {
     precipShowSnow?: boolean;
     cloudCover?: number;
     cloudCeiling?: number;
-    precipColor?: string | Color;
+    precipColor?: string;
     mixedRainSnow?: boolean;
     windBearing?: number;
     relativeHumidity?: number;

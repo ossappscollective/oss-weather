@@ -1,19 +1,20 @@
 <script context="module" lang="ts">
+    import { NativeViewElementNode } from '@nativescript-community/svelte-native/dom';
     import { createNativeAttributedString } from '@nativescript-community/text';
     import { Align, Canvas, CanvasView, LayoutAlignment, Paint, StaticLayout } from '@nativescript-community/ui-canvas';
     import { CombinedChart } from '@nativescript-community/ui-chart';
     import { ApplicationSettings, Page, StackLayout } from '@nativescript/core';
     import dayjs, { Dayjs } from 'dayjs';
-    import { NativeViewElementNode } from '@nativescript-community/svelte-native/dom';
     import AstronomyView from '~/components/astronomy/AstronomyView.svelte';
-    import { DAILY_PAGE_HOURLY_CHART, SETTINGS_DAILY_PAGE_HOURLY_CHART, SETTINGS_SHOW_CURRENT_DAY_DAILY, SHOW_CURRENT_DAY_DAILY } from '~/helpers/constants';
+    import WindyView, { computeWindyViewMinHeight } from '~/components/WindyView.svelte';
+    import { SETTINGS_SHOW_CURRENT_DAY_DAILY, SHOW_CURRENT_DAY_DAILY } from '~/helpers/constants';
     import { formatDate, isSameDay, lc } from '~/helpers/locale';
     import { POLLENS_POLLUTANTS_TITLES } from '~/services/airQualityData';
     import { WeatherLocation } from '~/services/api';
     import { iconService, onIconAnimationsChanged } from '~/services/icon';
     import type { DailyData, Hourly, Tide } from '~/services/providers/weather';
     import { WeatherProps, formatWeatherValue, getWeatherDataShortTitle, weatherDataService } from '~/services/weatherData';
-    import { colors, fontScale, onFontScaleChanged, weatherDataLayout, windowInset } from '~/variables';
+    import { colors, fontScale, hourlyViewData, hourlyViewMode, onFontScaleChanged, weatherDataLayout } from '~/variables';
     import CActionBar from './common/CActionBar.svelte';
     import HourlyChartView from './HourlyChartView.svelte';
     import HourlyView from './HourlyView.svelte';
@@ -39,10 +40,18 @@
 </script>
 
 <script lang="ts">
-    const showHourlyChart = ApplicationSettings.getBoolean(SETTINGS_DAILY_PAGE_HOURLY_CHART, DAILY_PAGE_HOURLY_CHART);
-
     const currentData = weatherDataService.currentWeatherData;
-    export let dataToShow = [...new Set([WeatherProps.windSpeed, WeatherProps.precipAccumulation].filter((s) => currentData.includes(s)).concat([WeatherProps.iconId, WeatherProps.temperature]))];
+    const currentHourlyData: WeatherProps[] = $hourlyViewData;
+    const dataToShow: WeatherProps[] = [
+        ...new Set(
+            currentHourlyData
+                .filter((s) => currentData.includes(s))
+                .concat(currentHourlyData.indexOf(WeatherProps.iconId) !== -1 ? [WeatherProps.iconId] : [])
+                .concat(currentHourlyData.indexOf(WeatherProps.temperature) !== -1 ? [WeatherProps.temperature] : [])
+                .concat(currentHourlyData.indexOf(WeatherProps.windBearing) !== -1 ? [WeatherProps.windBearing] : [])
+        )
+    ];
+
     export let getDailyPageProps: Function;
     export let itemIndex: number;
     export let items: any[];
@@ -67,6 +76,13 @@
     let page: NativeViewElementNode<Page>;
     let stackHolder: NativeViewElementNode<StackLayout>;
     let topCanvasView: NativeViewElementNode<CanvasView>;
+    let hourlyViewHeight = 250 * $fontScale;
+    $: {
+        hourlyViewHeight = 250 * $fontScale;
+        if ($hourlyViewMode === 'windy') {
+            hourlyViewHeight = computeWindyViewMinHeight($hourlyViewData, $fontScale);
+        }
+    }
     let animated = iconService.animated;
     $: ({ colorOnSurface, colorOnSurfaceVariant, colorOutline } = $colors);
 
@@ -415,14 +431,14 @@
                         verticalAlignment="bottom" />
                 </gridlayout>
                 ${#if item.hourly && item.hourly.length}
-                    {#if showHourlyChart}
+                    {#if $hourlyViewMode === 'chart'}
                         <HourlyChartView
                             barWidth={1}
                             borderBottomColor={colorOutline}
                             borderBottomWidth={1}
                             {dataToShow}
                             fixedBarScale={false}
-                            height={200 * $fontScale}
+                            height={hourlyViewHeight}
                             hourly={item.hourly}
                             {onChartConfigure}
                             rightAxisSuggestedMaximum={8}
@@ -431,8 +447,10 @@
                             startTime={isCurrentDay ? Date.now() : undefined}
                             temperatureLineWidth={3}
                             visibility={item.hourly.length > 0 ? 'visible' : 'collapsed'} />
+                    {:else if $hourlyViewMode === 'windy'}
+                        <WindyView {dataToShow} height={hourlyViewHeight} items={item.hourly} row={1} />
                     {:else}
-                        <HourlyView height={250 * $fontScale} items={item.hourly} row={1} />
+                        <HourlyView height={hourlyViewHeight} items={item.hourly} row={1} />
                     {/if}
                 {/if}
                 {#if last24Data.length > 0}

@@ -114,3 +114,15 @@ export function getIndexedColor(value: number, indexes: number[], colors: string
         return colors[low];
     }
 }
+
+// Windy-style wind speed color scale (speed in km/h), starting at 10 km/h
+const WIND_SPEED_INDEXES = [15, 21, 33, 40, 50, 70];
+const WIND_SPEED_COLORS = ['#73ddfa', '#00e90b', '#dfb800', '#ff9106', '#ff5231', '#ff0294'];
+
+export function windSpeedColor(speedKmh: number): string | null {
+    const value = Math.round(speedKmh);
+    if (!value || value < 10) {
+        return null;
+    }
+    return getIndexedColor(value, WIND_SPEED_INDEXES, WIND_SPEED_COLORS, true);
+}

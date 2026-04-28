@@ -8,7 +8,7 @@ import { ComponentProps } from 'svelte';
 import { get } from 'svelte/store';
 import type HourlyPopover__SvelteComponent_ from '~/components/HourlyPopover.svelte';
 import { MIN_UV_INDEX, SETTINGS_MIN_UV_INDEX } from '~/helpers/constants';
-import { convertValueToUnit, formatValueToUnit } from '~/helpers/formatter';
+import { convertValueToUnit, formatValueToUnit, windBeaufortIcon, windIcon } from '~/helpers/formatter';
 import { UNITS, UNIT_FAMILIES } from '~/helpers/units';
 import type { CommonWeatherData, WeatherData } from '~/services/providers/weather';
 import { createGlobalEventListener, globalObservable } from '@shared/utils/svelte/ui';
@@ -161,14 +161,16 @@ export const AVAILABLE_WEATHER_DATA = [
     WeatherProps.waveHeightMax,
     WeatherProps.swellHeight
 ];
-export const AVAILABLE_WEATHER_DATA_MAIN_HOURLY = [
-    WeatherProps.iconId,
-    WeatherProps.windSpeed,
-    WeatherProps.windBearing,
-    WeatherProps.precipAccumulation,
-    WeatherProps.cloudCover,
-    WeatherProps.windGust
-];
+// export const AVAILABLE_WEATHER_DATA_MAIN_HOURLY = [
+//     WeatherProps.iconId,
+//     WeatherProps.windSpeed,
+//     WeatherProps.windBearing,
+//     WeatherProps.precipAccumulation,
+//     WeatherProps.cloudCover,
+//     WeatherProps.windGust
+// ];
+export const AVAILABLE_WEATHER_DATA_MAIN_HOURLY = AVAILABLE_WEATHER_DATA;
+
 export const AVAILABLE_COMPARE_WEATHER_DATA = [
     WeatherProps.precipProbability,
     WeatherProps.windBearing,
@@ -212,27 +214,29 @@ const WEATHER_DATA_PARENT = {
 };
 
 const WEATHER_DATA_ICONS = {
-    [WeatherProps.moon]: (item: CommonWeatherData) => item.moonIcon,
-    [WeatherProps.iconId]: 'mdi-theme-light-dark',
-    [WeatherProps.sealevelPressure]: 'wi-barometer',
-    [WeatherProps.relativeHumidity]: 'wi-humidity',
-    [WeatherProps.dewpoint]: 'mdi-thermometer-water',
-    [WeatherProps.apparentTemperature]: 'mdi-thermometer',
-    [WeatherProps.temperature]: 'mdi-thermometer',
-    [WeatherProps.rainSnowLimit]: 'app-rain-snow',
-    [WeatherProps.iso]: 'mdi-snowflake-thermometer',
-    [WeatherProps.cloudCover]: 'wi-cloud',
-    [WeatherProps.windGust]: 'wi-strong-wind',
-    [WeatherProps.uvIndex]: 'mdi-weather-sunny-alert',
-    [WeatherProps.windBeaufort]: (item: CommonWeatherData) => item.windBeaufortIcon,
-    [WeatherProps.windSpeed]: (item: CommonWeatherData) => item.windIcon,
-    [WeatherProps.precipAccumulation]: (item: CommonWeatherData) => item.precipIcon,
-    [WeatherProps.rainPrecipitation]: 'wi-raindrop',
-    [WeatherProps.snowfall]: 'wi-snowflake-cold',
-    [WeatherProps.seaTemperature]: 'mdi-coolant-temperature',
-    [WeatherProps.waveHeight]: 'mdi-waves-arrow-up',
-    [WeatherProps.waveHeightMax]: 'mdi-waves-arrow-up',
-    [WeatherProps.swellHeight]: 'mdi-wave-arrow-up'
+    [WeatherProps.moon]: (item: CommonWeatherData) => ({ fontFamily: 'wi', icon: item.moonIcon }),
+    [WeatherProps.iconId]: { fontFamily: 'mdi', icon: 'mdi-theme-light-dark' },
+    [WeatherProps.sealevelPressure]: { fontFamily: 'wi', icon: 'wi-barometer' },
+    [WeatherProps.relativeHumidity]: { fontFamily: 'wi', icon: 'wi-humidity' },
+    [WeatherProps.dewpoint]: { fontFamily: 'wi', icon: 'mdi-thermometer-water' },
+    [WeatherProps.apparentTemperature]: { fontFamily: 'mdi', icon: 'mdi-thermometer' },
+    [WeatherProps.temperature]: { fontFamily: 'mdi', icon: 'mdi-thermometer' },
+    [WeatherProps.rainSnowLimit]: { fontFamily: 'wi', icon: 'app-rain-snow' },
+    [WeatherProps.iso]: { fontFamily: 'mdi', icon: 'mdi-snowflake-thermometer' },
+    [WeatherProps.cloudCover]: { fontFamily: 'wi', icon: 'wi-cloud' },
+    [WeatherProps.windGust]: { fontFamily: 'wi', icon: 'wi-strong-wind' },
+    [WeatherProps.uvIndex]: { fontFamily: 'mdi', icon: 'mdi-weather-sunny-alert' },
+    [WeatherProps.aqi]: { fontFamily: 'mdi', icon: 'mdi-leaf' },
+    [WeatherProps.windBearing]: (item: CommonWeatherData) => ({ fontFamily: 'app', icon: item.windIcon ?? windIcon(225) }),
+    [WeatherProps.windBeaufort]: (item: CommonWeatherData) => ({ fontFamily: 'wi', icon: item.windBeaufortIcon ?? 'wi-wind-beaufort-0' }),
+    [WeatherProps.windSpeed]: (item: CommonWeatherData) => ({ fontFamily: item.windIcon ? 'app' : 'wi', icon: item.windIcon ?? 'wi-windy' }),
+    [WeatherProps.precipAccumulation]: (item: CommonWeatherData) => ({ fontFamily: item.precipFontUseApp ? 'app' : 'wi', icon: item.precipIcon ?? 'wi-raindrop' }),
+    [WeatherProps.rainPrecipitation]: { fontFamily: 'wi', icon: 'wi-raindrop' },
+    [WeatherProps.snowfall]: { fontFamily: 'wi', icon: 'wi-snowflake-cold' },
+    [WeatherProps.seaTemperature]: { fontFamily: 'mdi', icon: 'mdi-coolant-temperature' },
+    [WeatherProps.waveHeight]: { fontFamily: 'mdi', icon: 'mdi-waves-arrow-up' },
+    [WeatherProps.waveHeightMax]: { fontFamily: 'mdi', icon: 'mdi-waves-arrow-up' },
+    [WeatherProps.swellHeight]: { fontFamily: 'mdi', icon: 'mdi-wave-arrow-up' }
 };
 const WEATHER_DATA_SHORT_TITLES = {
     [WeatherProps.snowfall]: lt('snow'),
@@ -291,10 +295,10 @@ const WEATHER_DATA_COLORS = {
     [WeatherProps.swellHeight]: '#01579b'
 };
 
-export function getWeatherDataIcon(key: string) {
+export function getWeatherDataIcon(key: string, item?: CommonWeatherData): { icon: string; fontFamily: string } {
     let icon = WEATHER_DATA_ICONS[key];
     if (typeof icon === 'function') {
-        icon = icon({ [key]: 0 });
+        icon = icon(item ?? { [key]: 0 });
     }
     return icon;
 }
@@ -382,10 +386,10 @@ export class DataService extends Observable {
     currentSmallWeatherData: WeatherProps[] = [];
     allWeatherData: WeatherProps[] = [];
 
-    getWeatherDataOptions(key: WeatherProps) {
+    getWeatherDataOptions(key: WeatherProps, item?: CommonWeatherData) {
         return {
             id: key,
-            icon: WEATHER_DATA_ICONS[key],
+            ...getWeatherDataIcon(key, item),
             iconFactor: ICONS_SIZE_FACTOR[key] ?? 1
             // getData: this.getItemData
         };
@@ -479,7 +483,7 @@ export class DataService extends Observable {
     }
 
     getItemData(key: WeatherProps, item: CommonWeatherData, type?: 'daily' | 'hourly' | 'currently', options?): CommonData {
-        const dataOptions = this.getWeatherDataOptions(key);
+        const dataOptions = this.getWeatherDataOptions(key, item);
         if (!dataOptions || (key !== WeatherProps.temperature && this.allWeatherData.indexOf(WEATHER_DATA_PARENT[key] || key) === -1)) {
             return null;
         }
@@ -487,9 +491,21 @@ export class DataService extends Observable {
         if (toCheck === null) {
             return null;
         }
-        let icon: string = dataOptions.icon as any;
-        if (typeof icon === 'function') {
-            icon = (icon as Function)(item);
+        const { fontFamily, icon } = dataOptions;
+        let paint: Paint;
+        if (icon) {
+            switch (fontFamily) {
+                case 'app':
+                    paint = appPaint;
+                    break;
+                case 'wi':
+                    paint = wiPaint;
+                    break;
+
+                default:
+                    paint = mdiPaint;
+                    break;
+            }
         }
         const iconFontSize = 20 * get(fontScale) * dataOptions.iconFactor;
         switch (key) {
@@ -499,7 +515,7 @@ export class DataService extends Observable {
                         return {
                             key,
                             iconFontSize,
-                            paint: mdiPaint,
+                            paint,
                             icon,
                             value:
                                 formatValueToUnit(item.apparentTemperatureMin, propToUnit(key, item), defaultPropUnit(key)) +
@@ -512,7 +528,7 @@ export class DataService extends Observable {
                     return {
                         key,
                         iconFontSize,
-                        paint: mdiPaint,
+                        paint,
                         icon,
                         value: formatWeatherValue(item, key, options),
                         subvalue: lc('apparent')
@@ -526,7 +542,7 @@ export class DataService extends Observable {
                         return {
                             key,
                             iconFontSize,
-                            paint: mdiPaint,
+                            paint,
                             icon,
                             value:
                                 formatValueToUnit(item.temperatureMin, propToUnit(key, item), defaultPropUnit(key)) +
@@ -539,7 +555,7 @@ export class DataService extends Observable {
                         key,
                         // iconColor: tempColor(item[key], -20, 30),
                         iconFontSize,
-                        paint: mdiPaint,
+                        paint,
                         icon,
                         value: formatWeatherValue(item, key, options)
                     };
@@ -552,7 +568,7 @@ export class DataService extends Observable {
                     return {
                         key,
                         iconFontSize,
-                        paint: appPaint,
+                        paint,
                         icon,
                         value: data[0],
                         subvalue: data[1]
@@ -576,7 +592,7 @@ export class DataService extends Observable {
                     key,
                     iconFontSize,
                     iconColor: getWeatherDataColor(key),
-                    paint: appPaint,
+                    paint,
                     icon,
                     value: data[0],
                     subvalue: data[1]
@@ -588,7 +604,7 @@ export class DataService extends Observable {
                     key,
                     iconFontSize,
                     iconColor: getWeatherDataColor(key),
-                    paint: mdiPaint,
+                    paint,
                     icon,
                     value: data[0],
                     subvalue: data[1]
@@ -599,9 +615,9 @@ export class DataService extends Observable {
                     return {
                         key,
                         iconFontSize,
-                        paint: mdiPaint,
+                        paint,
                         color: item.aqiColor,
-                        icon: 'mdi-leaf',
+                        icon,
                         value: item.aqi,
                         subvalue: 'aqi'
                         // customDraw(canvas, fontScale, textPaint, item: CommonData, x, y, width) {
@@ -632,7 +648,7 @@ export class DataService extends Observable {
                 if ((item.precipProbability === -1 || item.precipProbability === undefined || item.precipProbability > 10) && item.precipAccumulation >= 0.1) {
                     return {
                         key,
-                        paint: item.precipFontUseApp ? appPaint : wiPaint,
+                        paint,
                         color: item.precipColor,
                         iconFontSize,
                         icon: item.precipIcon,
@@ -646,7 +662,7 @@ export class DataService extends Observable {
                 if ((item.precipProbability === -1 || item.precipProbability === undefined || item.precipProbability > 10) && item[key] >= 0.1) {
                     return {
                         key,
-                        paint: wiPaint,
+                        paint,
                         iconColor: getWeatherDataColor(key),
                         iconFontSize,
                         icon,
@@ -660,7 +676,7 @@ export class DataService extends Observable {
                 if (item.cloudCover > 20) {
                     return {
                         key,
-                        paint: wiPaint,
+                        paint,
                         color: item.cloudColor,
                         iconFontSize,
                         icon,
@@ -673,7 +689,7 @@ export class DataService extends Observable {
                 if (item.uvIndex >= this.minUVIndexToShow) {
                     return {
                         key,
-                        paint: mdiPaint,
+                        paint,
                         color: item.uvIndexColor,
                         iconFontSize,
                         icon,
@@ -688,7 +704,7 @@ export class DataService extends Observable {
                     return {
                         key,
                         iconFontSize,
-                        paint: wiPaint,
+                        paint,
                         backgroundColor: isEInk ? (item.windGust >= 50 ? '#000000' : undefined) : item.windGust >= 80 ? '#ff0353' : item.windGust > 50 ? '#FFBC03' : undefined,
                         customDrawColor: isEInk ? '#000000' : item.windGust > 80 ? 'white' : item.windGust > 50 ? 'black' : '#FFBC03',
                         color: isEInk ? '#000000' : item.windGust >= 80 ? '#ff0353' : item.windGust >= 50 ? '#FFBC03' : undefined,
@@ -786,7 +802,7 @@ export class DataService extends Observable {
                 return {
                     key,
                     iconFontSize,
-                    paint: mdiPaint,
+                    paint,
                     value: formatWeatherValue(item, key),
                     icon
                     // value: data[0],
@@ -799,7 +815,7 @@ export class DataService extends Observable {
                 return {
                     key,
                     iconFontSize,
-                    paint: wiPaint,
+                    paint,
                     icon,
                     value: formatWeatherValue(item, key)
                     // subvalue: data[1]
@@ -810,7 +826,7 @@ export class DataService extends Observable {
                 return {
                     key,
                     iconFontSize,
-                    paint: wiPaint,
+                    paint,
                     icon,
                     // value: formatWeatherValue(item, key),
                     value: data[0],
@@ -820,7 +836,7 @@ export class DataService extends Observable {
             case WeatherProps.moon:
                 return {
                     key,
-                    paint: wiPaint,
+                    paint,
                     iconFontSize,
                     icon,
                     color: getWeatherDataColor(key),
@@ -830,7 +846,7 @@ export class DataService extends Observable {
                 if (item.windBeaufortIcon) {
                     return {
                         key,
-                        paint: wiPaint,
+                        paint,
                         iconFontSize,
                         icon
                     };
@@ -842,7 +858,7 @@ export class DataService extends Observable {
                         key,
                         iconFontSize,
                         iconColor: getWeatherDataColor(key),
-                        paint: mdiPaint,
+                        paint,
                         icon,
                         value: formatValueToUnit(item.waveHeight, propToUnit(key, item), defaultPropUnit(key)),
                         subvalue: lc('max') + ': ' + formatValueToUnit(item.waveHeightMax, propToUnit(key, item), defaultPropUnit(key))
@@ -854,18 +870,17 @@ export class DataService extends Observable {
                     key,
                     iconFontSize,
                     iconColor: getWeatherDataColor(key),
-                    paint: mdiPaint,
+                    paint,
                     icon,
                     value: formatWeatherValue(item, key)
                 };
-                break;
             case WeatherProps.swellHeight:
                 if (Math.round(item.swellHeight) > 0) {
                     return {
                         key,
                         iconFontSize,
                         iconColor: getWeatherDataColor(key),
-                        paint: mdiPaint,
+                        paint,
                         icon,
                         value: formatValueToUnit(item.waveHeight, propToUnit(key, item), defaultPropUnit(key))
                     };
@@ -902,7 +917,11 @@ export async function showHourlyPopover(
     );
 }
 
-export function convertWeatherValueToUnit(item: CommonWeatherData, key: WeatherProps, options?: { prefix?: string; join?: string; unitScale?: number; roundedTo05?: boolean; round?: boolean }) {
+export function convertWeatherValueToUnit(
+    item: CommonWeatherData,
+    key: WeatherProps,
+    options?: { prefix?: string; join?: string; unitScale?: number; roundedTo05?: boolean; round?: boolean; forceUnit?: boolean }
+) {
     return convertValueToUnit(item[key], propToUnit(key, item), defaultPropUnit(key), options);
 }
 export function formatWeatherValue(item: CommonWeatherData, key: WeatherProps, options?: { prefix?: string; join?: string; unitScale?: number; roundedTo05?: boolean; canForcePrecipUnit?: boolean }) {

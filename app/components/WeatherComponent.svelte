@@ -1,17 +1,16 @@
 <script lang="ts">
-    import { CollectionView } from '@nativescript-community/ui-collectionview';
-    import { Application, ApplicationSettings } from '@nativescript/core';
     import { Template } from '@nativescript-community/svelte-native/components';
     import type { NativeViewElementNode } from '@nativescript-community/svelte-native/dom';
+    import { CollectionView } from '@nativescript-community/ui-collectionview';
+    import { Application } from '@nativescript/core';
+    import { createEventDispatcher } from '@shared/utils/svelte/ui';
     import DailyView from '~/components/DailyView.svelte';
     import TopWeatherView from '~/components/TopWeatherView.svelte';
-    import { MAIN_PAGE_HOURLY_CHART, SETTINGS_MAIN_PAGE_HOURLY_CHART } from '~/helpers/constants';
+    import { computeWindyViewMinHeight } from '~/components/WindyView.svelte';
     import { onThemeChanged } from '~/helpers/theme';
     import { WeatherLocation } from '~/services/api';
     import { iconService, onIconAnimationsChanged } from '~/services/icon';
-    import { prefs } from '~/services/preferences';
-    import { createEventDispatcher } from '@shared/utils/svelte/ui';
-    import { actionBarHeight, fontScale, onFontScaleChanged, onUnitsChanged, screenHeightDips, screenWidthDips, windowInset } from '~/variables';
+    import { actionBarHeight, fontScale, hourlyViewData, hourlyViewMode, onFontScaleChanged, onUnitsChanged, screenHeightDips, screenWidthDips, topViewHeight, windowInset } from '~/variables';
 
     export let items: any[];
     export let weatherLocation: WeatherLocation;
@@ -21,12 +20,11 @@
     const dispatch = createEventDispatcher();
     let collectionView: NativeViewElementNode<CollectionView>;
     let topHeight = 0;
-    let showHourlyChart = ApplicationSettings.getBoolean(SETTINGS_MAIN_PAGE_HOURLY_CHART, MAIN_PAGE_HOURLY_CHART);
-    prefs.on(`key:${SETTINGS_MAIN_PAGE_HOURLY_CHART}`, () => {
-        showHourlyChart = ApplicationSettings.getBoolean(SETTINGS_MAIN_PAGE_HOURLY_CHART, MAIN_PAGE_HOURLY_CHART);
-    });
     $: {
         topHeight = Math.max((Math.max(screenWidthDips, screenHeightDips) - $actionBarHeight - windowInsetBottom - windowInsetTop - 100) * 0.6 * Math.sqrt($fontScale), 370);
+        if ($hourlyViewMode === 'windy') {
+            topHeight = Math.max(topHeight, $topViewHeight + computeWindyViewMinHeight($hourlyViewData, $fontScale));
+        }
         collectionView?.nativeView?.refresh();
     }
 

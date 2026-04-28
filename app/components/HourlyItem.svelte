@@ -55,7 +55,7 @@
     function redraw() {
         canvasView && canvasView.nativeView.invalidate();
     }
-    $: if (isEInk) {
+    if (isEInk) {
         whitePaint.setColor('#ffffff');
         pathPaint.setColor('#7f7f7f');
     }
