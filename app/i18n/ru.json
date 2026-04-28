@@ -284,6 +284,10 @@
         "openmeteo": "Open-Meteo",
         "title": "Источник качества воздуха"
     },
+    "provider_marine": {
+        "meteoconsult": "MétéoConsult",
+        "title": "Marine Weather Provider"
+    },
     "providers": "Источники погоды",
     "providers_settings": "Выбор источника погоды и другие настройки",
     "quit": "Выйти",
