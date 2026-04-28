@@ -1,6 +1,8 @@
 <script context="module" lang="ts">
-    import { GetMoonIlluminationResult, GetTimesResult, getMoonIllumination, getMoonPosition, getPosition, getTimes } from 'suncalc';
-    import { Align, Canvas, CanvasView, DashPathEffect, LayoutAlignment, Paint, StaticLayout, Style } from '@nativescript-community/ui-canvas';
+    import { Color, GridLayout } from '@akylas/nativescript';
+    import type { NativeViewElementNode } from '@nativescript-community/svelte-native/dom';
+    import { createNativeAttributedString } from '@nativescript-community/text';
+    import { Align, Canvas, DashPathEffect, LayoutAlignment, Paint, StaticLayout, Style } from '@nativescript-community/ui-canvas';
     import { CanvasLabel } from '@nativescript-community/ui-canvaslabel/canvaslabel.common';
     import { LineChart } from '@nativescript-community/ui-chart';
     import { AxisBase } from '@nativescript-community/ui-chart/components/AxisBase';
@@ -10,17 +12,15 @@
     import { LineDataSet } from '@nativescript-community/ui-chart/data/LineDataSet';
     import { Highlight } from '@nativescript-community/ui-chart/highlight/Highlight';
     import { Utils } from '@nativescript-community/ui-chart/utils/Utils';
-    import dayjs, { Dayjs } from 'dayjs';
-    import type { NativeViewElementNode } from '@nativescript-community/svelte-native/dom';
-    import { formatTime, getLocalTime, getStartOfDay, l, lc, lu } from '~/helpers/locale';
     import { showError } from '@shared/utils/showError';
+    import dayjs, { Dayjs } from 'dayjs';
+    import { GetTimesResult, getMoonPosition, getPosition, getTimes } from 'suncalc';
+    import { getMoonPhase, getMoonPhaseName, moonIcon } from '~/helpers/formatter';
+    import { formatTime, getLocalTime, getStartOfDay, l, lc } from '~/helpers/locale';
+    import { onThemeChanged } from '~/helpers/theme';
+    import { WeatherLocation } from '~/services/api';
     import { pickDate } from '~/utils/utils.common';
     import { colors, fontScale, fonts, onFontScaleChanged } from '~/variables';
-    import { WeatherLocation } from '~/services/api';
-    import { isDarkTheme, onThemeChanged } from '~/helpers/theme';
-    import { Color, GridLayout } from '@akylas/nativescript';
-    import { getMoonPhase, getMoonPhaseName, moonIcon } from '~/helpers/formatter';
-    import { createNativeAttributedString } from '@nativescript-community/text';
 
     const nightPaint = new Paint();
     const nightLiinePaint = new Paint();

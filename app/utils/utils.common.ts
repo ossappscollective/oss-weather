@@ -116,19 +116,13 @@ export function getIndexedColor(value: number, indexes: number[], colors: string
 }
 
 // Windy-style wind speed color scale (speed in km/h), starting at 10 km/h
-const WIND_SPEED_INDEXES = [10, 20, 30, 40, 45, 55, 65, 80];
-const WIND_SPEED_COLORS = ['#b3d9ff', '#4db8ff', '#00cccc', '#00cc44', '#ffee00', '#ff8800', '#ff0000', '#ff0000'];
+const WIND_SPEED_INDEXES = [15, 21, 33, 40, 50, 70];
+const WIND_SPEED_COLORS = ['#73ddfa', '#00e90b', '#dfb800', '#ff9106', '#ff5231', '#ff0294'];
 
 export function windSpeedColor(speedKmh: number): string | null {
-    if (!speedKmh || speedKmh < 10) {
+    const value = Math.round(speedKmh);
+    if (!value || value < 10) {
         return null;
     }
-    return getIndexedColor(speedKmh, WIND_SPEED_INDEXES, WIND_SPEED_COLORS, true);
-}
-
-export function windSpeedGradient(prevSpeed: number, curSpeed: number, nextSpeed: number, width: number): LinearGradient {
-    const colorPrev = windSpeedColor(prevSpeed) || '#00000000';
-    const colorCur = windSpeedColor(curSpeed) || '#00000000';
-    const colorNext = windSpeedColor(nextSpeed) || '#00000000';
-    return new LinearGradient(0, 0, width, 0, [colorPrev, colorCur, colorNext], [0, 0.5, 1], TileMode.CLAMP);
+    return getIndexedColor(value, WIND_SPEED_INDEXES, WIND_SPEED_COLORS, true);
 }

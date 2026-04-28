@@ -44,7 +44,7 @@
             id: k,
             type: CHART_TYPE[k] || 'linechart',
             title: getWeatherDataTitle(k),
-            icon: getWeatherDataIcon(k),
+            ...getWeatherDataIcon(k),
             dailySelected: dataToCompare.id === k && dataToCompare.forecast === 'daily',
             hourlySelected: dataToCompare.id === k && dataToCompare.forecast === 'hourly'
         }))
@@ -63,9 +63,7 @@
     }
 
     function generateColor(provider: string) {
-        // DEV_LOG && console.log('generateColor', provider, isDarkTheme());
         return new toColor(provider, { saturation: 3, brightness: isDarkTheme() ? 1.2 : 0.9 });
-        // return new toColor(provider, { saturation: isDarkTheme() ? 3 : 3, brightness: isDarkTheme() ? 1.6 : 0.9 });
     }
 
     function updateColors() {

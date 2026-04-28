@@ -456,5 +456,6 @@
   "classic_view": "classic",
   "chart_view": "chart",
   "windy_view": "windy",
-  "weather_data_to_show_on_windy": "weather data to show in windy view"
+  "weather_data_to_show_on_windy": "weather data to show in windy view",
+  "max": "max"
 }

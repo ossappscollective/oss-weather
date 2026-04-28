@@ -39,11 +39,12 @@ export function toImperialUnit(unit: UNITS, imperial = imperialUnits) {
             return unit;
     }
 }
-export function convertValueToUnit(value: any, unit: UNITS, defaultUnit: UNITS, options: { round?: boolean; roundedTo05?: boolean } = {}): [number, string] {
+export function convertValueToUnit(value: any, unit: UNITS, defaultUnit: UNITS, options: { round?: boolean; roundedTo05?: boolean; forceUnit?: boolean } = {}): [number, string] {
     if (value === undefined || value === null) {
         return [null, unit];
     }
     const round = options.round ?? true;
+    const forceUnit = options.forceUnit ?? false;
     let digits = 1;
     let shouldRound = round;
     switch (defaultUnit) {
@@ -65,8 +66,8 @@ export function convertValueToUnit(value: any, unit: UNITS, defaultUnit: UNITS, 
                 digits = 100;
                 value *= 0.03937008;
             } else if (unit === UNITS.CM) {
-                if (value < 1) {
-                    if (unitCMToMM) {
+                if (value < 100) {
+                    if (unitCMToMM && !forceUnit) {
                         unit = UNITS.MM;
                     } else {
                         value /= 10;
@@ -82,7 +83,7 @@ export function convertValueToUnit(value: any, unit: UNITS, defaultUnit: UNITS, 
             digits = 10;
             value /= 10;
             if (unit === UNITS.CM && value < 1) {
-                if (unitCMToMM) {
+                if (unitCMToMM && !forceUnit) {
                     unit = UNITS.MM;
                     value *= 10;
                 } else {

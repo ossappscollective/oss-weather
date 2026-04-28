@@ -1,21 +1,22 @@
 <script context="module" lang="ts">
-    import { Align, LinearGradient, Paint, Path, Style, TileMode } from '@nativescript-community/ui-canvas';
+    import { Align, LayoutAlignment, LinearGradient, Paint, Path, StaticLayout, Style, TileMode } from '@nativescript-community/ui-canvas';
     import { showError } from '@shared/utils/showError';
     import WeatherIcon from '~/components/WeatherIcon.svelte';
     import { formatDate, formatTime, getLocalTime } from '~/helpers/locale';
     import { getCanvas } from '~/helpers/sveltehelpers';
-    import { isEInk } from '~/helpers/theme';
+    import { isDarkTheme, isEInk } from '~/helpers/theme';
     import type { Hourly } from '~/services/providers/weather';
-    import { WeatherProps, formatWeatherValue, showHourlyPopover } from '~/services/weatherData';
+    import { WeatherProps, appPaint, convertWeatherValueToUnit, formatWeatherValue, showHourlyPopover } from '~/services/weatherData';
     import { colorForAqi } from '~/services/airQualityData';
-    import { generateGradient, windSpeedColor, windSpeedGradient } from '~/utils/utils.common';
-    import { colors, fontScale, rainColor } from '~/variables';
+    import { generateGradient, windSpeedColor } from '~/utils/utils.common';
+    import { colors, fontScale, nightColor, rainColor } from '~/variables';
+    import { createNativeAttributedString } from '@nativescript-community/text';
+    import { ICON_ROW_SCALE, getRowUnits } from '~/components/WindyView.svelte';
+    import { Color } from '@nativescript/core';
 
-    // Row heights relative to ROW_HEIGHT unit (set via prop)
-    // hour row: 1 unit, icon row: 2 units, temp row: 2 units, other rows: 1 unit each
+    const nightBackColor = nightColor.setAlpha(15).hex;
 
     const textPaint = new Paint();
-    textPaint.setTextAlign(Align.CENTER);
     const bgPaint = new Paint();
     const fillPaint = new Paint();
     fillPaint.setStyle(Style.FILL);
@@ -29,6 +30,7 @@
         max: number;
         tempDelta: number;
         curveTempPoints: number[];
+        curvePrecipPoints: number[];
         prevWindSpeed?: number;
         nextWindSpeed?: number;
         prevWindGust?: number;
@@ -44,8 +46,6 @@
 
     export let item: WindyItemData;
     export let dataToShow: WeatherProps[];
-    export let rowHeight: number;
-    export let iconRowHeight: number;
     export let animated: boolean = false;
 
     let canvasView;
@@ -57,21 +57,20 @@
     $: item && redraw();
     $: dataToShow && redraw();
 
-    // Icon row is only present if iconId is in dataToShow
-    function getRowTop(prop: WeatherProps): number {
+    function getRowTop(rowHeight, prop: WeatherProps): number {
         // rows are: hour(rowHeight), then each prop in dataToShow order
         let y = rowHeight; // skip hour row
         for (const p of dataToShow) {
             if (p === prop) return y;
-            y += p === WeatherProps.iconId ? iconRowHeight : rowHeight;
+            y += p === WeatherProps.iconId ? rowHeight * ICON_ROW_SCALE : rowHeight;
         }
         return y;
     }
 
-    function drawTempCurve(canvas, pHeight: number, curveTop: number) {
-        if (!item.curveTempPoints) return;
+    function drawCurve(canvas, curvePoints, pHeight: number, curveTop: number) {
+        if (!curvePoints) return;
         const w = canvas.getWidth();
-        const points: number[] = item.curveTempPoints.slice();
+        const points: number[] = curvePoints.slice();
         // Pad points for edge cases (same as HourlyItem)
         if (item.index === 0) {
             points.unshift(points[0], points[0], points[0]);
@@ -119,6 +118,14 @@
             const canvas = getCanvas(event.canvas);
             const w = canvas.getWidth();
             const w2 = w / 2;
+            const h = canvas.getHeight();
+
+            const rowHeight = h / getRowUnits(dataToShow);
+            const iconRowHeight = rowHeight * ICON_ROW_SCALE;
+
+            if (!isEInk && !item.isDay) {
+                canvas.drawColor(nightBackColor);
+            }
 
             const endDay = getLocalTime(undefined, item.timezoneOffset).endOf('d').valueOf();
 
@@ -126,20 +133,61 @@
             textPaint.setFontWeight('bold');
             textPaint.setColor(colorOnSurface);
             textPaint.setTextSize(12 * $fontScale);
-            canvas.drawText(formatTime(item.time, undefined, item.timezoneOffset), w2, rowHeight * 0.65, textPaint);
+            textPaint.setTextAlign(Align.LEFT);
+            const time = formatTime(item.time, undefined, item.timezoneOffset);
+            //split AM to render smaller if present
+            const array = time.split(' ');
+            const hour = array[0].split(':')[0];
+            if (array.length > 0) {
+                canvas.save();
+                canvas.translate(0, rowHeight * 0.65 - 12 * $fontScale);
+                new StaticLayout(
+                    createNativeAttributedString({
+                        spans: [
+                            {
+                                text: hour,
+                                fontSize: 13 * $fontScale
+                            },
+                            {
+                                text: array[1],
+                                fontSize: 8 * $fontScale
+                            }
+                        ]
+                    }),
+                    textPaint,
+                    w,
+                    LayoutAlignment.ALIGN_CENTER,
+                    1,
+                    0,
+                    true
+                ).draw(canvas);
+                canvas.restore();
+            } else {
+                textPaint.setTextAlign(Align.CENTER);
+                canvas.drawText(hour, w2, 12 * $fontScale, textPaint);
+            }
             if (item.time > endDay) {
-                textPaint.setTextSize(10 * $fontScale);
+                textPaint.setTextAlign(Align.CENTER);
+                textPaint.setTextSize(9 * $fontScale);
                 textPaint.setFontWeight('normal');
-                canvas.drawText(formatDate(item.time, 'ddd', item.timezoneOffset), w2, rowHeight * 0.92, textPaint);
+                canvas.drawText(formatDate(item.time, 'ddd', item.timezoneOffset), w2, 27 * $fontScale, textPaint);
             }
             textPaint.setFontWeight('normal');
-
             // --- Data rows ---
             for (const prop of dataToShow) {
-                const rowTop = getRowTop(prop);
-                const rh = prop === WeatherProps.iconId ? iconRowHeight : rowHeight;
+                const rowTop = getRowTop(rowHeight, prop);
+                const rh = prop === WeatherProps.iconId ? rowHeight * ICON_ROW_SCALE : rowHeight;
                 const rowMid = rowTop + rh * 0.65;
-
+                function drawGradient(colors) {
+                    if (!isEInk) {
+                        const gradient = new LinearGradient(-w / 2, 0, w + w / 2, 0, [colors[0], colors[1], colors[1], colors[2]], [0, 0.46, 0.54, 1], TileMode.CLAMP);
+                        bgPaint.setShader(gradient);
+                        // bgPaint.setAlpha(160);
+                        canvas.drawRect(-w / 2, rowTop, w + w / 2, rowTop + rh, bgPaint);
+                        bgPaint.setShader(null);
+                        // bgPaint.setAlpha(255);
+                    }
+                }
                 switch (prop) {
                     case WeatherProps.iconId:
                         // WeatherIcon is placed as a child component — skip canvas drawing
@@ -150,40 +198,55 @@
                         const precipIdx = dataToShow.indexOf(WeatherProps.precipAccumulation);
                         // Curve fills from just below hour row to just above precip row (or bottom if no precip)
                         const curveAreaTop = rowHeight; // start right at top of first data row
-                        const curveAreaBottom = precipIdx !== -1 ? getRowTop(WeatherProps.precipAccumulation) + rowHeight : rowTop + rh;
+                        const curveAreaBottom = precipIdx !== -1 ? getRowTop(rowHeight, WeatherProps.precipAccumulation) + rowHeight : rowTop + rh;
                         const curveH = curveAreaBottom - curveAreaTop;
 
-                        if (!isEInk && item.curveTempPoints) {
+                        if (item.curveTempPoints) {
                             const gradient = generateGradient(5, item.min, item.max, curveH, 0);
-                            pathPaint.setShader(gradient.gradient);
-                            pathPaint.setAlpha(120);
-                            drawTempCurve(canvas, curveH, curveAreaTop);
+                            if (!isEInk) {
+                                pathPaint.setShader(gradient.gradient);
+                            }
+                            pathPaint.setAlpha(80);
+                            drawCurve(canvas, item.curveTempPoints, curveH, curveAreaTop);
                             canvas.drawPath(curvePath, pathPaint);
                             pathPaint.setShader(null);
                             pathPaint.setAlpha(255);
                         }
 
                         // Draw temperature text
+                        textPaint.setTextAlign(Align.CENTER);
                         textPaint.setColor(colorOnSurface);
                         textPaint.setTextSize(13 * $fontScale);
-                        canvas.drawText(formatWeatherValue(item, WeatherProps.temperature), w2, rowMid, textPaint);
+                        const data = convertWeatherValueToUnit(item, prop, { forceUnit: true });
+                        canvas.drawText(data[0] + '', w2, rowMid, textPaint);
                         break;
                     }
 
                     case WeatherProps.precipAccumulation: {
                         const precip = item.precipAccumulation || 0;
-                        if (precip > 0 && item.maxPrecip > 0) {
-                            const barH = (precip / item.maxPrecip) * rh * 0.9;
-                            fillPaint.setColor(item.precipColor || rainColor.hex);
-                            const precipProbability = item.precipProbability;
-                            fillPaint.setAlpha(precipProbability === -1 || precipProbability === undefined ? 180 : Math.round(precipProbability * 2.55)); // 2.55 = 255/100, converts 0-100% to 0-255 alpha
-                            canvas.drawRect(0, rowTop + rh - barH, w, rowTop + rh, fillPaint);
-                            fillPaint.setAlpha(255);
+                        // if (precip > 0 && item.maxPrecip > 0) {
+                        //     const barH = (precip / item.maxPrecip) * rh * 0.9;
+                        //     fillPaint.setColor(item.precipColor || rainColor.hex);
+                        //     const precipProbability = item.precipProbability;
+                        //     fillPaint.setAlpha(precipProbability === -1 || precipProbability === undefined ? 180 : Math.round(precipProbability * 2.55)); // 2.55 = 255/100, converts 0-100% to 0-255 alpha
+                        //     canvas.drawRect(0, rowTop + rh - barH, w, rowTop + rh, fillPaint);
+                        //     fillPaint.setAlpha(255);
+                        // }
+                        if (item.curvePrecipPoints) {
+                            canvas.save();
+                            canvas.clipRect(-1, rowTop, w + 2, rowTop + rh);
+                            fillPaint.setColor(new Color(item.precipColor ?? rainColor.hex)[isDarkTheme() ? 'darken' : 'lighten'](10));
+                            // fillPaint.setAlpha(100)
+                            drawCurve(canvas, item.curvePrecipPoints, rh, rowTop);
+                            canvas.drawPath(curvePath, fillPaint);
+                            canvas.restore();
                         }
                         if (precip >= 0.1) {
+                            textPaint.setTextAlign(Align.CENTER);
                             textPaint.setColor(colorOnSurface);
                             textPaint.setTextSize(11 * $fontScale);
-                            canvas.drawText(formatWeatherValue(item, WeatherProps.precipAccumulation, { join: '' }), w2, rowMid, textPaint);
+                            const data = convertWeatherValueToUnit(item, prop, { forceUnit: true });
+                            canvas.drawText(data[0] + '', w2, rowMid, textPaint);
                         }
                         break;
                     }
@@ -192,13 +255,12 @@
                         const speed = item.windSpeed;
                         if (speed) {
                             if (!isEInk) {
-                                const grad = windSpeedGradient(item.prevWindSpeed, speed, item.nextWindSpeed, w);
-                                bgPaint.setShader(grad);
-                                bgPaint.setAlpha(160);
-                                canvas.drawRect(0, rowTop, w, rowTop + rh, bgPaint);
-                                bgPaint.setShader(null);
-                                bgPaint.setAlpha(255);
+                                const colorCur = windSpeedColor(speed) ?? '#ffffff00';
+                                const colorPrev = item.prevWindSpeed !== undefined ? (windSpeedColor(item.prevWindSpeed) ?? '#ffffff00') : colorCur;
+                                const colorNext = item.nextWindSpeed !== undefined ? (windSpeedColor(item.nextWindSpeed) ?? '#ffffff00') : colorCur;
+                                drawGradient([colorPrev, colorCur, colorNext]);
                             }
+                            textPaint.setTextAlign(Align.CENTER);
                             textPaint.setColor(colorOnSurface);
                             textPaint.setTextSize(12 * $fontScale);
                             canvas.drawText(String(Math.round(speed)), w2, rowMid, textPaint);
@@ -210,13 +272,12 @@
                         const gust = item.windGust;
                         if (gust) {
                             if (!isEInk) {
-                                const grad = windSpeedGradient(item.prevWindGust, gust, item.nextWindGust, w);
-                                bgPaint.setShader(grad);
-                                bgPaint.setAlpha(160);
-                                canvas.drawRect(0, rowTop, w, rowTop + rh, bgPaint);
-                                bgPaint.setShader(null);
-                                bgPaint.setAlpha(255);
+                                const colorCur = windSpeedColor(gust) ?? '#ffffff00';
+                                const colorPrev = item.prevWindGust !== undefined ? (windSpeedColor(item.prevWindGust) ?? '#ffffff00') : colorCur;
+                                const colorNext = item.nextWindGust !== undefined ? (windSpeedColor(item.nextWindGust) ?? '#ffffff00') : colorCur;
+                                drawGradient([colorPrev, colorCur, colorNext]);
                             }
+                            textPaint.setTextAlign(Align.CENTER);
                             textPaint.setColor(colorOnSurface);
                             textPaint.setTextSize(10 * $fontScale);
                             canvas.drawText(String(Math.round(gust)), w2, rowMid, textPaint);
@@ -227,17 +288,11 @@
                     case WeatherProps.aqi: {
                         const aqi = item.aqi;
                         if (aqi != null) {
-                            if (!isEInk) {
-                                const colorPrev = item.prevAqi != null ? colorForAqi(item.prevAqi) : '#00000000';
-                                const colorCur = colorForAqi(aqi);
-                                const colorNext = item.nextAqi != null ? colorForAqi(item.nextAqi) : '#00000000';
-                                const grad = new LinearGradient(0, 0, w, 0, [colorPrev, colorCur, colorNext], [0, 0.5, 1], TileMode.CLAMP);
-                                bgPaint.setShader(grad);
-                                bgPaint.setAlpha(160);
-                                canvas.drawRect(0, rowTop, w, rowTop + rh, bgPaint);
-                                bgPaint.setShader(null);
-                                bgPaint.setAlpha(255);
-                            }
+                            const colorCur = colorForAqi(aqi) ?? '#ffffff00';
+                            const colorPrev = item.prevAqi !== undefined ? (colorForAqi(item.prevAqi) ?? '#ffffff00') : colorCur;
+                            const colorNext = item.nextAqi !== undefined ? (colorForAqi(item.nextAqi) ?? '#ffffff00') : colorCur;
+                            drawGradient([colorPrev, colorCur, colorNext]);
+                            textPaint.setTextAlign(Align.CENTER);
                             textPaint.setColor(colorOnSurface);
                             textPaint.setTextSize(11 * $fontScale);
                             canvas.drawText(String(Math.round(aqi)), w2, rowMid, textPaint);
@@ -248,9 +303,10 @@
                     case WeatherProps.windBearing: {
                         const icon = item.windIcon;
                         if (icon) {
-                            textPaint.setColor(colorOnSurfaceVariant);
-                            textPaint.setTextSize(14 * $fontScale);
-                            canvas.drawText(icon, w2, rowMid, textPaint);
+                            appPaint.setColor(colorOnSurfaceVariant);
+                            appPaint.setTextSize(14 * $fontScale);
+                            // icons do not seem to be really centered
+                            canvas.drawText(icon, w2, rowMid + 3 * $fontScale, appPaint);
                         }
                         break;
                     }
@@ -261,9 +317,11 @@
                     case WeatherProps.uvIndex: {
                         const val = item[prop];
                         if (val != null) {
+                            textPaint.setTextAlign(Align.CENTER);
                             textPaint.setColor(colorOnSurfaceVariant);
                             textPaint.setTextSize(11 * $fontScale);
-                            canvas.drawText(formatWeatherValue(item, prop, { join: '' }), w2, rowMid, textPaint);
+                            const data = convertWeatherValueToUnit(item, prop, { forceUnit: true });
+                            canvas.drawText(data[0] + '', w2, rowMid, textPaint);
                         }
                         break;
                     }
@@ -281,19 +339,11 @@
             showError(error);
         }
     }
-
-    // Compute icon Y position for WeatherIcon child component
-    $: iconRowTop = dataToShow.includes(WeatherProps.iconId) ? rowHeight + dataToShow.slice(0, dataToShow.indexOf(WeatherProps.iconId)).reduce((acc, p) => acc + (p === WeatherProps.iconId ? iconRowHeight : rowHeight), 0) : 0;
 </script>
 
-<canvasview bind:this={canvasView} on:draw={drawOnCanvas} on:tap={onTap}>
+<gridlayout>
+    <canvasview bind:this={canvasView} on:draw={drawOnCanvas} on:tap={onTap} />
     {#if dataToShow.includes(WeatherProps.iconId)}
-        <WeatherIcon
-            {animated}
-            iconData={[item.iconId, item.isDay]}
-            isUserInteractionEnabled={false}
-            marginTop={iconRowTop}
-            size={iconRowHeight * 0.8}
-            verticalAlignment="top" />
+        <WeatherIcon {animated} iconData={[item.iconId, item.isDay]} isUserInteractionEnabled={false} marginTop={24 * $fontScale} size={40 * $fontScale} verticalAlignment="top" />
     {/if}
-</canvasview>
+</gridlayout>

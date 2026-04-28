@@ -25,16 +25,13 @@
         ANIMATIONS_ENABLED,
         CHARTS_LANDSCAPE,
         CHARTS_PORTRAIT_FULLSCREEN,
-        DAILY_PAGE_HOURLY_CHART,
         DEFAULT_DAILY_DATA_ALIGNMENT,
         DEFAULT_DAILY_DATE_FORMAT,
         DEFAULT_HOURLYMAIN_DATA,
         DEFAULT_HOURLY_ODD_COLORS,
-        DEFAULT_WINDY_DATA,
         FEELS_LIKE_TEMPERATURE,
+        HOURLY_VIEW_MODE,
         MAIN_CHART_NB_HOURS,
-        MAIN_HOURLY_VIEW_MODE,
-        MAIN_PAGE_HOURLY_CHART,
         MAX_NB_DAYS_FORECAST,
         MIN_UV_INDEX,
         NB_DAYS_FORECAST,
@@ -43,16 +40,14 @@
         SETTINGS_ALWAYS_SHOW_PRECIP_PROB,
         SETTINGS_DAILY_DATA_ALIGNMENT,
         SETTINGS_DAILY_DATE_FORMAT,
-        SETTINGS_DAILY_PAGE_HOURLY_CHART,
         SETTINGS_ENABLE_CRASH_REPORT,
         SETTINGS_FEELS_LIKE_TEMPERATURES,
         SETTINGS_HOURLY_MAIN_DATA,
         SETTINGS_HOURLY_ODD_COLORS,
+        SETTINGS_HOURLY_VIEW_MODE,
         SETTINGS_IMPERIAL,
         SETTINGS_LANGUAGE,
         SETTINGS_MAIN_CHART_NB_HOURS,
-        SETTINGS_MAIN_HOURLY_VIEW_MODE,
-        SETTINGS_MAIN_PAGE_HOURLY_CHART,
         SETTINGS_METRIC_CM_TO_MM,
         SETTINGS_METRIC_TEMP_DECIMAL,
         SETTINGS_MIN_UV_INDEX,
@@ -63,7 +58,6 @@
         SETTINGS_SWIPE_ACTION_BAR_PROVIDER,
         SETTINGS_UNITS,
         SETTINGS_WEATHER_DATA_LAYOUT,
-        SETTINGS_WINDY_DATA,
         SHOW_CURRENT_DAY_DAILY,
         SHOW_DAILY_IN_CURRENTLY,
         SWIPE_ACTION_BAR_PROVIDER,
@@ -77,7 +71,7 @@
     import { iconService } from '~/services/icon';
     import { MaptilerProvider } from '~/services/providers/maptiler';
     import { aqi_providers, getAqiProviderType, getProviderSettins, getProviderType, providers } from '~/services/providers/weatherproviderfactory';
-    import { AVAILABLE_WEATHER_DATA, AVAILABLE_WEATHER_DATA_MAIN_HOURLY, AVAILABLE_WEATHER_DATA_WINDY, getWeatherDataTitle, weatherDataService } from '~/services/weatherData';
+    import { AVAILABLE_WEATHER_DATA, AVAILABLE_WEATHER_DATA_MAIN_HOURLY, getWeatherDataTitle, weatherDataService } from '~/services/weatherData';
     import { confirmRestartApp, createView, getDateFormatHTMLArgs, hideLoading, openLink, selectValue, showLoading, showSliderPopover } from '~/utils/ui';
     import { colors, fontScale, fonts, iconColor, imperial, metricDecimalTemp, onFontScaleChanged, onUnitsChanged, unitCMToMM, unitsSettings, windowInset } from '~/variables';
     import IconButton from '../common/IconButton.svelte';
@@ -575,9 +569,6 @@
                 return async () => {
                     const currentData = JSON.parse(ApplicationSettings.getString(SETTINGS_HOURLY_MAIN_DATA, DEFAULT_HOURLYMAIN_DATA));
                     const disabledData = AVAILABLE_WEATHER_DATA_MAIN_HOURLY.filter((d) => currentData.indexOf(d) === -1);
-                    const windyData = JSON.parse(ApplicationSettings.getString(SETTINGS_WINDY_DATA, DEFAULT_WINDY_DATA));
-                    const windyDisabledData = AVAILABLE_WEATHER_DATA_WINDY.filter((d) => windyData.indexOf(d) === -1);
-                    const currentViewMode = ApplicationSettings.getString(SETTINGS_MAIN_HOURLY_VIEW_MODE, MAIN_HOURLY_VIEW_MODE);
                     return [
                         {
                             type: 'switch',
@@ -586,7 +577,7 @@
                             value: ApplicationSettings.getBoolean(SETTINGS_HOURLY_ODD_COLORS, DEFAULT_HOURLY_ODD_COLORS)
                         },
                         {
-                            key: SETTINGS_MAIN_HOURLY_VIEW_MODE,
+                            key: SETTINGS_HOURLY_VIEW_MODE,
                             id: 'setting',
                             valueType: 'string',
                             title: lc('main_hourly_view_mode'),
@@ -595,13 +586,7 @@
                                 { value: 'chart', title: lc('chart_view') },
                                 { value: 'windy', title: lc('windy_view') }
                             ],
-                            rightValue: () => lc(ApplicationSettings.getString(SETTINGS_MAIN_HOURLY_VIEW_MODE, MAIN_HOURLY_VIEW_MODE) + '_view')
-                        },
-                        {
-                            type: 'switch',
-                            id: SETTINGS_DAILY_PAGE_HOURLY_CHART,
-                            title: lc('show_hourly_chart_on_daily'),
-                            value: ApplicationSettings.getBoolean(SETTINGS_DAILY_PAGE_HOURLY_CHART, DAILY_PAGE_HOURLY_CHART)
+                            rightValue: () => lc(ApplicationSettings.getString(SETTINGS_HOURLY_VIEW_MODE, HOURLY_VIEW_MODE) + '_view')
                         },
                         {
                             key: SETTINGS_MAIN_CHART_NB_HOURS,
@@ -637,39 +622,6 @@
                                 id: k,
                                 reorder: true,
                                 type: 'reorder',
-                                title: getWeatherDataTitle(k)
-                            })) as any
-                        )
-                        .concat([
-                            {
-                                type: 'sectionheader',
-                                id: 'windy_enabled',
-                                title: lc('weather_data_to_show_on_windy')
-                            }
-                        ] as any)
-                        .concat(
-                            windyData.map((k) => ({
-                                id: k,
-                                reorder: true,
-                                type: 'reorder',
-                                settingsKey: SETTINGS_WINDY_DATA,
-                                title: getWeatherDataTitle(k)
-                            })) as any
-                        )
-                        .concat([
-                            {
-                                type: 'sectionheader',
-                                id: 'windy_disabled',
-                                reorder: true,
-                                title: lc('available_weather_data')
-                            }
-                        ] as any)
-                        .concat(
-                            windyDisabledData.map((k) => ({
-                                id: k,
-                                reorder: true,
-                                type: 'reorder',
-                                settingsKey: SETTINGS_WINDY_DATA,
                                 title: getWeatherDataTitle(k)
                             })) as any
                         );
@@ -861,7 +813,6 @@
                         onReordered: (items) => {
                             DEV_LOG && console.log('onReordered hourly');
                             saveReorderedSection(items, 'enabled', 'disabled', SETTINGS_HOURLY_MAIN_DATA);
-                            saveReorderedSection(items, 'windy_enabled', 'windy_disabled', SETTINGS_WINDY_DATA);
                         },
                         icon: 'mdi-clock-outline',
                         options: getSubSettings('hourly')

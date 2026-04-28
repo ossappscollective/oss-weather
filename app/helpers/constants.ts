@@ -11,10 +11,7 @@ export const SETTINGS_FONTSCALE = 'fontscale';
 export const SETTINGS_COLOR_THEME = 'color_theme';
 export const SETTINGS_ENABLE_CRASH_REPORT = 'enable_crash_report';
 
-export const SETTINGS_DAILY_PAGE_HOURLY_CHART = 'daily_page_hourly_chart';
-export const SETTINGS_MAIN_PAGE_HOURLY_CHART = 'main_page_hourly_chart';
-export const SETTINGS_MAIN_HOURLY_VIEW_MODE = 'main_hourly_view_mode';
-export const SETTINGS_WINDY_DATA = 'windy_main_data';
+export const SETTINGS_HOURLY_VIEW_MODE = 'hourly_view_mode';
 export const SETTINGS_SWIPE_ACTION_BAR_PROVIDER = 'swipe_actionbar_provider';
 export const SETTINGS_UNITS = 'units';
 export const SETTINGS_METRIC_TEMP_DECIMAL = 'metric_temp_decimal';
@@ -40,11 +37,9 @@ export const SETTINGS_HOURLY_MAIN_DATA = 'hourly_main_data';
 export const DEFAULT_COLOR_THEME = 'default';
 export const DEFAULT_LOCALE = 'auto';
 
-export const DAILY_PAGE_HOURLY_CHART = false;
 export const MAIN_PAGE_HOURLY_CHART = false;
-export const MAIN_HOURLY_VIEW_MODE = 'classic';
+export const HOURLY_VIEW_MODE = 'classic';
 export const SWIPE_ACTION_BAR_PROVIDER = false;
-export const DEFAULT_WINDY_DATA = '["iconId","temperature","precipAccumulation","windSpeed","windGust","aqi"]';
 
 export const ANIMATIONS_ENABLED = false;
 export const CHARTS_LANDSCAPE = false;
@@ -54,7 +49,7 @@ export const SHOW_CURRENT_DAY_DAILY = false;
 export const SHOW_DAILY_IN_CURRENTLY = false;
 export const FEELS_LIKE_TEMPERATURE = false;
 export const ALWAYS_SHOW_PRECIP_PROB = false;
-export const DEFAULT_METRIC_CM_TO_MM = false;
+export const DEFAULT_METRIC_CM_TO_MM = true;
 export const DEFAULT_DAILY_DATE_FORMAT = 'DD/MM';
 export const DEFAULT_DAILY_DATA_ALIGNMENT = 'center';
 
