@@ -1,0 +1,12 @@
+Features:
+- add marine weather data support via MétéoConsult API
+- weather map now support radar/precipitation/pressure/wind/temperature
+- configurable selection of data to show on chart view. Added cloud cover
+- add windy style collectionview for main hourly view
+
+Bug fixes:
+- allow disabling crash reports
+- issue with swipe gesture to change provider
+Code refactoring:
+- address code review feedback for windy view
+- Translations update

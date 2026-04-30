@@ -406,7 +406,7 @@ export function prepareItems(weatherLocation: WeatherLocation, weatherData: Weat
             );
         }
     });
-        DEV_LOG && console.log('d', JSON.stringify(newItems[0].hourly));
+    // DEV_LOG && console.log('d', JSON.stringify(newItems[0].hourly));
 
     return newItems;
 }

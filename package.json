@@ -59,12 +59,12 @@
         "@nativescript-community/svelte-native": "1.0.32",
         "@nativescript-community/systemui": "1.1.24",
         "@nativescript-community/text": "1.6.24",
-        "@nativescript-community/ui-canvas": "4.6.46",
-        "@nativescript-community/ui-canvaslabel": "1.2.49",
+        "@nativescript-community/ui-canvas": "4.6.47",
+        "@nativescript-community/ui-canvaslabel": "1.2.50",
         "@nativescript-community/ui-chart": "2.0.28",
         "@nativescript-community/ui-checkbox": "2.0.18",
-        "@nativescript-community/ui-collectionview": "6.0.19",
-        "@nativescript-community/ui-collectionview-swipemenu": "6.0.19",
+        "@nativescript-community/ui-collectionview": "6.0.20",
+        "@nativescript-community/ui-collectionview-swipemenu": "6.0.20",
         "@nativescript-community/ui-color": "1.0.6",
         "@nativescript-community/ui-document-picker": "1.1.29",
         "@nativescript-community/ui-drawer": "0.1.31",
@@ -119,8 +119,5 @@
         "./map",
         "./plugin-widgets/"
     ],
-    "packageManager": "yarn@4.9.4+sha512.7b1cb0b62abba6a537b3a2ce00811a843bea02bcf53138581a6ae5b1bf563f734872bd47de49ce32a9ca9dcaff995aa789577ffb16811da7c603dcf69e73750b",
-    "resolutions": {
-        "@nativescript-community/ui-chart": "portal:../ui-chart/packages/ui-chart"
-    }
+    "packageManager": "yarn@4.9.4+sha512.7b1cb0b62abba6a537b3a2ce00811a843bea02bcf53138581a6ae5b1bf563f734872bd47de49ce32a9ca9dcaff995aa789577ffb16811da7c603dcf69e73750b"
 }

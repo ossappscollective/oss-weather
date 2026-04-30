@@ -98,9 +98,7 @@
         rows={`auto,auto,${height}`}
         on:tap={() => closePopover()}>
         <WeatherIcon {animated} col={1} iconData={[item.iconId, item.isDay]} {isUserInteractionEnabled} verticalAlignment="top" />
-        {#if __ANDROID__}
-            <label colSpan={2} fontSize={14 * $fontScale} fontWeight="bold" text={formatTime(item.time, 'LT', item.timezoneOffset) + '\n' + formatTime(item.time, 'DD/MM', item.timezoneOffset)} />
-        {/if}
+        <label colSpan={2} fontSize={14 * $fontScale} fontWeight="bold" text={formatTime(item.time, 'LT', item.timezoneOffset) + '\n' + formatTime(item.time, 'DD/MM', item.timezoneOffset)} />
         <label colSpan={2} fontSize={14 * $fontScale} marginBottom={10} row={1} text={item.description} />
         <!-- <label lineHeight={18 * $fontScale} row={1} text={iconsNativeString} textAlignment="center" verticalTextAlignment="center" /> -->
         <!-- <label col={1} lineHeight={18 * $fontScale} row={1} text={textNativeString} /> -->
