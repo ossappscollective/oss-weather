@@ -26,8 +26,14 @@ export enum AirQualityProviders {
     AccuWeather = 'accuweather'
 }
 
+export enum MarineProviders {
+    // OpenMeteo = 'openmeteo',
+    MeteoConsult = 'meteoconsult'
+}
+
 export const providers = Object.values(Providers);
 export const aqi_providers = Object.values(AirQualityProviders);
+export const marine_providers = Object.values(MarineProviders);
 
 let currentProvider: WeatherProvider;
 let currentAirQualityProvider: AirQualityProvider;
@@ -218,10 +224,7 @@ export async function getWeather(weatherLocation: WeatherLocation, options?: Get
     // Augment with marine data if a marine provider is configured
     if (weatherLocation.providerMarine === 'meteoconsult' && data) {
         try {
-            const marineLocation = await searchMarineLocation(weatherLocation);
-            if (marineLocation) {
-                await getMarineWeather(data, marineLocation, weatherLocation);
-            }
+            await getMarineWeather(weatherLocation, data);
         } catch (error) {
             DEV_LOG && console.error('marine weather augmentation failed', error);
         }

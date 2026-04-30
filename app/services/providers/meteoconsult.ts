@@ -151,7 +151,11 @@ function parseDateTime(weatherLocation: WeatherLocation, dateStr: string): numbe
 
 /** Fetch and parse marine weather for the given coordinates.
  *  Merges tides into weatherData.tides and marine props into daily/hourly arrays. */
-export async function getMarineWeather(weatherData: WeatherData, marineLocation: MeteoConsultMarineLocation, weatherLocation: WeatherLocation): Promise<void> {
+export async function getMarineWeather(weatherLocation: WeatherLocation, weatherData: WeatherData): Promise<void> {
+    const marineLocation = await searchMarineLocation(weatherLocation);
+    if (!marineLocation) {
+        return;
+    }
     const { lat, lon } = marineLocation;
     let response: MeteoConsultForecastResponse;
     try {

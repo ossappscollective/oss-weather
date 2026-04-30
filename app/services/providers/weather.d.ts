@@ -1,12 +1,12 @@
 import { Color } from '@nativescript/core';
-import { aqi_providers, providers } from './weatherproviderfactory';
+import { aqi_providers, marine_providers, providers } from './weatherproviderfactory';
 import { UNIT_FAMILIES } from '~/helpers/units';
 // import { Pollutants } from '../airQualityData';
 
 // export { Pollutants };
 export type ProviderType = (typeof providers)[number];
 export type AqiProviderType = (typeof aqi_providers)[number];
-export type MarineProviderType = 'meteoconsult' | null;
+export type MarineProviderType = (typeof marine_providers)[number];
 
 export interface Tide {
     time: number;
@@ -31,6 +31,16 @@ export interface AirQualityData {
     hourly: AirQualityHourly[];
     // minutely?: AirQualityMinutely;
 }
+
+
+export interface MarineWeatherData {
+    time: number;
+    currently?: MarineWeatherCurrently;
+    daily?: MarineWeatherDaily;
+    hourly: MarineWeatherHourly[];
+    minutely?: MarineWeatherMinutely;
+}
+
 
 export interface Alert {
     sender_name?: string;

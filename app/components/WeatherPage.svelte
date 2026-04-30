@@ -59,6 +59,7 @@
     import { OpenMeteoModels, getOMPreferredModel } from '~/services/providers/om';
     import type { AqiProviderType, DailyData, Hourly, MarineProviderType, ProviderType, WeatherData } from '~/services/providers/weather';
     import {
+        MarineProviders,
         Providers,
         ProvidersClasses,
         aqi_providers,
@@ -289,11 +290,8 @@
 
                 if (weatherLocation.providerMarine === 'meteoconsult') {
                     try {
-                        const marineLocation = await searchMarineLocation(weatherLocation);
-                        if (marineLocation) {
-                            await getMarineWeather(weatherData, marineLocation, weatherLocation);
-                            await updateView();
-                        }
+                        await getMarineWeather(weatherLocation, weatherData);
+                        await updateView();
                     } catch (error) {
                         DEV_LOG && console.error('marine weather fetch failed', error, error.stack);
                     }
@@ -741,7 +739,7 @@
     async function selectMarineProvider(location: WeatherLocation) {
         const marineProviders: { data: MarineProviderType; title: string }[] = [
             { data: null, title: lc('provider_marine.none') },
-            { data: 'meteoconsult', title: lc('provider_marine.meteoconsult') }
+            { data: MarineProviders.MeteoConsult, title: lc('provider_marine.meteoconsult') }
         ];
         const current: MarineProviderType = location.providerMarine ?? null;
         const value = await selectValue<MarineProviderType>(marineProviders, current, { title: lc('provider_marine.title') });
