@@ -170,10 +170,11 @@
                 textPaint.setTextAlign(Align.CENTER);
                 textPaint.setTextSize(9 * $fontScale);
                 textPaint.setFontWeight('normal');
-                canvas.drawText(formatDate(item.time, 'ddd', item.timezoneOffset), w2, 27 * $fontScale, textPaint);
+                canvas.drawText(formatDate(item.time, 'ddd', item.timezoneOffset), w2, 30 * $fontScale, textPaint);
             }
             textPaint.setFontWeight('normal');
             // --- Data rows ---
+            // DEV_LOG && console.log('dataToShow', dataToShow);
             for (const prop of dataToShow) {
                 const rowTop = getRowTop(rowHeight, prop);
                 const rh = prop === WeatherProps.iconId ? rowHeight * ICON_ROW_SCALE : rowHeight;
@@ -311,10 +312,7 @@
                         break;
                     }
 
-                    case WeatherProps.apparentTemperature:
-                    case WeatherProps.relativeHumidity:
-                    case WeatherProps.cloudCover:
-                    case WeatherProps.uvIndex: {
+                    default: {
                         const val = item[prop];
                         if (val != null) {
                             textPaint.setTextAlign(Align.CENTER);
