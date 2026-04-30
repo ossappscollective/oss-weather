@@ -8,7 +8,7 @@
     import { FavoriteLocation, favoriteIcon, favoriteIconColor, toggleFavorite } from '~/helpers/favorites';
     import { l, lc } from '~/helpers/locale';
     import { WeatherLocation, getTimezone, networkService, prepareItems } from '~/services/api';
-    import { getAqiProvider, getProviderType, getWeatherProvider, onProviderChanged, providers } from '~/services/providers/weatherproviderfactory';
+    import { getAqiProvider, getMarineProvider, getProviderType, getWeatherProvider, onProviderChanged, providers } from '~/services/providers/weatherproviderfactory';
     import { WeatherProps, mergeWeatherData, weatherDataService } from '~/services/weatherData';
     import { actionBarButtonHeight, colors } from '~/variables';
 
@@ -34,23 +34,40 @@
         }
         loading = true;
         try {
+            // weatherData = await getWeatherProvider(provider).getWeather(weatherLocation, { model: weatherLocation.omModel });
+            let applyNewWeatherDataTimeout;
             const usedWeatherData = weatherDataService.allWeatherData;
-            const [weatherData, timezoneData] = await Promise.all([
-                getWeatherProvider().getWeather(weatherLocation),
-                !!weatherLocation.timezone ? Promise.resolve(undefined) : getTimezone(weatherLocation).catch((err) => console.error(err))
-            ]);
-            if (timezoneData) {
-                Object.assign(weatherLocation, timezoneData);
-                ApplicationSettings.setString(SETTINGS_WEATHER_LOCATION, JSON.stringify(weatherLocation));
-            }
+            const [weatherData, timezoneData, ...others] = await Promise.all(
+                (
+                    [
+                        await Promise.all([
+                            getWeatherProvider().getWeather(weatherLocation, { model: weatherLocation.omModel }),
+                            !!weatherLocation.timezone ? Promise.resolve(undefined) : getTimezone(weatherLocation).catch((err) => console.error(err))
+                        ]).then(([weatherData, timezoneData]) => {
+                            // we update as soon as possible in case other requests are slow
+                            if (timezoneData) {
+                                Object.assign(weatherLocation, timezoneData);
+                                ApplicationSettings.setString(SETTINGS_WEATHER_LOCATION, JSON.stringify(weatherLocation));
+                            }
+                            if (weatherData) {
+                                applyNewWeatherDataTimeout = setTimeout(() => updateView(weatherData), 100);
+                            }
+                            return weatherData;
+                        })
+                    ] as any
+                )
+                    .concat(usedWeatherData.indexOf(WeatherProps.aqi) !== -1 ? [getAqiProvider(weatherLocation.providerAqi).getAirQuality(weatherLocation)] : [])
+                    .concat(weatherLocation.providerMarine ? [getMarineProvider(weatherLocation.providerMarine).getMarineWeather(weatherLocation)] : [])
+            );
+
             if (weatherData) {
-                await updateView(weatherData);
-                if (usedWeatherData.indexOf(WeatherProps.aqi) !== -1) {
-                    const aqiData = await getAqiProvider().getAirQuality(weatherLocation);
-                    if (aqiData) {
-                        mergeWeatherData(weatherData, aqiData);
-                        await updateView(weatherData);
+                const dataToMerge = others.filter((r) => !!r);
+                if (dataToMerge.length) {
+                    if (applyNewWeatherDataTimeout) {
+                        clearTimeout(applyNewWeatherDataTimeout);
                     }
+                    dataToMerge.forEach((r) => mergeWeatherData(weatherData, r));
+                    await updateView(weatherData);
                 }
             }
 

@@ -362,6 +362,7 @@ export function mergeWeatherData(mainData: WeatherData, ...addedDatas) {
                 const foundIndexToMerge = addedDataK.findIndex((d) => d.time === time);
 
                 if (foundIndexToMerge >= 0) {
+                // DEV_LOG && console.log('mergeWeatherData time', k, time, JSON.stringify(addedDataK[foundIndexToMerge]));
                     Object.assign(mainDataK[index], addedDataK[foundIndexToMerge]);
                 }
             }

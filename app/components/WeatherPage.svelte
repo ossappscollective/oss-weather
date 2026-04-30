@@ -57,7 +57,7 @@
     import { onIconPackChanged } from '~/services/icon';
     import { MFProvider } from '~/services/providers/mf';
     import { OpenMeteoModels, getOMPreferredModel } from '~/services/providers/om';
-    import type { AqiProviderType, DailyData, Hourly, MarineProviderType, ProviderType, WeatherData } from '~/services/providers/weather';
+    import type { AirQualityData, AqiProviderType, DailyData, Hourly, MarineProviderType, ProviderType, WeatherData } from '~/services/providers/weather';
     import {
         MarineProviders,
         Providers,
@@ -66,6 +66,7 @@
         getAqiProvider,
         getAqiProviderType,
         getCachedWeather,
+        getMarineProvider,
         getProviderClass,
         getProviderType,
         getWeatherProvider,
@@ -73,7 +74,6 @@
         providerRequiresApiKey,
         providers
     } from '~/services/providers/weatherproviderfactory';
-    import { getMarineWeather, searchMarineLocation } from '~/services/providers/meteoconsult';
     import { WeatherProps, mergeWeatherData, onWeatherDataChanged, weatherDataService } from '~/services/weatherData';
     import { parseUrlQueryParameters } from '~/utils/http';
     import { hideLoading, selectValue, showLoading, showPopoverMenu, showToast, tryCatchFunction } from '~/utils/ui';
@@ -82,6 +82,7 @@
     import IconButton from './common/IconButton.svelte';
     import { WeatherProvider } from '~/services/providers/weatherprovider';
     import { MaptilerProvider } from '~/services/providers/maptiler';
+    import WeatherIcon from '~/components/WeatherIcon.svelte';
 
     const gps: GPS = new GPS();
     const gpsAvailable = gps.hasGPS();
@@ -256,6 +257,31 @@
         }
     }
 
+    async function applyNewWeatherData(newData: WeatherData) {
+        weatherData = newData;
+        await updateView();
+        if (WIDGETS) {
+            const { isCurrentLocation: isCurrentLocationWidget, notifyWidgetsWeatherUpdated, notifyWidgetsWeatherUpdatedForLocation } = await import('plugin-widgets');
+            // Notify widgets that weather data has been updated
+            try {
+                if (isCurrentLocationWidget(weatherLocation)) {
+                    // This is the current/default location - update default widgets
+                    await notifyWidgetsWeatherUpdated();
+                } else {
+                    // This is a specific location - update widgets for this location
+                    await notifyWidgetsWeatherUpdatedForLocation(weatherLocation);
+                }
+            } catch (widgetError) {
+                // Don't fail the whole refresh if widget update fails
+                console.error('Failed to update widgets:', widgetError);
+            }
+        }
+        // Broadcast weather data to Gadgetbridge if enabled (Android only)
+        if (__ANDROID__) {
+            gadgetbridgeService.broadcastWeather(weatherLocation, weatherData);
+        }
+    }
+
     async function refreshWeather() {
         if (!weatherLocation) {
             showSnack({ message: l('no_location_set') });
@@ -275,49 +301,78 @@
                 Object.assign(weatherLocation, timezoneData);
                 saveWeatherLocation();
             }
-            weatherData = await getWeatherProvider(provider).getWeather(weatherLocation, { model: weatherLocation.omModel });
-            DEV_LOG && console.log('refreshWeather', timezoneData, weatherLocation.timezone);
 
-            if (weatherData) {
-                await updateView();
-                if (usedWeatherData.indexOf(WeatherProps.aqi) !== -1) {
-                    const aqiData = await getAqiProvider(weatherLocation.providerAqi).getAirQuality(weatherLocation);
-                    if (aqiData) {
-                        mergeWeatherData(weatherData, aqiData);
-                        await updateView();
+            // weatherData = await getWeatherProvider(provider).getWeather(weatherLocation, { model: weatherLocation.omModel });
+            let applyNewWeatherDataTimeout;
+            const result = await Promise.all<Promise<WeatherData>[]>(
+                (
+                    [
+                        getWeatherProvider(provider)
+                            .getWeather(weatherLocation, { model: weatherLocation.omModel })
+                            .then((data) => {
+                                // we update as soon as possible in case other requests are slow
+                                if (data) {
+                                    applyNewWeatherDataTimeout = setTimeout(() => applyNewWeatherData(data), 100);
+                                }
+                                return data;
+                            })
+                    ] as any
+                )
+                    .concat(usedWeatherData.indexOf(WeatherProps.aqi) !== -1 ? [getAqiProvider(weatherLocation.providerAqi).getAirQuality(weatherLocation)] : [])
+                    .concat(weatherLocation.providerMarine ? [getMarineProvider(weatherLocation.providerMarine).getMarineWeather(weatherLocation)] : [])
+            );
+            const newData = result[0];
+            if (newData) {
+                const dataToMerge = result.slice(1).filter((r) => !!r);
+                if (dataToMerge.length) {
+                    if (applyNewWeatherDataTimeout) {
+                        clearTimeout(applyNewWeatherDataTimeout);
                     }
-                }
-
-                if (weatherLocation.providerMarine === 'meteoconsult') {
-                    try {
-                        await getMarineWeather(weatherLocation, weatherData);
-                        await updateView();
-                    } catch (error) {
-                        DEV_LOG && console.error('marine weather fetch failed', error, error.stack);
-                    }
-                }
-
-                if (WIDGETS) {
-                    const { isCurrentLocation: isCurrentLocationWidget, notifyWidgetsWeatherUpdated, notifyWidgetsWeatherUpdatedForLocation } = await import('plugin-widgets');
-                    // Notify widgets that weather data has been updated
-                    try {
-                        if (isCurrentLocationWidget(weatherLocation)) {
-                            // This is the current/default location - update default widgets
-                            await notifyWidgetsWeatherUpdated();
-                        } else {
-                            // This is a specific location - update widgets for this location
-                            await notifyWidgetsWeatherUpdatedForLocation(weatherLocation);
-                        }
-                    } catch (widgetError) {
-                        // Don't fail the whole refresh if widget update fails
-                        console.error('Failed to update widgets:', widgetError);
-                    }
-                }
-                // Broadcast weather data to Gadgetbridge if enabled (Android only)
-                if (__ANDROID__) {
-                    gadgetbridgeService.broadcastWeather(weatherLocation, weatherData);
+                    dataToMerge.forEach((r) => mergeWeatherData(newData, r));
+                    await applyNewWeatherData(newData);
                 }
             }
+            applyNewWeatherDataTimeout = 0;
+            // if (weatherData) {
+            //     await updateView();
+            //     if (usedWeatherData.indexOf(WeatherProps.aqi) !== -1) {
+            //         const aqiData = await getAqiProvider(weatherLocation.providerAqi).getAirQuality(weatherLocation);
+            //         if (aqiData) {
+            //             mergeWeatherData(weatherData, aqiData);
+            //             await updateView();
+            //         }
+            //     }
+
+            //     if (weatherLocation.providerMarine === 'meteoconsult') {
+            //         try {
+            //             await getMarineWeather(weatherLocation);
+            //             await updateView();
+            //         } catch (error) {
+            //             DEV_LOG && console.error('marine weather fetch failed', error, error.stack);
+            //         }
+            //     }
+
+            //     if (WIDGETS) {
+            //         const { isCurrentLocation: isCurrentLocationWidget, notifyWidgetsWeatherUpdated, notifyWidgetsWeatherUpdatedForLocation } = await import('plugin-widgets');
+            //         // Notify widgets that weather data has been updated
+            //         try {
+            //             if (isCurrentLocationWidget(weatherLocation)) {
+            //                 // This is the current/default location - update default widgets
+            //                 await notifyWidgetsWeatherUpdated();
+            //             } else {
+            //                 // This is a specific location - update widgets for this location
+            //                 await notifyWidgetsWeatherUpdatedForLocation(weatherLocation);
+            //             }
+            //         } catch (widgetError) {
+            //             // Don't fail the whole refresh if widget update fails
+            //             console.error('Failed to update widgets:', widgetError);
+            //         }
+            //     }
+            //     // Broadcast weather data to Gadgetbridge if enabled (Android only)
+            //     if (__ANDROID__) {
+            //         gadgetbridgeService.broadcastWeather(weatherLocation, weatherData);
+            //     }
+            // }
         } catch (err) {
             if (err.statusCode === 403 && providerRequiresApiKey(provider)) {
                 const providerClass = getProviderClass(provider);

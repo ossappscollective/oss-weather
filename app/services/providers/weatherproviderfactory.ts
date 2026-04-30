@@ -6,12 +6,13 @@ import { MFProvider } from './mf';
 import { OMProvider, OpenMeteoModels } from './om';
 import { OWMProvider } from './owm';
 import { AccuWeatherAQIProvider, AccuWeatherProvider } from './accuweather';
-import { AqiProviderType, ProviderType, WeatherData } from './weather';
+import { AqiProviderType, MarineProviderType, ProviderType, WeatherData } from './weather';
 import { GetWeatherOptions, WeatherProvider } from './weatherprovider';
 import { AtmoProvider } from './atmo';
-import { SETTINGS_PROVIDER, SETTINGS_PROVIDER_AQI } from '~/helpers/constants';
+import { SETTINGS_PROVIDER, SETTINGS_PROVIDER_AQI, SETTINGS_PROVIDER_MARINE } from '~/helpers/constants';
 import { WeatherLocation } from '../api';
-import { getMarineWeather, searchMarineLocation } from './meteoconsult';
+import { MarineWeatherProvider } from '~/services/providers/marineweatherprovider';
+import { MeteoConsultProvider } from '~/services/providers/meteoconsult';
 
 export enum Providers {
     MeteoFrance = 'meteofrance',
@@ -60,12 +61,19 @@ export function getWeatherProvider(provider?: ProviderType): WeatherProvider {
 export function getAqiProvider(provider?: AqiProviderType): AirQualityProvider {
     return getAqiProviderForType(provider || getAqiProviderType());
 }
+export function getMarineProvider(provider?: MarineProviderType): MarineWeatherProvider {
+    return getMarineProviderForType(provider || getMarineProviderType());
+}
 export function getProviderType(): ProviderType {
     const requestedProviderType: ProviderType = (ApplicationSettings.getString(SETTINGS_PROVIDER, DEFAULT_PROVIDER) || DEFAULT_PROVIDER) as ProviderType;
     return requestedProviderType;
 }
 export function getAqiProviderType(): AqiProviderType {
     const requestedProviderType: AqiProviderType = (ApplicationSettings.getString(SETTINGS_PROVIDER_AQI, DEFAULT_PROVIDER) || DEFAULT_PROVIDER) as AqiProviderType;
+    return requestedProviderType;
+}
+export function getMarineProviderType(): MarineProviderType {
+    const requestedProviderType: MarineProviderType = ApplicationSettings.getString(SETTINGS_PROVIDER_MARINE) as MarineProviderType;
     return requestedProviderType;
 }
 
@@ -107,6 +115,15 @@ export function getAqiProviderForType(newType: AqiProviderType): AirQualityProvi
         case AirQualityProviders.OpenMeteo:
         default:
             return OMProvider.getInstance();
+    }
+}
+export function getMarineProviderForType(newType: MarineProviderType): MarineWeatherProvider {
+    if (newType) {
+        switch (newType) {
+            case MarineProviders.MeteoConsult:
+            default:
+                return MeteoConsultProvider.getInstance();
+        }
     }
 }
 
@@ -207,6 +224,9 @@ export function clearAllWeatherCaches(): void {
     }
 }
 
+// used by widgets
+// for now we dont support AQI or marine as they cant be shown in the widget
+
 export async function getWeather(weatherLocation: WeatherLocation, options?: GetWeatherOptions & { ignoreCache?: boolean }, providerType?: ProviderType) {
     const provider = providerType ? getProviderForType(providerType) : getWeatherProvider();
     const providerId = provider.id;
@@ -222,13 +242,13 @@ export async function getWeather(weatherLocation: WeatherLocation, options?: Get
     const data = await provider.getWeather(weatherLocation, options);
 
     // Augment with marine data if a marine provider is configured
-    if (weatherLocation.providerMarine === 'meteoconsult' && data) {
-        try {
-            await getMarineWeather(weatherLocation, data);
-        } catch (error) {
-            DEV_LOG && console.error('marine weather augmentation failed', error);
-        }
-    }
+    // if (weatherLocation.providerMarine === 'meteoconsult' && data) {
+    //     try {
+    //         await getMarineWeather(weatherLocation, data);
+    //     } catch (error) {
+    //         DEV_LOG && console.error('marine weather augmentation failed', error);
+    //     }
+    // }
 
     // Save to cache
     setCachedWeather(providerId, weatherLocation, data, options);
