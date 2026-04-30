@@ -1,4 +1,5 @@
 import { lc } from '@nativescript-community/l';
+import { TextFieldProperties } from '@nativescript-community/ui-material-textfield';
 import { ApplicationSettings } from '@nativescript/core';
 import { WeatherLocation } from '~/services/api';
 import { WeatherData } from '~/services/providers/weather';
@@ -495,8 +496,13 @@ export class MaptilerProvider extends WeatherProvider {
                 default: () => ApplicationSettings.getString(SETTINGS_WEATHER_MAP_CUSTOM_TILE_SOURCE, null),
                 id: 'setting',
                 key: SETTINGS_WEATHER_MAP_CUSTOM_TILE_SOURCE,
-                description: () => ApplicationSettings.getString(SETTINGS_WEATHER_MAP_CUSTOM_TILE_SOURCE, null),
-                title: lc('custom_tile_server')
+                description: ApplicationSettings.getString(SETTINGS_WEATHER_MAP_CUSTOM_TILE_SOURCE, null),
+                title: lc('custom_tile_server'),
+
+                textFieldProperties: {
+                    autocapitalizationType: 'none',
+                    autocorrect: false
+                } as TextFieldProperties
             }
         ];
     }
