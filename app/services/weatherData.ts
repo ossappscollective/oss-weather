@@ -218,7 +218,7 @@ const WEATHER_DATA_ICONS = {
     [WeatherProps.iconId]: { fontFamily: 'mdi', icon: 'mdi-theme-light-dark' },
     [WeatherProps.sealevelPressure]: { fontFamily: 'wi', icon: 'wi-barometer' },
     [WeatherProps.relativeHumidity]: { fontFamily: 'wi', icon: 'wi-humidity' },
-    [WeatherProps.dewpoint]: { fontFamily: 'wi', icon: 'mdi-thermometer-water' },
+    [WeatherProps.dewpoint]: { fontFamily: 'mdi', icon: 'mdi-thermometer-water' },
     [WeatherProps.apparentTemperature]: { fontFamily: 'mdi', icon: 'mdi-thermometer' },
     [WeatherProps.temperature]: { fontFamily: 'mdi', icon: 'mdi-thermometer' },
     [WeatherProps.rainSnowLimit]: { fontFamily: 'wi', icon: 'app-rain-snow' },
