@@ -57,7 +57,7 @@
 
     function updateDataToShow(hourlyViewData: WeatherProps[]) {
         currentHourlyData = hourlyViewData;
-        DEV_LOG && console.log('currentHourlyData', currentHourlyData);
+        // DEV_LOG && console.log('currentHourlyData', currentHourlyData);
         dataToShow = [
             ...new Set(
                 currentHourlyData

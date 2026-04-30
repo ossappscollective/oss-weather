@@ -965,7 +965,6 @@
     }
 
     async function goToWeatherMap(props = { focusPos: weatherLocation ? weatherLocation.coord : undefined }) {
-        DEV_LOG && console.log('goToWeatherMap', MaptilerProvider.apiKey, MaptilerProvider.hasApiKey());
         if (!MaptilerProvider.hasApiKey()) {
             if (!(await askForApiKey('maptiler', false))) {
                 return;
