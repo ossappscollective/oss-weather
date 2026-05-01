@@ -1,0 +1,6 @@
+Bug fixes:
+- missing dewPoint icon
+- crash in eink mode when it is raining...
+- better handling of marine weather
+- windy hourly can show all weather data now
+- Translations update
