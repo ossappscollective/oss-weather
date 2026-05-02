@@ -75,6 +75,13 @@ export default defineConfig({
       provider: 'local'
     }
   },
+  // Enable sitemap generation
+  sitemap: {
+    hostname: 'https://ossweather.akylas.fr',
+    transformItems: (items) => {
+      return items
+    }
+  },
   transformPageData: (pageData, { siteConfig }) => {
     // Initialize the `head` frontmatter if it doesn't exist.
     pageData.frontmatter.head ??= []
