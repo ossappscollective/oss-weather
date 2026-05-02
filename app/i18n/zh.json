@@ -283,17 +283,21 @@
     "preferences": "首选项",
     "pressure": "压强",
     "provider": {
+        "accuweather": "AccuWeather服务",
+        "maptiler": "Maptiler服务",
         "meteofrance": "Méteo France（法国服务）",
         "openmeteo": "Open-Meteo服务",
         "openweathermap": "OpenWeather服务",
         "title": "数据提供方"
     },
     "provider_aqi": {
+        "accuweather": "AccuWeather服务",
         "atmo": "ATMO Auvergne-Rhône-Alpes(法国服务)",
         "openmeteo": "Open-Meteo接口",
         "title": "AQI指数提供商"
     },
     "provider_marine": {
+        "meteoconsult": "MétéoConsult服务",
         "none": "无",
         "title": "海洋气象提供商"
     },
