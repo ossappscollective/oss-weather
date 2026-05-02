@@ -3,7 +3,7 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   title: "OSS Weather",
   description: "Open Source Weather App - Detailed weather data from multiple providers",
-  base: '/oss-weather/',
+  base: '/',
   head: [
     ['link', { rel: 'icon', href: '/oss-weather/favicon.ico' }],
     ['meta', { property: 'og:type', content: 'website' }],
