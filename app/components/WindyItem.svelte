@@ -140,7 +140,7 @@
             const hour = array[0].split(':')[0];
             if (array.length > 0) {
                 canvas.save();
-                canvas.translate(0, rowHeight * 0.65 - 12 * $fontScale);
+                canvas.translate(0, 0);
                 new StaticLayout(
                     createNativeAttributedString({
                         spans: [
@@ -170,7 +170,7 @@
                 textPaint.setTextAlign(Align.CENTER);
                 textPaint.setTextSize(9 * $fontScale);
                 textPaint.setFontWeight('normal');
-                canvas.drawText(formatDate(item.time, 'ddd', item.timezoneOffset), w2, 30 * $fontScale, textPaint);
+                canvas.drawText(formatDate(item.time, 'ddd', item.timezoneOffset), w2, 24 * $fontScale, textPaint);
             }
             textPaint.setFontWeight('normal');
             // --- Data rows ---
