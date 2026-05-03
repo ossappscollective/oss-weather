@@ -226,6 +226,7 @@
     "maptiler_api_key": "Klucz API Maptiler",
     "maptiler_api_key_required_description": "Aby korzystać z radaru Maptiler, musisz zarejestrować bezpłatny klucz API na %1$s",
     "marine_weather": "Pogoda morska",
+    "max": "maks",
     "max_temperature": "Temperatura maksymalna",
     "medium": "Umiarkowany",
     "meteoblue": "meteoblue",
