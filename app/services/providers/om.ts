@@ -355,88 +355,90 @@ export class OMProvider extends WeatherProvider implements AirQualityProvider {
         // console.log('warnings', JSON.stringify(warnings));
         const hourly = forecast.hourly;
         // console.log('hourly', JSON.stringify(hourly));
-        const hourly_weathercodes = this.getMixedDataArray(hourly, 'weathercode', model);
-        let hourlyLastIndex = hourly_weathercodes.findIndex((d) => d === null);
+        const hourly_weathercodes = this.getMixedDataArray(hourly, 'weathercode', model).filter((d) => d === null);
+        // let hourlyLastIndex = hourly_weathercodes.findIndex((d) => d === null);
         // if (hourlyLastIndex === -1) {
-        hourlyLastIndex = hourly_weathercodes.length - 1;
+        //     hourlyLastIndex = hourly_weathercodes.length - 1;
         // }
-        const hourlyData = hourly.time.slice(0, hourlyLastIndex).map((time, index) => {
-            const d = {} as Hourly;
-            d.time = time * 1000;
-            const code = hourly_weathercodes[index];
-            d.isDay = !!this.getDataArrayValue(hourly, 'is_day', model, index);
-            d.iconId = this.convertWeatherCodeToIcon(code);
-            d.description = OMProvider.weatherCodeDescription[code];
-            const apparentTemperature = this.getDataArrayValue(hourly, 'apparent_temperature', model, index);
-            if (apparentTemperature !== undefined) {
-                d.apparentTemperature = apparentTemperature;
-            }
-            d.temperature = this.getDataArrayValue(hourly, feelsLikeTemperatures ? 'apparent_temperature' : 'temperature_2m', model, index);
-            d.uvIndex = this.getDataArrayValue(hourly, 'uv_index', model, index);
+        // DEV_LOG && console.log('hourly_weathercodes', hourlyLastIndex, hourly_weathercodes);
+        const hourlyData = hourly.time /* .slice(0, hourlyLastIndex) */
+            .map((time, index) => {
+                const d = {} as Hourly;
+                d.time = time * 1000;
+                const code = hourly_weathercodes[index];
+                d.isDay = !!this.getDataArrayValue(hourly, 'is_day', model, index);
+                d.iconId = this.convertWeatherCodeToIcon(code);
+                d.description = OMProvider.weatherCodeDescription[code];
+                const apparentTemperature = this.getDataArrayValue(hourly, 'apparent_temperature', model, index);
+                if (apparentTemperature !== undefined) {
+                    d.apparentTemperature = apparentTemperature;
+                }
+                d.temperature = this.getDataArrayValue(hourly, feelsLikeTemperatures ? 'apparent_temperature' : 'temperature_2m', model, index);
+                d.uvIndex = this.getDataArrayValue(hourly, 'uv_index', model, index);
 
-            d.usingFeelsLike = feelsLikeTemperatures;
-            const windBearing = this.getDataArrayValue(hourly, 'winddirection_10m', model, index);
-            if (windBearing !== undefined) {
-                d.windBearing = windBearing;
-            }
-            const precipitation_probability = this.getDataArrayValue(hourly, 'precipitation_probability', model, index);
-            d.precipProbability = precipitation_probability ?? -1;
+                d.usingFeelsLike = feelsLikeTemperatures;
+                const windBearing = this.getDataArrayValue(hourly, 'winddirection_10m', model, index);
+                if (windBearing !== undefined) {
+                    d.windBearing = windBearing;
+                }
+                const precipitation_probability = this.getDataArrayValue(hourly, 'precipitation_probability', model, index);
+                d.precipProbability = precipitation_probability ?? -1;
 
-            const snowfall = this.getDataArrayValue(hourly, 'snowfall', model, index);
-            if (snowfall !== undefined) {
-                //we want it in mm
-                d.snowfall = snowfall * 10;
-            }
-            const rain = this.getDataArrayValue(hourly, 'rain', model, index);
-            const showers = this.getDataArrayValue(hourly, 'showers', model, index);
-            if (rain !== undefined || snowfall !== undefined) {
-                d.rain = (rain ?? 0) + (showers ?? 0);
-            }
+                const snowfall = this.getDataArrayValue(hourly, 'snowfall', model, index);
+                if (snowfall !== undefined) {
+                    //we want it in mm
+                    d.snowfall = snowfall * 10;
+                }
+                const rain = this.getDataArrayValue(hourly, 'rain', model, index);
+                const showers = this.getDataArrayValue(hourly, 'showers', model, index);
+                if (rain !== undefined || snowfall !== undefined) {
+                    d.rain = (rain ?? 0) + (showers ?? 0);
+                }
 
-            d.precipAccumulation = d.rain + d.snowfall;
-            // const precipitation = this.getDataArray(hourly, 'precipitation', model);
-            // if (hasNext && precipitation) {
-            //     d.precipAccumulation = precipitation[index + 1] ?? 0;
-            // }
-            // }
+                d.precipAccumulation = d.rain + d.snowfall;
+                // const precipitation = this.getDataArray(hourly, 'precipitation', model);
+                // if (hasNext && precipitation) {
+                //     d.precipAccumulation = precipitation[index + 1] ?? 0;
+                // }
+                // }
 
-            const cloudcover = this.getDataArrayValue(hourly, 'cloudcover', model, index);
-            if (cloudcover !== undefined) {
-                d.cloudCover = cloudcover;
-            }
-            const windspeed_10m = this.getDataArrayValue(hourly, 'windspeed_10m', model, index);
-            if (windspeed_10m !== undefined) {
-                d.windSpeed = windspeed_10m;
-            }
+                const cloudcover = this.getDataArrayValue(hourly, 'cloudcover', model, index);
+                if (cloudcover !== undefined) {
+                    d.cloudCover = cloudcover;
+                }
+                const windspeed_10m = this.getDataArrayValue(hourly, 'windspeed_10m', model, index);
+                if (windspeed_10m !== undefined) {
+                    d.windSpeed = windspeed_10m;
+                }
 
-            const windgusts_10m = this.getDataArrayValue(hourly, 'windgusts_10m', model, index);
-            if (windgusts_10m !== undefined) {
-                d.windGust = windgusts_10m;
-            }
-            const snow_depth = this.getDataArrayValue(hourly, 'snow_depth', model, index);
-            if (snow_depth !== undefined) {
-                d.snowDepth = snow_depth;
-            }
-            const freezinglevel_height = this.getDataArrayValue(hourly, 'freezinglevel_height', model, index);
-            if (freezinglevel_height !== undefined) {
-                d.iso = freezinglevel_height;
-            }
-            const dew_point_2m = this.getDataArrayValue(hourly, 'dew_point_2m', model, index);
-            if (dew_point_2m !== undefined) {
-                d.dewpoint = dew_point_2m;
-            }
-            const pressure_msl = this.getDataArrayValue(hourly, 'pressure_msl', model, index);
-            if (pressure_msl !== undefined) {
-                d.sealevelPressure = pressure_msl;
-            }
-            const relative_humidity_2m = this.getDataArrayValue(hourly, 'relative_humidity_2m', model, index);
-            if (relative_humidity_2m !== undefined) {
-                d.relativeHumidity = relative_humidity_2m;
-            }
-            // d.pressure = data.pressure;
-            // DEV_LOG && console.log('test', dayjs(d.time), code, d.iconId, d.temperature, d.precipProbability, d.precipAccumulation, d.rain, d.snowfall);
-            return weatherDataIconColors(d, WeatherDataType.HOURLY, weatherLocation.coord, d.rain, d.snowfall);
-        });
+                const windgusts_10m = this.getDataArrayValue(hourly, 'windgusts_10m', model, index);
+                if (windgusts_10m !== undefined) {
+                    d.windGust = windgusts_10m;
+                }
+                const snow_depth = this.getDataArrayValue(hourly, 'snow_depth', model, index);
+                if (snow_depth !== undefined) {
+                    d.snowDepth = snow_depth;
+                }
+                const freezinglevel_height = this.getDataArrayValue(hourly, 'freezinglevel_height', model, index);
+                if (freezinglevel_height !== undefined) {
+                    d.iso = freezinglevel_height;
+                }
+                const dew_point_2m = this.getDataArrayValue(hourly, 'dew_point_2m', model, index);
+                if (dew_point_2m !== undefined) {
+                    d.dewpoint = dew_point_2m;
+                }
+                const pressure_msl = this.getDataArrayValue(hourly, 'pressure_msl', model, index);
+                if (pressure_msl !== undefined) {
+                    d.sealevelPressure = pressure_msl;
+                }
+                const relative_humidity_2m = this.getDataArrayValue(hourly, 'relative_humidity_2m', model, index);
+                if (relative_humidity_2m !== undefined) {
+                    d.relativeHumidity = relative_humidity_2m;
+                }
+                // d.pressure = data.pressure;
+                // DEV_LOG && console.log('test', (d.time), code, d);
+                return weatherDataIconColors(d, WeatherDataType.HOURLY, weatherLocation.coord, d.rain, d.snowfall);
+            });
 
         const minutely_15 = forecast.minutely_15;
         // minutely data starts at the start of the day!
