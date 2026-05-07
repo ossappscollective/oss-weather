@@ -11,6 +11,7 @@ import { ApplicationSettings } from '@nativescript/core';
 import { NB_DAYS_FORECAST, NB_HOURS_FORECAST, NB_MINUTES_FORECAST } from '~/helpers/constants';
 import { prefs } from '~/services/preferences';
 import { getFile } from '@nativescript-community/https';
+import { logRequestAsCurl } from '@shared/utils/curlify';
 
 const mfApiKey = getString('mfApiKey', MF_DEFAULT_KEY);
 
@@ -30,14 +31,18 @@ export class MFProvider extends WeatherProvider {
 
     static getBRA(massifId) {
         const url = `https://public-api.meteofrance.fr/public/DPBRA/v1/massif/BRA?id-massif=${massifId}&format=pdf`;
-        DEV_LOG && console.log('getBRA', massifId, url, this.apiKey);
-        return getFile({
+        const params = {
             url,
             method: 'GET',
             headers: {
                 apikey: this.apiKey
             }
-        });
+        };
+        if (__DEV__) {
+            logRequestAsCurl(url, params as any);
+            DEV_LOG && console.log('getBRA', massifId, url, this.apiKey);
+        }
+        return getFile(params as any);
     }
 
     private getDaily(weatherLocation: WeatherLocation, hourly: Hourly[], hourlyForecast: ForecastForecast[], dailyForecast: Dailyforecast) {
