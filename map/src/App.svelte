@@ -21,7 +21,8 @@
         const sURLVariables = sPageURL.split('&');
         return sURLVariables.reduce((acc, val) => {
             const sParameterName = decodeURIComponent(val).split('=');
-            acc[sParameterName[0]] = sParameterName.slice(1).join('=');
+
+            acc[sParameterName[0]] = sParameterName.length > 1 ? sParameterName.slice(1).join('=') : 'true';
             return acc;
         }, {});
     }
@@ -44,6 +45,8 @@
         language: urlParamers['lang'] || 'en',
         colors: urlParamers['colors'] || 'RADAR',
         timeInterval: parseFloat(urlParamers['timeInterval'] || 30),
+        maxTimeSpan: parseFloat(urlParamers['maxTimeSpan'] || 0),
+        showHistory: (urlParamers['showHistory'] ?? 'true') === 'true',
         tileSize: parseFloat(urlParamers['tileSize'] || '256') // can be 256 or 512.
     };
 
@@ -218,14 +221,13 @@
         }
         // console.log('creating radar layer');
         weatherLayer.on('sourceReady', (event) => {
-            // console.log('sourceReady');
-
             const startDate = weatherLayer.getAnimationStartDate();
             const endDate = weatherLayer.getAnimationEndDate();
 
             const currentDate = weatherLayer.getAnimationTimeDate();
-            sliderMin = +startDate;
-            sliderMax = +endDate;
+            sliderMin = options.showHistory ? +startDate : +currentDate;
+            sliderMax = options.maxTimeSpan > 0 ? Math.min(sliderMin + options.maxTimeSpan * 3600 * 1000, +endDate) : +endDate;
+            console.log('sourceReady', sliderMin, sliderMax, +endDate);
             sliderValue = +currentDate;
             refreshTime();
         });

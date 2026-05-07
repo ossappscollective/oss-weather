@@ -8,6 +8,8 @@ import { GetWeatherOptions, WeatherProvider } from '~/services/providers/weather
 export const SETTINGS_WEATHER_MAP_COLORS = 'weather_map_colors';
 export const SETTINGS_WEATHER_MAP_ANIMATION_SPEED = 'weather_map_animation_speed';
 export const SETTINGS_WEATHER_MAP_LAYER_OPACITY = 'weather_map_layer_opacity';
+export const SETTINGS_WEATHER_MAP_MAX_TIME_SPAN = 'weather_map_max_time_span';
+export const SETTINGS_WEATHER_MAP_SHOW_HISTORY = 'weather_map_show_history';
 export const SETTINGS_WEATHER_MAP_SHOW_SNOW = 'weather_map_show_snow';
 export const SETTINGS_WEATHER_MAP_CUSTOM_TILE_SOURCE = 'weather_map_custom_tile_source';
 export const SETTINGS_WEATHER_MAP_TIME_INTERVAL = 'weather_map_time_interval';
@@ -428,6 +430,7 @@ export class MaptilerProvider extends WeatherProvider {
             {
                 type: 'prompt',
                 valueType: 'string',
+                icon: 'mdi-key',
                 id: 'setting',
                 key: API_KEY_SETTING,
                 default: () => MaptilerProvider.apiKey,
@@ -437,6 +440,7 @@ export class MaptilerProvider extends WeatherProvider {
             {
                 key: SETTINGS_WEATHER_MAP_COLORS,
                 id: 'setting',
+                icon: 'mdi-palette',
                 valueType: 'string',
                 title: lc('weather_map_colors'),
                 currentValue: () => ApplicationSettings.getString(SETTINGS_WEATHER_MAP_COLORS, WEATHER_MAP_COLORS),
@@ -450,6 +454,7 @@ export class MaptilerProvider extends WeatherProvider {
                 key: SETTINGS_WEATHER_MAP_LAYER,
                 id: 'setting',
                 valueType: 'string',
+                icon: 'mdi-layers',
                 title: lc('weather_map_layer'),
                 currentValue: () => ApplicationSettings.getString(SETTINGS_WEATHER_MAP_LAYER, WEATHER_MAP_LAYER),
                 values: WEATHER_MAP_LAYERS.map((value) => ({
@@ -462,6 +467,7 @@ export class MaptilerProvider extends WeatherProvider {
                 id: 'setting',
                 key: SETTINGS_WEATHER_MAP_ANIMATION_SPEED,
                 min: 0.1,
+                icon: 'mdi-speedometer',
                 max: 2,
                 step: null,
                 title: lc('animation_speed'),
@@ -475,6 +481,7 @@ export class MaptilerProvider extends WeatherProvider {
                 key: SETTINGS_WEATHER_MAP_LAYER_OPACITY,
                 min: 0,
                 max: 1,
+                icon: 'mdi-circle-opacity',
                 step: null,
                 title: lc('layer_opacity'),
                 type: 'slider',
@@ -482,13 +489,24 @@ export class MaptilerProvider extends WeatherProvider {
                 transformValue: (value) => value,
                 rightValue: () => Math.round(ApplicationSettings.getNumber(SETTINGS_WEATHER_MAP_LAYER_OPACITY, WEATHER_MAP_LAYER_OPACITY) * 100) / 100
             },
-            // {
-            //     type: 'switch',
-            //     icon: 'mdi-snowflake',
-            //     id: SETTINGS_WEATHER_MAP_SHOW_SNOW,
-            //     title: lc('show_snow'),
-            //     value: ApplicationSettings.getBoolean(SETTINGS_WEATHER_MAP_SHOW_SNOW, WEATHER_MAP_SHOW_SNOW)
-            // },
+            {
+                id: 'setting',
+                key: SETTINGS_WEATHER_MAP_MAX_TIME_SPAN,
+                min: 0,
+                icon: 'mdi-timelapse',
+                max: 100,
+                step: 1,
+                title: lc('maptiler_max_time_span'),
+                type: 'slider',
+                rightValue: () => ApplicationSettings.getNumber(SETTINGS_WEATHER_MAP_MAX_TIME_SPAN, 0)
+            },
+            {
+                type: 'switch',
+                icon: 'mdi-history',
+                id: SETTINGS_WEATHER_MAP_SHOW_HISTORY,
+                title: lc('maptiler_show_past_data'),
+                value: ApplicationSettings.getBoolean(SETTINGS_WEATHER_MAP_SHOW_HISTORY, true)
+            },
             {
                 type: 'prompt',
                 icon: 'mdi-server',

@@ -19,6 +19,8 @@
         SETTINGS_WEATHER_MAP_CUSTOM_TILE_SOURCE,
         SETTINGS_WEATHER_MAP_LAYER,
         SETTINGS_WEATHER_MAP_LAYER_OPACITY,
+        SETTINGS_WEATHER_MAP_MAX_TIME_SPAN,
+        SETTINGS_WEATHER_MAP_SHOW_HISTORY,
         SETTINGS_WEATHER_MAP_TIME_INTERVAL,
         WEATHER_MAP_ANIMATION_SPEED,
         WEATHER_MAP_COLORS,
@@ -28,6 +30,7 @@
         WEATHER_MAP_LAYER_OPACITY,
         getLayerTitle
     } from '~/services/providers/maptiler';
+    import { queryString } from '~/utils/http';
     import { hideLoading, openLink, showPopoverMenu } from '~/utils/ui';
     import { fontScale, screenWidthDips, windowInset } from '~/variables';
 </script>
@@ -40,7 +43,6 @@
     const customSource = ApplicationSettings.getString(SETTINGS_WEATHER_MAP_CUSTOM_TILE_SOURCE, 'http://127.0.0.1:8080?source=data&x={x}&y={y}&z={z}');
     let mapCenter = focusPos;
     let animated = false;
-    const layerOpacity = ApplicationSettings.getNumber(SETTINGS_WEATHER_MAP_LAYER_OPACITY, WEATHER_MAP_LAYER_OPACITY);
     let colors = WEATHER_MAP_COLORS;
     try {
         colors = ApplicationSettings.getString(SETTINGS_WEATHER_MAP_COLORS, WEATHER_MAP_COLORS);
@@ -48,13 +50,32 @@
         // we moved from number to string...
         ApplicationSettings.remove(SETTINGS_WEATHER_MAP_COLORS);
     }
-    let layer = ApplicationSettings.getString(SETTINGS_WEATHER_MAP_LAYER, WEATHER_MAP_LAYER);
-
-    const animationSpeed = ApplicationSettings.getNumber(SETTINGS_WEATHER_MAP_ANIMATION_SPEED, WEATHER_MAP_ANIMATION_SPEED);
-    const timeInterval = ApplicationSettings.getNumber(SETTINGS_WEATHER_MAP_TIME_INTERVAL, 30);
-
+    let layer = ApplicationSettings.getString(SETTINGS_WEATHER_MAP_LAYER, WEATHER_MAP_LAYER)
     function updateUrl() {
-        url = `~/assets/map/index.html?apiKey=${MaptilerProvider.apiKey}&zoom=${zoom}&animated=${animated}&animationSpeed=${animationSpeed}&colors=${colors}&position=${focusPos.lat},${focusPos.lon}&mapCenter=${mapCenter.lat},${mapCenter.lon}&timeInterval=${timeInterval}&lang=${lang}&hideAttribution=${networkService.devMode}&layer=${layer}&opacity=${layerOpacity}&dark=${$currentTheme}${customSource ? `&source=${encodeURIComponent(customSource)}` : ''}`;
+        url = queryString(
+            {
+                apiKey: MaptilerProvider.apiKey,
+                zoom,
+                animated,
+                animationSpeed: ApplicationSettings.getNumber(SETTINGS_WEATHER_MAP_ANIMATION_SPEED, WEATHER_MAP_ANIMATION_SPEED),
+                colors,
+                position: `${focusPos.lat},${focusPos.lon}`,
+                mapCenter: `${mapCenter.lat},${mapCenter.lon}`,
+                timeInterval: ApplicationSettings.getNumber(SETTINGS_WEATHER_MAP_TIME_INTERVAL, 30),
+                lang,
+                hideAttribution: networkService.devMode,
+                layer,
+                opacity: ApplicationSettings.getNumber(SETTINGS_WEATHER_MAP_LAYER_OPACITY, WEATHER_MAP_LAYER_OPACITY),
+                dark: $currentTheme,
+                maxTimeSpan: ApplicationSettings.getNumber(SETTINGS_WEATHER_MAP_MAX_TIME_SPAN, 0),
+                showHistory: ApplicationSettings.getBoolean(SETTINGS_WEATHER_MAP_SHOW_HISTORY, true),
+                source: customSource ? encodeURIComponent(customSource) : undefined
+            },
+            '~/assets/map/index.html'
+        );
+        DEV_LOG && console.log('updateUrl', url);
+
+        // url = `~/assets/map/index.html?apiKey=${MaptilerProvider.apiKey}&zoom=${zoom}&animated=${animated}&animationSpeed=${animationSpeed}&colors=${colors}&position=${focusPos.lat},${focusPos.lon}&mapCenter=${mapCenter.lat},${mapCenter.lon}&timeInterval=${timeInterval}&lang=${lang}&hideAttribution=${networkService.devMode}&layer=${layer}&opacity=${layerOpacity}&dark=${$currentTheme}${customSource ? `&source=${encodeURIComponent(customSource)}` : ''}`;
     }
 
     onThemeChanged(updateUrl);

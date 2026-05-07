@@ -457,5 +457,7 @@
   "chart_view": "chart",
   "windy_view": "windy",
   "weather_data_to_show_on_windy": "weather data to show in windy view",
-  "max": "max"
+  "max": "max",
+  "maptiler_max_time_span": "max time span in hours",
+  "maptiler_show_past_data": "show past data"
 }
