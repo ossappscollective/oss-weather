@@ -197,7 +197,12 @@ export async function confirmRestartApp() {
     }
 }
 
-export async function selectValue<T = any>(options: { data: T; title: string }[], currentValue: T, alertOptions?: Partial<AlertOptions & MDCAlertControlerOptions>) {
+export async function selectValue<T = any>(
+    options: { data: T; title: string }[],
+    currentValue: T,
+    alertOptions?: Partial<AlertOptions & MDCAlertControlerOptions>,
+    props?: Partial<ComponentProps<OptionSelect__SvelteComponent_>>
+) {
     // return tryCatch(async () => {
     let selectedIndex = -1;
     options = options.map((d, index) => {
@@ -218,7 +223,8 @@ export async function selectValue<T = any>(options: { data: T; title: string }[]
             // rowHeight: 56,
             autoSizeListItem: true,
             selectedIndex,
-            options
+            options,
+            ...(props ?? {})
         },
         alertOptions
     );

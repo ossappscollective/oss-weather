@@ -21,6 +21,7 @@
     import CActionBar from '~/components/common/CActionBar.svelte';
     import ListItemAutoSize from '~/components/common/ListItemAutoSize.svelte';
     import {
+        ALERT_OPTION_MAX_HEIGHT,
         ALWAYS_SHOW_PRECIP_PROB,
         ANIMATIONS_ENABLED,
         CHARTS_LANDSCAPE,
@@ -368,19 +369,23 @@
                         description: () => iconService.getPackName(),
                         image: () => iconService.getPackIcon(),
                         async onTap(item) {
+                            const values = (await iconService.getAvailableThemes()).map((k) => ({
+                                title: k.name,
+                                subtitle: k.description,
+                                data: k.id,
+                                type: 'checkbox_image',
+                                image: k.icon,
+                                imageWidth: k.imageWidth,
+                                imageMargin: k.imageMargin
+                            }));
                             const data = await selectValue<string>(
-                                (await iconService.getAvailableThemes()).map((k) => ({
-                                    title: k.name,
-                                    subtitle: k.description,
-                                    data: k.id,
-                                    type: 'checkbox_image',
-                                    image: k.icon,
-                                    imageWidth: k.imageWidth,
-                                    imageMargin: k.imageMargin
-                                })),
+                                values,
                                 iconService.iconSet,
                                 {
                                     title: lc('icon_pack')
+                                },
+                                {
+                                    height: Math.min(options.length * 90 * $fontScale, ALERT_OPTION_MAX_HEIGHT)
                                 }
                             );
                             if (data) {
