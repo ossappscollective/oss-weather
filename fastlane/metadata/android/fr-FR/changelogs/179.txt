@@ -1,0 +1,7 @@
+Bug fixes:
+- overlapping date and time in new windy view
+- Open-Meteo showing "null" hourly data
+- more options (time span, show history) for weather map
+- icon theme showing same name as another theme
+- bigger "alert" for theme selection
+- Translations update
