@@ -225,6 +225,8 @@
     "map_settings": "Nastavitve zemljevida",
     "maptiler_api_key": "Maptiler API ključ",
     "maptiler_api_key_required_description": "Da lahko uporabite radarsko sliko za Maptiler, se morate registrirati za brezplačni API ključ na %1$s",
+    "maptiler_max_time_span": "največji potek časa v urah",
+    "maptiler_show_past_data": "prikaži starejše podatke",
     "marine_weather": "Morsko Vreme",
     "max": "Največ",
     "max_temperature": "Najvišja Temperatura",
