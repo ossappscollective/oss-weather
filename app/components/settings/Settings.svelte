@@ -385,7 +385,7 @@
                                     title: lc('icon_pack')
                                 },
                                 {
-                                    height: Math.min(options.length * 90 * $fontScale, ALERT_OPTION_MAX_HEIGHT)
+                                    height: Math.min(values.length * 90 * $fontScale, ALERT_OPTION_MAX_HEIGHT)
                                 }
                             );
                             if (data) {
