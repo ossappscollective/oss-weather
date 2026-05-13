@@ -4,18 +4,18 @@
 <div align="center">
 
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](COC.md)
-[![GitHub repo stars](https://img.shields.io/github/stars/Akylas/oss-weather?style=flat)](https://github.com/Akylas/oss-weather/stargazers)
-[![GitHub License](https://img.shields.io/github/license/Akylas/oss-weather)](https://github.com/Akylas/oss-weather/blob/master/COPYING)
-[![GitHub All Releases](https://img.shields.io/github/downloads/Akylas/oss-weather/total.svg)](https://github.com/Akylas/oss-weather/releases/)
-[![GitHub release](https://img.shields.io/github/v/release/Akylas/oss-weather?display_name=release)](https://github.com/Akylas/oss-weather/releases/latest)
+[![GitHub repo stars](https://img.shields.io/github/stars/ossappscollective/oss-weather?style=flat)](https://github.com/ossappscollective/oss-weather/stargazers)
+[![GitHub License](https://img.shields.io/github/license/ossappscollective/oss-weather)](https://github.com/ossappscollective/oss-weather/blob/master/COPYING)
+[![GitHub All Releases](https://img.shields.io/github/downloads/ossappscollective/oss-weather/total.svg)](https://github.com/ossappscollective/oss-weather/releases/)
+[![GitHub release](https://img.shields.io/github/v/release/ossappscollective/oss-weather?display_name=release)](https://github.com/ossappscollective/oss-weather/releases/latest)
 [![Small translation badge](https://hosted.weblate.org/widgets/oss-weather/-/svg-badge.svg)](https://hosted.weblate.org/engage/oss-weather/?utm_source=widget)
 
 </div>
 
 <!-- <h1 align="center">Scan all your documents</h1>
 <p align="center">
-  <a href="https://github.com/Akylas/oss-weather" alt="License"><img src="https://img.shields.io/badge/License-MIT-blue.svg"/></a>
- <a href="https://github.com/Akylas/oss-weather/releases" alt="Release version"><img src="https://img.shields.io/github/downloads/akylas/oss-weather/total"/></a> -->
+  <a href="https://github.com/ossappscollective/oss-weather" alt="License"><img src="https://img.shields.io/badge/License-MIT-blue.svg"/></a>
+ <a href="https://github.com/ossappscollective/oss-weather/releases" alt="Release version"><img src="https://img.shields.io/github/downloads/akylas/oss-weather/total"/></a> -->
 
  ## Installation
 
@@ -24,7 +24,7 @@
 |  ||
 |:-:|:-:|
 |[<img src="https://izzyondroid.org/assets/static/IzzyOnDroidButtonGreyBorder_nofont.png" alt="Get it on IzzyOnDroid" style="height:50px">](https://apt.izzysoft.de/packages/com.akylas.weather)|[<img src="https://raw.githubusercontent.com/pioug/google-play-badges/refs/heads/main/svg/en.svg" alt="Get it on PlayStore" style="height:50px">](https://play.google.com/store/apps/details?id=com.akylas.weather)|
-|[<img src="https://raw.githubusercontent.com/Akylas/OSS-DocumentScanner/main/graphics/badge_github.png" alt="Get it on GitHub" style="height:50px">](https://github.com/Akylas/oss-weather/releases)|<div><a href="https://apps.apple.com/fr/app/oss-weather/id1499117252"><img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83&amp;releaseDate=1496188800" alt="Download on the App Store" style="height:58px"></a></div>|
+|[<img src="https://raw.githubusercontent.com/Akylas/OSS-DocumentScanner/main/graphics/badge_github.png" alt="Get it on GitHub" style="height:50px">](https://github.com/ossappscollective/oss-weather/releases)|<div><a href="https://apps.apple.com/fr/app/oss-weather/id1499117252"><img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83&amp;releaseDate=1496188800" alt="Download on the App Store" style="height:58px"></a></div>|
 </div>
  
 #### AppVerifier hashes 

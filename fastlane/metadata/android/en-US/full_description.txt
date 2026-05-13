@@ -40,4 +40,4 @@ Permissions (minimal)
 * Location (optional): used only to provide local forecasts and radar centered on your location
 * Network / Internet: required to fetch forecasts, maps and provider data
 
-Privacy & contributions OSS Weather is designed to respect your privacy — no tracking, no ads. The project is open source (MIT). Inspect, fork, report bugs or contribute on GitHub: https://github.com/Akylas/oss-weather
+Privacy & contributions OSS Weather is designed to respect your privacy — no tracking, no ads. The project is open source (MIT). Inspect, fork, report bugs or contribute on GitHub: https://github.com/ossappscollective/oss-weather

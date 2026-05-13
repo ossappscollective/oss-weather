@@ -33,9 +33,9 @@
     "description": "Access weather data from the public OpenWeather data",
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/Akylas/oss-weather/issues"
+        "url": "https://github.com/ossappscollective/oss-weather/issues"
     },
-    "repository": "https://github.com/Akylas/oss-weather",
+    "repository": "https://github.com/ossappscollective/oss-weather",
     "dependencies": {
         "@akylas/address-formatter": "5.3.1",
         "@akylas/nativescript": "8.9.17",
