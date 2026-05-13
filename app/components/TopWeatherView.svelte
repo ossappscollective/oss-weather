@@ -23,7 +23,10 @@
     import { colors, fontScale, fonts, hourlyViewData, hourlyViewMode, rainColor, topViewHeight, weatherDataLayout } from '~/variables';
     import HourlyChartView from './HourlyChartView.svelte';
     import WindyView from './WindyView.svelte';
+    import { screenWidthDips } from '~/variables';
 
+    const weatherIconSize = 110;
+    const timeFactor = 1 / (1000 * 60 * 10);
     const PADDING_LEFT = 7;
     const einkBmpShader = isEInk ? new BitmapShader(ImageSource.fromFileSync('~/assets/images/pattern.png'), TileMode.REPEAT, TileMode.REPEAT) : null;
 
@@ -82,7 +85,6 @@
     export let fakeNow;
     export let animated = false;
     let lineChart: NativeViewElementNode<LineChart>;
-    const weatherIconSize = 110;
     let chartInitialized = false;
     let precipChartSet: LineDataSet;
     let cloudChartSet: LineDataSet;
@@ -92,10 +94,11 @@
     }[];
 
     let hasPrecip = false;
-
+    let actualWeatherIconSize = 0;
+    $: actualWeatherIconSize = (weatherIconSize * 0.9) / Math.sqrt($fontScale);
+    $: minutelyChartWidth = Math.min(300, screenWidthDips - actualWeatherIconSize);
     // we need a factor cause using timestamp means
     // using 64bit data which canvas does not support (android Matrix specifically)
-    const timeFactor = 1 / (1000 * 60 * 10);
     function updateLineChart(item: Item) {
         const chart = lineChart?.nativeView;
         if (chart) {
@@ -376,7 +379,7 @@
 
         if (item.description?.length) {
             textPaint.textSize = 15 * $fontScale;
-            const width = w - 10 - 250;
+            const width = w - 10 - minutelyChartWidth;
             textPaint.setTextAlign(Align.LEFT);
             canvas.save();
             const staticLayout = new StaticLayout(item.description, textPaint, width, LayoutAlignment.ALIGN_OPPOSITE, 1, 0, false);
@@ -557,7 +560,7 @@
         horizontalAlignment="left"
     /> -->
     <!-- the gridlayout is there to ensure a max width for the chart -->
-    <gridlayout height={90} horizontalAlignment="left" marginBottom={45 * $fontScale} verticalAlignment="bottom" width={300}>
+    <gridlayout height={90} horizontalAlignment="left" marginBottom={45 * $fontScale} verticalAlignment="bottom" width={minutelyChartWidth}>
         <linechart bind:this={lineChart} visibility={hasPrecip ? 'visible' : 'hidden'} />
     </gridlayout>
     <WeatherIcon
@@ -566,7 +569,7 @@
         horizontalAlignment="right"
         iconData={[item.iconId, item.isDay]}
         marginBottom={$fontScale > 1 ? 17 * $fontScale * $fontScale : 17 * $fontScale}
-        size={(weatherIconSize * 0.9) / Math.sqrt($fontScale)}
+        size={actualWeatherIconSize}
         verticalAlignment="middle"
         on:tap />
     {#if $hourlyViewMode === 'chart'}
