@@ -25,7 +25,7 @@ interface Current {
     rain: number;
     showers: number;
     snowfall: number;
-    weathercode: number;
+    weather_code: number;
     is_day: number;
     cloudcover: number;
     windspeed_10m: number;
@@ -44,7 +44,7 @@ interface Currentunits {
     rain: string;
     showers: string;
     snowfall: string;
-    weathercode: string;
+    weather_code: string;
     cloudcover: string;
     windspeed_10m: string;
     winddirection_10m: string;
@@ -53,7 +53,7 @@ interface Currentunits {
 
 export interface Daily {
     time: number[];
-    weathercode: number[];
+    weather_code: number[];
     temperature_2m_max: number[];
     temperature_2m_min: number[];
     apparent_temperature_max: number[];
@@ -73,7 +73,7 @@ export interface Daily {
 
 export interface Dailyunits {
     time: string;
-    weathercode: string;
+    weather_code: string;
     temperature_2m_max: string;
     temperature_2m_min: string;
     apparent_temperature_max: string;
@@ -101,7 +101,7 @@ export interface Hourly {
     showers: number[];
     snowfall: number[];
     snow_depth: number[];
-    weathercode: number[];
+    weather_code: number[];
     cloudcover: number[];
     cloudcover_low: number[];
     cloudcover_mid: number[];
@@ -126,7 +126,7 @@ export interface Hourlyunits {
     showers: string;
     snowfall: string;
     snow_depth: string;
-    weathercode: string;
+    weather_code: string;
     cloudcover: string;
     cloudcover_low: string;
     cloudcover_mid: string;
@@ -147,7 +147,7 @@ interface Minutely15 {
     snowfall: number[];
     snowfall_height: number[];
     freezinglevel_height: number[];
-    weathercode: number[];
+    weather_code: number[];
     windspeed_10m: number[];
     winddirection_10m: number[];
     windgusts_10m: number[];
@@ -162,7 +162,7 @@ interface Minutely15units {
     snowfall: string;
     snowfall_height: string;
     freezinglevel_height: string;
-    weathercode: string;
+    weather_code: string;
     windspeed_10m: string;
     winddirection_10m: string;
     windgusts_10m: string;

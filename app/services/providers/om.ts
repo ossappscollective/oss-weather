@@ -80,7 +80,7 @@ export enum OpenMeteoModels {
 export const API_KEY_VALUES = {
     forecast: ({ current, currentData, feelsLikeTemperatures, minutely }: { currentData: WeatherProps[]; feelsLikeTemperatures: boolean; current: boolean; minutely: boolean }) => ({
         hourly:
-            'precipitation_probability,precipitation,rain,showers,snow_depth,snowfall,weathercode,is_day,uv_index' +
+            'precipitation_probability,precipitation,rain,showers,snow_depth,snowfall,weather_code,is_day,uv_index' +
             (currentData.includes(WeatherProps.windSpeed) ? ',windspeed_10m,winddirection_10m' : '') +
             (currentData.includes(WeatherProps.windGust) ? ',windgusts_10m' : '') +
             (currentData.includes(WeatherProps.cloudCover) ? ',cloudcover' : '') +
@@ -96,7 +96,7 @@ export const API_KEY_VALUES = {
                   : ',temperature_2m'),
         current:
             current !== false
-                ? 'weathercode,is_day' +
+                ? 'weather_code,is_day' +
                   (currentData.includes(WeatherProps.apparentTemperature) && !feelsLikeTemperatures
                       ? ',apparent_temperature,temperature_2m'
                       : feelsLikeTemperatures
@@ -111,7 +111,7 @@ export const API_KEY_VALUES = {
         minutely_15: minutely !== false ? 'precipitation' : undefined,
         past_days: 1,
         daily:
-            'weathercode,uv_index_max,precipitation_sum,precipitation_probability_max,rain_sum,snowfall_sum,showers_sum' +
+            'weather_code,uv_index_max,precipitation_sum,precipitation_probability_max,rain_sum,snowfall_sum,showers_sum' +
             (currentData.includes(WeatherProps.apparentTemperature) && !feelsLikeTemperatures
                 ? ',apparent_temperature_max,apparent_temperature_min,temperature_2m_max,temperature_2m_min'
                 : feelsLikeTemperatures
@@ -176,36 +176,67 @@ export class OMProvider extends WeatherProvider implements AirQualityProvider {
             }
         ];
     }
-    private static readonly weatherCodeDescription = {
-        0: l('clear'),
-        1: l('mostly_clear'),
-        2: l('partly_cloudy'),
-        3: l('cloudy'),
-        45: l('fog'),
-        48: l('freezing_fog'),
-        51: l('light_drizzle'),
-        53: l('drizzle'),
-        55: l('heavy_drizzle'),
-        56: l('light_freezing_drizzle'),
-        57: l('freezing_drizzle'),
-        61: l('light_rain'),
-        63: l('rain'),
-        65: l('heavy_rain'),
-        66: l('light_freezing_rain'),
-        67: l('freezing_rain'),
-        71: l('light_snow'),
-        73: l('snow'),
-        75: l('heavy_snow'),
-        77: l('snow_grains'),
-        80: l('light_rain_shower'),
-        81: l('rain_shower'),
-        82: l('heavy_rain_shower'),
-        85: l('snow_shower'),
-        86: l('heavy_snow_shower'),
-        95: l('thunderstorm'),
-        96: l('hailstorm'),
-        99: l('heavy_hailstorm')
-    };
+
+    static getWeatherCodeDescription(weatherCode: number) {
+        switch (weatherCode) {
+            case 0:
+                return l('clear');
+            case 1:
+                return l('mostly_clear');
+            case 2:
+                return l('partly_cloudy');
+            case 3:
+                return l('cloudy');
+            case 45:
+                return l('fog');
+            case 48:
+                return l('freezing_fog');
+            case 51:
+                return l('light_drizzle');
+            case 53:
+                return l('drizzle');
+            case 55:
+                return l('heavy_drizzle');
+            case 56:
+                return l('light_freezing_drizzle');
+            case 57:
+                return l('freezing_drizzle');
+            case 61:
+                return l('light_rain');
+            case 63:
+                return l('rain');
+            case 65:
+                return l('heavy_rain');
+            case 66:
+                return l('light_freezing_rain');
+            case 67:
+                return l('freezing_rain');
+            case 71:
+                return l('light_snow');
+            case 73:
+                return l('snow');
+            case 75:
+                return l('heavy_snow');
+            case 77:
+                return l('snow_grains');
+            case 80:
+                return l('light_rain_shower');
+            case 81:
+                return l('rain_shower');
+            case 82:
+                return l('heavy_rain_shower');
+            case 85:
+                return l('snow_shower');
+            case 86:
+                return l('heavy_snow_shower');
+            case 95:
+                return l('thunderstorm');
+            case 96:
+                return l('hailstorm');
+            case 99:
+                return l('heavy_hailstorm');
+        }
+    }
 
     private convertWeatherCodeToIcon(code: number) {
         // const actualCode = code % 100;
@@ -332,7 +363,6 @@ export class OMProvider extends WeatherProvider implements AirQualityProvider {
             weatherProps
         }: { warnings?: boolean; minutely?: boolean; current?: boolean; model?: string; forceModel?: boolean; weatherProps?: WeatherProps[] } = {}
     ) {
-        DEV_LOG && console.log('getWeather', forceModel, ApplicationSettings.getBoolean(SETTINGS_OM_AUGMENT_WITH_BEST_MATCH, true));
         const feelsLikeTemperatures = ApplicationSettings.getBoolean('feels_like_temperatures', FEELS_LIKE_TEMPERATURE);
         const coords = weatherLocation.coord;
         let models = 'best_match';
@@ -355,90 +385,85 @@ export class OMProvider extends WeatherProvider implements AirQualityProvider {
         // console.log('warnings', JSON.stringify(warnings));
         const hourly = forecast.hourly;
         // console.log('hourly', JSON.stringify(hourly));
-        const hourly_weathercodes = this.getMixedDataArray(hourly, 'weathercode', model).filter((d) => d === null);
-        // let hourlyLastIndex = hourly_weathercodes.findIndex((d) => d === null);
-        // if (hourlyLastIndex === -1) {
-        //     hourlyLastIndex = hourly_weathercodes.length - 1;
-        // }
-        // DEV_LOG && console.log('hourly_weathercodes', hourlyLastIndex, hourly_weathercodes);
-        const hourlyData = hourly.time /* .slice(0, hourlyLastIndex) */
-            .map((time, index) => {
-                const d = {} as Hourly;
-                d.time = time * 1000;
-                const code = hourly_weathercodes[index];
-                d.isDay = !!this.getDataArrayValue(hourly, 'is_day', model, index);
-                d.iconId = this.convertWeatherCodeToIcon(code);
-                d.description = OMProvider.weatherCodeDescription[code];
-                const apparentTemperature = this.getDataArrayValue(hourly, 'apparent_temperature', model, index);
-                if (apparentTemperature !== undefined) {
-                    d.apparentTemperature = apparentTemperature;
-                }
-                d.temperature = this.getDataArrayValue(hourly, feelsLikeTemperatures ? 'apparent_temperature' : 'temperature_2m', model, index);
-                d.uvIndex = this.getDataArrayValue(hourly, 'uv_index', model, index);
+        const hourly_weathercodes = this.getMixedDataArray(hourly, 'weather_code', model);
+        const hourly_times = hourly.time.filter((d, index) => hourly_weathercodes[index] !== null);
+        const hourlyData = hourly_times.map((time, index) => {
+            const d = {} as Hourly;
+            d.time = time * 1000;
+            const code = hourly_weathercodes[index];
+            d.isDay = !!this.getDataArrayValue(hourly, 'is_day', model, index);
+            d.iconId = this.convertWeatherCodeToIcon(code);
+            d.description = OMProvider.getWeatherCodeDescription(code);
+            const apparentTemperature = this.getDataArrayValue(hourly, 'apparent_temperature', model, index);
+            if (apparentTemperature !== undefined) {
+                d.apparentTemperature = apparentTemperature;
+            }
+            d.temperature = this.getDataArrayValue(hourly, feelsLikeTemperatures ? 'apparent_temperature' : 'temperature_2m', model, index);
+            d.uvIndex = this.getDataArrayValue(hourly, 'uv_index', model, index);
 
-                d.usingFeelsLike = feelsLikeTemperatures;
-                const windBearing = this.getDataArrayValue(hourly, 'winddirection_10m', model, index);
-                if (windBearing !== undefined) {
-                    d.windBearing = windBearing;
-                }
-                const precipitation_probability = this.getDataArrayValue(hourly, 'precipitation_probability', model, index);
-                d.precipProbability = precipitation_probability ?? -1;
+            d.usingFeelsLike = feelsLikeTemperatures;
+            const windBearing = this.getDataArrayValue(hourly, 'winddirection_10m', model, index);
+            if (windBearing !== undefined) {
+                d.windBearing = windBearing;
+            }
+            const precipitation_probability = this.getDataArrayValue(hourly, 'precipitation_probability', model, index);
+            d.precipProbability = precipitation_probability ?? -1;
 
-                const snowfall = this.getDataArrayValue(hourly, 'snowfall', model, index);
-                if (snowfall !== undefined) {
-                    //we want it in mm
-                    d.snowfall = snowfall * 10;
-                }
-                const rain = this.getDataArrayValue(hourly, 'rain', model, index);
-                const showers = this.getDataArrayValue(hourly, 'showers', model, index);
-                if (rain !== undefined || snowfall !== undefined) {
-                    d.rain = (rain ?? 0) + (showers ?? 0);
-                }
+            const snowfall = this.getDataArrayValue(hourly, 'snowfall', model, index);
+            if (snowfall !== undefined) {
+                //we want it in mm
+                d.snowfall = snowfall * 10;
+            }
+            const rain = this.getDataArrayValue(hourly, 'rain', model, index);
+            const showers = this.getDataArrayValue(hourly, 'showers', model, index);
+            if (rain !== undefined || snowfall !== undefined) {
+                d.rain = (rain ?? 0) + (showers ?? 0);
+            }
 
-                d.precipAccumulation = d.rain + d.snowfall;
-                // const precipitation = this.getDataArray(hourly, 'precipitation', model);
-                // if (hasNext && precipitation) {
-                //     d.precipAccumulation = precipitation[index + 1] ?? 0;
-                // }
-                // }
+            d.precipAccumulation = d.rain + d.snowfall;
+            // const precipitation = this.getDataArray(hourly, 'precipitation', model);
+            // if (hasNext && precipitation) {
+            //     d.precipAccumulation = precipitation[index + 1] ?? 0;
+            // }
+            // }
 
-                const cloudcover = this.getDataArrayValue(hourly, 'cloudcover', model, index);
-                if (cloudcover !== undefined) {
-                    d.cloudCover = cloudcover;
-                }
-                const windspeed_10m = this.getDataArrayValue(hourly, 'windspeed_10m', model, index);
-                if (windspeed_10m !== undefined) {
-                    d.windSpeed = windspeed_10m;
-                }
+            const cloudcover = this.getDataArrayValue(hourly, 'cloudcover', model, index);
+            if (cloudcover !== undefined) {
+                d.cloudCover = cloudcover;
+            }
+            const windspeed_10m = this.getDataArrayValue(hourly, 'windspeed_10m', model, index);
+            if (windspeed_10m !== undefined) {
+                d.windSpeed = windspeed_10m;
+            }
 
-                const windgusts_10m = this.getDataArrayValue(hourly, 'windgusts_10m', model, index);
-                if (windgusts_10m !== undefined) {
-                    d.windGust = windgusts_10m;
-                }
-                const snow_depth = this.getDataArrayValue(hourly, 'snow_depth', model, index);
-                if (snow_depth !== undefined) {
-                    d.snowDepth = snow_depth;
-                }
-                const freezinglevel_height = this.getDataArrayValue(hourly, 'freezinglevel_height', model, index);
-                if (freezinglevel_height !== undefined) {
-                    d.iso = freezinglevel_height;
-                }
-                const dew_point_2m = this.getDataArrayValue(hourly, 'dew_point_2m', model, index);
-                if (dew_point_2m !== undefined) {
-                    d.dewpoint = dew_point_2m;
-                }
-                const pressure_msl = this.getDataArrayValue(hourly, 'pressure_msl', model, index);
-                if (pressure_msl !== undefined) {
-                    d.sealevelPressure = pressure_msl;
-                }
-                const relative_humidity_2m = this.getDataArrayValue(hourly, 'relative_humidity_2m', model, index);
-                if (relative_humidity_2m !== undefined) {
-                    d.relativeHumidity = relative_humidity_2m;
-                }
-                // d.pressure = data.pressure;
-                // DEV_LOG && console.log('test', (d.time), code, d);
-                return weatherDataIconColors(d, WeatherDataType.HOURLY, weatherLocation.coord, d.rain, d.snowfall);
-            });
+            const windgusts_10m = this.getDataArrayValue(hourly, 'windgusts_10m', model, index);
+            if (windgusts_10m !== undefined) {
+                d.windGust = windgusts_10m;
+            }
+            const snow_depth = this.getDataArrayValue(hourly, 'snow_depth', model, index);
+            if (snow_depth !== undefined) {
+                d.snowDepth = snow_depth;
+            }
+            const freezinglevel_height = this.getDataArrayValue(hourly, 'freezinglevel_height', model, index);
+            if (freezinglevel_height !== undefined) {
+                d.iso = freezinglevel_height;
+            }
+            const dew_point_2m = this.getDataArrayValue(hourly, 'dew_point_2m', model, index);
+            if (dew_point_2m !== undefined) {
+                d.dewpoint = dew_point_2m;
+            }
+            const pressure_msl = this.getDataArrayValue(hourly, 'pressure_msl', model, index);
+            if (pressure_msl !== undefined) {
+                d.sealevelPressure = pressure_msl;
+            }
+            const relative_humidity_2m = this.getDataArrayValue(hourly, 'relative_humidity_2m', model, index);
+            if (relative_humidity_2m !== undefined) {
+                d.relativeHumidity = relative_humidity_2m;
+            }
+            // d.pressure = data.pressure;
+            // DEV_LOG && console.log('test', (d.time), code, d);
+            return weatherDataIconColors(d, WeatherDataType.HOURLY, weatherLocation.coord, d.rain, d.snowfall);
+        });
 
         const minutely_15 = forecast.minutely_15;
         // minutely data starts at the start of the day!
@@ -458,7 +483,7 @@ export class OMProvider extends WeatherProvider implements AirQualityProvider {
             : undefined;
         const currentData = forecast.current;
         const daily = forecast.daily;
-        const daily_weathercodes = this.getMixedDataArray(daily, 'weathercode', model);
+        const daily_weathercodes = this.getMixedDataArray(daily, 'weather_code', model);
         const dailyLastIndex = daily_weathercodes.findIndex((d) => d === null);
         const r = {
             time: Date.now(), // we use phone local current time as reference
@@ -476,8 +501,8 @@ export class OMProvider extends WeatherProvider implements AirQualityProvider {
                           cloudCover: currentData.cloudcover,
                           isDay: !!currentData.is_day,
                           windBearing: currentData.winddirection_10m,
-                          iconId: this.convertWeatherCodeToIcon(currentData.weathercode),
-                          description: OMProvider.weatherCodeDescription[currentData.weathercode]
+                          iconId: this.convertWeatherCodeToIcon(currentData.weather_code),
+                          description: OMProvider.getWeatherCodeDescription(currentData.weather_code)
                       } as Currently,
                       WeatherDataType.CURRENT,
                       coords
@@ -488,7 +513,7 @@ export class OMProvider extends WeatherProvider implements AirQualityProvider {
                     const code = daily_weathercodes[index];
                     const d = {
                         time: time * 1000,
-                        description: OMProvider.weatherCodeDescription[code],
+                        description: OMProvider.getWeatherCodeDescription(code),
                         isDay: true,
                         iconId: this.convertWeatherCodeToIcon(code),
                         apparentTemperatureMax: this.getDataArrayValue(daily, 'apparent_temperature_max', model, index),
@@ -535,7 +560,7 @@ export class OMProvider extends WeatherProvider implements AirQualityProvider {
             alerts: []
         } as WeatherData;
         r.hourly = hourlyData;
-        // DEV_LOG && console.log('om getWeather', JSON.stringify(r));
+        // DEV_LOG && console.log('om getWeather', JSON.stringify(r.currently));
         return r;
     }
 
@@ -599,21 +624,18 @@ export class OMProvider extends WeatherProvider implements AirQualityProvider {
             time: result.time,
             currently: currentData
                 ? prepareAirQualityData(
-                      Object.keys(currentData).reduce(
-                          (d, k) => {
-                              if (k && k !== 'time') {
-                                  const actualKey: string = KEY_MAPPING[k] || k;
-                                  d.pollutants = d.pollutants || {};
-                                  if (k === 'carbon_monoxide') {
-                                      d.pollutants[actualKey] = { value: currentData[k] / 1000, unit: units[k].slice(1) };
-                                  } else {
-                                      d.pollutants[actualKey] = { value: currentData[k], unit: units[k] };
-                                  }
+                      Object.keys(currentData).reduce((d, k) => {
+                          if (k && k !== 'time') {
+                              const actualKey: string = KEY_MAPPING[k] || k;
+                              d.pollutants = d.pollutants || {};
+                              if (k === 'carbon_monoxide') {
+                                  d.pollutants[actualKey] = { value: currentData[k] / 1000, unit: units[k].slice(1) };
+                              } else {
+                                  d.pollutants[actualKey] = { value: currentData[k], unit: units[k] };
                               }
-                              return d;
-                          },
-                          { time: currentData.time * 1000 } as Partial<Currently>
-                      ) as AirQualityCurrently
+                          }
+                          return d;
+                      }, {} as Partial<Currently>) as AirQualityCurrently
                   )
                 : {},
             daily: {
