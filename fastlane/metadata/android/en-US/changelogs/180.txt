@@ -1,0 +1,7 @@
+Bug fixes:
+- errors in 'icons' settings
+- Open Meteo fix for hourly  weather icon not showing
+- prevent error with widgets in edge cases
+- prevent errors on small screens
+- weather condition (icon) as possible hourly data
+- error when removing precipation from hourly chart data
