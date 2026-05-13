@@ -141,7 +141,6 @@ arcPaint.setTextAlign(Align.CENTER);
 arcPaint.strokeCap = Cap.ROUND;
 
 export const AVAILABLE_WEATHER_DATA = [
-    WeatherProps.iconId,
     WeatherProps.windSpeed,
     WeatherProps.precipAccumulation,
     WeatherProps.cloudCover,
@@ -170,7 +169,7 @@ export const AVAILABLE_WEATHER_DATA = [
 //     WeatherProps.cloudCover,
 //     WeatherProps.windGust
 // ];
-export const AVAILABLE_WEATHER_DATA_MAIN_HOURLY = AVAILABLE_WEATHER_DATA;
+export const AVAILABLE_WEATHER_DATA_MAIN_HOURLY = AVAILABLE_WEATHER_DATA.concat([WeatherProps.iconId, WeatherProps.temperature, WeatherProps.temperatureMax, WeatherProps.temperatureMin]);
 
 export const AVAILABLE_COMPARE_WEATHER_DATA = [
     WeatherProps.precipProbability,
@@ -363,7 +362,7 @@ export function mergeWeatherData(mainData: WeatherData, ...addedDatas) {
                 const foundIndexToMerge = addedDataK.findIndex((d) => d.time === time);
 
                 if (foundIndexToMerge >= 0) {
-                // DEV_LOG && console.log('mergeWeatherData time', k, time, JSON.stringify(addedDataK[foundIndexToMerge]));
+                    // DEV_LOG && console.log('mergeWeatherData time', k, time, JSON.stringify(addedDataK[foundIndexToMerge]));
                     Object.assign(mainDataK[index], addedDataK[foundIndexToMerge]);
                 }
             }
