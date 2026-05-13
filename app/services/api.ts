@@ -193,16 +193,21 @@ async function handleRequestResponse<T>(
 ): Promise<{ content: T; time: number }> {
     const statusCode = response.statusCode;
     let content: T;
-    if (requestParams.noJSON !== true) {
-        try {
-            content = await response.content.toJSONAsync();
-        } catch (err) {
-            console.error(err);
+    if (response.contentLength) {
+        if (requestParams.noJSON !== true) {
+            try {
+                content = await response.content.toJSONAsync();
+                // we dont catch the error as it might simply be "no response"
+            } catch (__) {}
+        }
+        if (!content) {
+            try {
+                content = (await response.content.toStringAsync()) as any;
+                // we dont catch the error as it might simply be "no response"
+            } catch (__) {}
         }
     }
-    if (!content) {
-        content = (await response.content.toStringAsync()) as any;
-    }
+
     if (!content) {
         content = response.reason as any;
     }
