@@ -991,7 +991,6 @@
                 const disabledPosition = items.findIndex((d) => d.id === 'disabled');
                 const enabledSmallPosition = items.findIndex((d) => d.id === 'enabled_small');
                 const enabledPosition = items.findIndex((d) => d.id === 'enabled');
-                DEV_LOG && console.log('click', position, disabledPosition, enabledSmallPosition, enabledPosition);
                 if (position > disabledPosition) {
                     items.splice(position, 1);
                     if (enabledSmallPosition > -1) {
