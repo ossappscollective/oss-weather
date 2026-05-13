@@ -85,8 +85,6 @@
     let highlightedMargin: string;
     let highlightedAlignment: CoreTypes.HorizontalAlignmentType;
 
-    $: DEV_LOG && console.log('dataToShow', dataToShow);
-
     export function getChart() {
         return chartView?.nativeElement;
     }
@@ -125,7 +123,6 @@
     let hasSnowFall = false;
     function updateLineChart(setData = true) {
         try {
-            DEV_LOG && console.log('updateLineChart');
             const chart = chartView?.nativeView;
             if (chart) {
                 chart.maxVisibleValueCount = 10000;

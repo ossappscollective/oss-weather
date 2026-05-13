@@ -141,6 +141,7 @@ arcPaint.setTextAlign(Align.CENTER);
 arcPaint.strokeCap = Cap.ROUND;
 
 export const AVAILABLE_WEATHER_DATA = [
+    WeatherProps.iconId,
     WeatherProps.windSpeed,
     WeatherProps.precipAccumulation,
     WeatherProps.cloudCover,
