@@ -175,6 +175,8 @@
         "smalltip": "een koffie",
         "smalltip_desc": "alles helpt om 's nachts wakker te blijven!"
     },
+    "integrations": "integraties",
+    "integrations_settings": "integraties en verbindingen van derde partijen",
     "ios": {
         "info": {
             "plist": {
@@ -263,12 +265,15 @@
     "preferences": "Voorkeuren",
     "pressure": "druk",
     "provider": {
+        "accuweather": "AccuWeather",
+        "maptiler": "Maptiler",
         "meteofrance": "Méteo France",
         "openmeteo": "Open-Meteo",
         "openweathermap": "OpenWeather",
         "title": "Aanbieder"
     },
     "provider_aqi": {
+        "accuweather": "AccuWeather",
         "atmo": "ATMO Auvergne-Rhône-Alpes",
         "openmeteo": "Open-Meteo",
         "title": "Aanbieder luchtkwaliteit"
@@ -285,6 +290,7 @@
     "refresh_location_on_pull": "Huidige locatie ophalen bij naar beneden vegen op het hoofdscherm",
     "relative_humidity": "relatieve vochtigheid",
     "remove": "verwijderen",
+    "remove_favorite": "favoriet verwijderen",
     "rename": "hernoemen",
     "reset": "Resetten",
     "restart": "herstarten",
@@ -337,6 +343,7 @@
     "swipe_actionbar_provider": "actie bij vegen over de actiebalk",
     "swipe_actionbar_provider_desc": "naar links of rechts vegen op de actiebalk om snel van aanbieder te wisselen",
     "temperature": "temperatuur",
+    "text_color": "tekstkleur",
     "thank_you": "bedankt!",
     "thank_you_subtitle": "jouw donatie zal het project helpen groeien en mij tijd geven om meer mogelijkheden te implementeren",
     "theme": {
@@ -385,6 +392,10 @@
     "widget.hourly.title": "Voorspelling per uur",
     "widget.loading": "Laden...",
     "widget.no_location": "Geen locatie ingesteld",
+    "widget.preview_set.default": "Standaardweer",
+    "widget.preview_set.hot": "Warm weer",
+    "widget.preview_set.storm": "Stormweer",
+    "widget.preview_size": "Grootte van voorbeeld",
     "widget.simple.description": "Huidig weer in een oogopslag",
     "widget.simple.name": "Eenvoudig Weer",
     "widget.tap_configure": "Tik om te configureren",
@@ -397,9 +408,10 @@
     "widget_config_deleted": "Widgetconfiguratie verwijderd",
     "widget_config_saved": "Widgetinstellingen opgeslagen",
     "widget_configs_saved": "Alle widgetinstellingen opgeslagen",
-    "widget_configuration_note": "Let op: gebruik 'huidige' om de huidige locatie van de app te gebruiken. Gebruik 'standaard' als model om de weerprovider die in de app gekozen is te gebruiken.",
+    "widget_configuration_note": "Configureer deze instantie van de widget. Enkel van toepassing op deze instantie. Lang drukken om de waarde te resetten",
     "widget_configurations": "Widgetconfiguraties",
     "widget_ios_note": "iOS: Widgets vernieuwen in de achtergrond. Voeg widgets toe uit de widgetgallerij en configureer ze daarna hier. iOS bepaalt de vernieuwfrequentie.",
+    "widget_kind_config_saved": "Standaardwidgetinstellingen opgeslagen",
     "widget_settings": "Widgetinstellingen",
     "widget_settings_save_error": "Fout bij het opslaan van widgetinstellingen",
     "widget_update_error": "Fout bij het updaten van widgets",
