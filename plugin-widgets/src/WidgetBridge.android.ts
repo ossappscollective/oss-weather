@@ -156,7 +156,7 @@ export class WidgetBridge extends WidgetBridgeBase {
     /**
      * Perform the actual widget update
      */
-    private async performWidgetUpdate(widgetId: string, config: any, cacheKey: string) {
+    private async performWidgetUpdate(widgetId: string, config: WidgetConfig, cacheKey: string) {
         // DEV_LOG && console.log(`Fetching weather data for ${cacheKey}`);
 
         // Fetch and format weather data using shared data manager
