@@ -88,7 +88,7 @@
 
 <gesturerootview columns="auto" rows="auto" {...$$restProps} on:tap>
     <gridlayout
-        backgroundColor={new Color(colorBackground).setAlpha(240)}
+        backgroundColor={new Color(colorBackground).setAlpha(240).hex}
         borderColor={colorOutline}
         borderRadius={__IOS__ ? 14 : 8}
         borderWidth={1}
