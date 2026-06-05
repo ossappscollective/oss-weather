@@ -133,7 +133,7 @@ export function defaultPropUnit(prop: WeatherProps) {
 const UV_LEVEL_INDEXES = [0, 3, 6, 8, 11];
 const UV_LEVEL_COLORS = ['#9BC600', '#FFBC03', '#FE8F00', '#F55023', '#9E47CC'];
 
-export const DEFAULT_COMMON_WEATHER_DATA = '["windSpeed", "precipAccumulation", "cloudCover", "uvIndex", "windGust", "windBeaufort", "moon"]';
+// export const DEFAULT_COMMON_WEATHER_DATA = '["windSpeed", "precipAccumulation", "cloudCover", "uvIndex", "windGust", "windBeaufort", "moon"]';
 
 const arcPaint = new Paint();
 arcPaint.style = Style.STROKE;
