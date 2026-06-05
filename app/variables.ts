@@ -1,20 +1,15 @@
-import { AppUtilsAndroid } from '@akylas/nativescript-app-utils';
-import { themer } from '@nativescript-community/ui-material-core';
-import { Application, ApplicationSettings, Color, Frame, Page, Screen, Utils } from '@nativescript/core';
-import { getCurrentFontScale } from '@nativescript/core/accessibility/font-scale';
+import { ApplicationSettings, Color } from '@nativescript/core';
 import { createGlobalEventListener, globalObservable } from '@shared/utils/svelte/ui';
 import { get, writable } from 'svelte/store';
 import {
     ALWAYS_SHOW_PRECIP_PROB,
     DECIMAL_METRICS_TEMP,
-    DEFAULT_COLOR_THEME,
     DEFAULT_DAILY_DATA_ALIGNMENT,
     DEFAULT_DAILY_DATE_FORMAT,
     DEFAULT_HOURLYMAIN_DATA,
     DEFAULT_METRIC_CM_TO_MM,
     HOURLY_VIEW_MODE,
     SETTINGS_ALWAYS_SHOW_PRECIP_PROB,
-    SETTINGS_COLOR_THEME,
     SETTINGS_DAILY_DATA_ALIGNMENT,
     SETTINGS_DAILY_DATE_FORMAT,
     SETTINGS_FEELS_LIKE_TEMPERATURES,
@@ -29,61 +24,35 @@ import {
     SETTINGS_WEATHER_DATA_LAYOUT,
     WEATHER_DATA_LAYOUT
 } from '~/helpers/constants';
-import { ColorThemes, getRealTheme, useDynamicColors } from '~/helpers/theme';
 import { DEFAULT_IMPERIAL_UINTS, DEFAULT_METRIC_UINTS } from '~/helpers/units';
 import { prefs } from '~/services/preferences';
 import { WeatherProps } from '~/services/weatherData';
 
-export const colors = writable({
-    colorPrimary: '',
-    colorOnPrimary: '',
-    colorPrimaryContainer: '',
-    colorOnPrimaryContainer: '',
-    colorSecondary: '',
-    colorOnSecondary: '',
-    colorSecondaryContainer: '',
-    colorOnSecondaryContainer: '',
-    colorTertiary: '',
-    colorOnTertiary: '',
-    colorTertiaryContainer: '',
-    colorOnTertiaryContainer: '',
-    colorError: '',
-    colorOnError: '',
-    colorErrorContainer: '',
-    colorOnErrorContainer: '',
-    colorOutline: '',
-    colorOutlineVariant: '',
-    colorBackground: '',
-    colorOnBackground: '',
-    colorSurface: '',
-    colorOnSurface: '',
-    colorSurfaceVariant: '',
-    colorOnSurfaceVariant: '',
-    colorOnSurfaceVariant2: '',
-    colorSurfaceInverse: '',
-    colorOnSurfaceInverse: '',
-    colorPrimaryInverse: '',
-    colorSurfaceContainer: '',
-    colorSurfaceBright: '',
-    colorSurfaceDim: '',
-    colorSurfaceContainerLow: '',
-    colorSurfaceContainerLowest: '',
-    colorSurfaceContainerHigh: '',
-    colorSurfaceContainerHighest: '',
-    colorWidgetBackground: '',
-    colorOnSurfaceDisabled: '',
-    popupMenuBackground: ''
-});
+export * from '@shared/variables';
+
+import { initVariables } from '@shared/variables';
+
 export const fonts = writable({
     mdi: '',
     wi: '',
     app: ''
 });
-export const windowInset = writable({ top: 0, left: 0, right: 0, bottom: 0 });
-export const actionBarButtonHeight = writable(0);
-export const actionBarHeight = writable(0);
-export const screenHeightDips = Screen.mainScreen.heightDIPs;
-export const screenWidthDips = Screen.mainScreen.widthDIPs;
+
+initVariables({
+    onInitRootView: (context, rootViewStyle) => {
+        fonts.set({ mdi: rootViewStyle.getCssVariable('--mdiFontFamily'), app: rootViewStyle.getCssVariable('--appFontFamily'), wi: rootViewStyle.getCssVariable('--wiFontFamily') });
+    },
+    getTheme: (colorTheme) => `~/themes/${__APP_ID__}/${colorTheme}.json`,
+    updateSystemFontScale: (value) => {
+        value = value || 1; // forbid 0
+        systemFontScale.set(value);
+        // console.log('updateSystemFontScale', value, storedFontScale);
+        if (storedFontScale === 1) {
+            fontScale.set(value);
+        }
+        globalObservable.notify({ eventName: 'fontscale', data: get(fontScale) });
+    }
+});
 
 export const systemFontScale = writable(1);
 
@@ -111,11 +80,9 @@ if (isNaN(storedFontScale)) {
     storedFontScale = 1;
 }
 export const fontScale = writable(storedFontScale);
-export const isRTL = writable(false);
 export const topViewHeight = writable(220 * Math.max(1, storedFontScale / 1.2));
 
 export const onUnitsChanged = createGlobalEventListener(SETTINGS_UNITS);
-export const onFontScaleChanged = createGlobalEventListener(SETTINGS_FONTSCALE);
 export function onSettingsChanged(key: string, callback) {
     return createGlobalEventListener(key)(callback);
 }
@@ -222,241 +189,3 @@ prefs.on('change', (event: EventData & { key: string }) => {
             break;
     }
 });
-
-function updateSystemFontScale(value) {
-    value = value || 1; // forbid 0
-    systemFontScale.set(value);
-    // console.log('updateSystemFontScale', value, storedFontScale);
-    if (storedFontScale === 1) {
-        fontScale.set(value);
-    }
-    globalObservable.notify({ eventName: 'fontscale', data: get(fontScale) });
-}
-function updateRootCss() {
-    let rootView = Application.getRootView();
-    if (rootView?.parent) {
-        rootView = rootView.parent as any;
-    }
-    rootView?._onCssStateChange();
-    const rootModalViews = rootView?._getRootModalViews();
-    rootModalViews?.forEach((rootModalView) => rootModalView._onCssStateChange());
-}
-function getRootViewStyle() {
-    let rootView = Application.getRootView();
-    if (rootView?.parent) {
-        rootView = rootView.parent as any;
-    }
-    return rootView?.style;
-}
-
-if (__ANDROID__) {
-    Application.android.on(Application.android.activityCreateEvent, (event) => {
-        AppUtilsAndroid.prepareActivity(event.activity, useDynamicColors);
-    });
-    Page.on('shownModally', function (event) {
-        AppUtilsAndroid.prepareWindow(event.object['_dialogFragment'].getDialog().getWindow());
-    });
-    Frame.on('shownModally', function (event) {
-        AppUtilsAndroid.prepareWindow(event.object['_dialogFragment'].getDialog().getWindow());
-    });
-}
-let initRootViewCalled = false;
-export function onInitRootViewFromEvent() {
-    onInitRootView();
-}
-export function onInitRootView(force = false) {
-    // DEV_LOG && console.log('onInitRootView', force, initRootViewCalled);
-    if (!force && initRootViewCalled) {
-        return;
-    }
-    // we need a timeout to read rootView css variable. not 100% sure why yet
-    if (__ANDROID__) {
-        // setTimeout(() => {
-        const rootViewStyle = getRootViewStyle();
-        const rootView = Application.getRootView();
-        // DEV_LOG && console.log('onInitRootView', rootView);
-        if (rootView) {
-            AppUtilsAndroid.listenForWindowInsets((inset) => {
-                setWindowInset({
-                    top: Utils.layout.toDeviceIndependentPixels(inset[0]),
-                    bottom: Utils.layout.toDeviceIndependentPixels(Math.max(inset[1], inset[4])),
-                    left: Utils.layout.toDeviceIndependentPixels(inset[2]),
-                    right: Utils.layout.toDeviceIndependentPixels(inset[3])
-                });
-            });
-        }
-        if (!rootViewStyle) {
-            return;
-        }
-        fonts.set({ mdi: rootViewStyle.getCssVariable('--mdiFontFamily'), app: rootViewStyle.getCssVariable('--appFontFamily'), wi: rootViewStyle.getCssVariable('--wiFontFamily') });
-        actionBarHeight.set(parseFloat(rootViewStyle.getCssVariable('--actionBarHeight')));
-        actionBarButtonHeight.set(parseFloat(rootViewStyle.getCssVariable('--actionBarButtonHeight')));
-        const context = Utils.android.getApplicationContext();
-
-        const resources = context.getResources();
-        updateSystemFontScale(resources.getConfiguration().fontScale);
-        isRTL.set(resources.getConfiguration().getLayoutDirection() === 1);
-
-        let nActionBarHeight = Utils.layout.toDeviceIndependentPixels(AppUtilsAndroid.getDimensionFromInt(context, 16843499 /* actionBarSize */));
-        if (nActionBarHeight > 0) {
-            actionBarHeight.set(nActionBarHeight);
-            rootViewStyle?.setUnscopedCssVariable('--actionBarHeight', nActionBarHeight + '');
-        } else {
-            nActionBarHeight = parseFloat(rootViewStyle.getCssVariable('--actionBarHeight'));
-            actionBarHeight.set(nActionBarHeight);
-        }
-        const nActionBarButtonHeight = nActionBarHeight - 10;
-        actionBarButtonHeight.set(nActionBarButtonHeight);
-        rootViewStyle?.setUnscopedCssVariable('--actionBarButtonHeight', nActionBarButtonHeight + '');
-    }
-
-    if (__IOS__) {
-        const rootView = Application.getRootView();
-        const rootViewStyle = rootView?.style;
-        if (!rootViewStyle) {
-            return;
-        }
-        initRootViewCalled = !!rootView;
-        DEV_LOG && console.log('initRootView', rootView);
-        fonts.set({ mdi: rootViewStyle.getCssVariable('--mdiFontFamily'), app: rootViewStyle.getCssVariable('--appFontFamily'), wi: rootViewStyle.getCssVariable('--wiFontFamily') });
-        const currentColors = get(colors);
-        Object.keys(currentColors).forEach((c) => {
-            currentColors[c] = rootViewStyle.getCssVariable('--' + c);
-        });
-        colors.set(currentColors);
-        updateSystemFontScale(getCurrentFontScale());
-        actionBarHeight.set(parseFloat(rootViewStyle.getCssVariable('--actionBarHeight')));
-        actionBarButtonHeight.set(parseFloat(rootViewStyle.getCssVariable('--actionBarButtonHeight')));
-        updateIOSWindowInset();
-    }
-    updateThemeColors(getRealTheme());
-    // DEV_LOG && console.log('initRootView', get(navigationBarHeight), get(statusBarHeight), get(actionBarHeight), get(actionBarButtonHeight), get(fonts));
-    Application.on(Application.fontScaleChangedEvent, (event) => updateSystemFontScale(event.newValue));
-    Application.off(Application.initRootViewEvent, onInitRootViewFromEvent);
-    // getRealThemeAndUpdateColors();
-}
-function setWindowInset(newInset) {
-    windowInset.set(newInset);
-    const rootViewStyle = getRootViewStyle();
-    rootViewStyle?.setUnscopedCssVariable('--windowInsetLeft', newInset.left + '');
-    rootViewStyle?.setUnscopedCssVariable('--windowInsetRight', newInset.right + '');
-    updateRootCss();
-}
-function updateIOSWindowInset() {
-    if (__IOS__) {
-        setTimeout(() => {
-            const safeAreaInsets = UIApplication.sharedApplication.keyWindow?.safeAreaInsets;
-            // DEV_LOG && console.log('safeAreaInsets', safeAreaInsets.top, safeAreaInsets.right, safeAreaInsets.bottom, safeAreaInsets.left);
-            if (safeAreaInsets) {
-                windowInset.set({
-                    left: Math.round(safeAreaInsets.left),
-                    top: 0,
-                    right: Math.round(safeAreaInsets.right),
-                    bottom: 0
-                });
-            }
-        }, 0);
-    }
-}
-function onOrientationChanged() {
-    if (__ANDROID__) {
-        const rootViewStyle = getRootViewStyle();
-        const context = Utils.android.getApplicationContext();
-
-        const nActionBarHeight = Utils.layout.toDeviceIndependentPixels(AppUtilsAndroid.getDimensionFromInt(context, 16843499 /* actionBarSize */));
-        if (nActionBarHeight > 0) {
-            actionBarHeight.set(nActionBarHeight);
-            rootViewStyle?.setUnscopedCssVariable('--actionBarHeight', nActionBarHeight + '');
-        }
-        const nActionBarButtonHeight = nActionBarHeight - 10;
-        actionBarButtonHeight.set(nActionBarButtonHeight);
-        rootViewStyle?.setUnscopedCssVariable('--actionBarButtonHeight', nActionBarButtonHeight + '');
-        updateRootCss();
-    } else {
-        updateIOSWindowInset();
-    }
-}
-Application.on(Application.initRootViewEvent, onInitRootViewFromEvent);
-Application.on(Application.orientationChangedEvent, onOrientationChanged);
-if (__ANDROID__) {
-    Application.android.on(Application.android.activityStartedEvent, () => {
-        const resources = Utils.android.getApplicationContext().getResources();
-        isRTL.set(resources.getConfiguration().getLayoutDirection() === 1);
-    });
-}
-
-export function updateThemeColors(theme: string, colorTheme: ColorThemes = ApplicationSettings.getString(SETTINGS_COLOR_THEME, DEFAULT_COLOR_THEME) as ColorThemes) {
-    try {
-        DEV_LOG && console.log('updateThemeColors', theme, colorTheme);
-        let rootView = Application.getRootView();
-        if (rootView?.parent) {
-            rootView = rootView.parent as any;
-        }
-        const rootViewStyle = rootView?.style;
-        if (!rootViewStyle || !theme) {
-            return;
-        }
-        // if (!force && lastThemeColor === theme) {
-        //     return;
-        // }
-        // lastThemeColor = theme;
-        const currentColors = get(colors);
-        // rootViewStyle?.setUnscopedCssVariable('--systemFontScale', systemFontScale + '');
-        if (__ANDROID__) {
-            const activity = Application.android.startActivity;
-            // we also update system font scale so that our UI updates correcly
-            updateSystemFontScale(Utils.android.getApplicationContext().getResources().getConfiguration().fontScale);
-            Object.keys(currentColors).forEach((c) => {
-                if (c.endsWith('Disabled')) {
-                    return;
-                }
-                if (c === 'colorBackground') {
-                    currentColors.colorBackground = new Color(AppUtilsAndroid.getColorFromInt(activity, 16842801)).hex;
-                } else if (c === 'popupMenuBackground') {
-                    currentColors.popupMenuBackground = new Color(AppUtilsAndroid.getColorFromInt(activity, 16843126)).hex;
-                } else {
-                    currentColors[c] = new Color(AppUtilsAndroid.getColorFromName(activity, c)).hex;
-                }
-            });
-        } else {
-            const themeColors = require(`~/themes/${colorTheme}.json`);
-            Object.assign(currentColors, theme === 'dark' || theme === 'black' ? themeColors.dark : themeColors.light);
-
-            themer.setPrimaryColor(currentColors.colorPrimary);
-            themer.setOnPrimaryColor(currentColors.colorOnPrimary);
-            themer.setAccentColor(currentColors.colorPrimary);
-            themer.setSecondaryColor(currentColors.colorSecondary);
-            themer.setSurfaceColor(currentColors.colorSurface);
-            themer.setOnSurfaceColor(currentColors.colorOnSurface);
-        }
-
-        if (theme === 'black') {
-            currentColors.colorBackground = '#000000';
-            currentColors.colorSurfaceContainer = '#000000';
-        }
-
-        currentColors.colorWidgetBackground = new Color(currentColors.colorSurfaceContainer).setAlpha(230).hex;
-        currentColors.colorOnSurfaceDisabled = new Color(currentColors.colorOnSurface).setAlpha(50).hex;
-
-        if (theme === 'dark') {
-            currentColors.colorSurfaceContainerHigh = new Color(currentColors.colorSurfaceContainer).lighten(3).hex;
-            currentColors.colorSurfaceContainerHighest = new Color(currentColors.colorSurfaceContainer).lighten(6).hex;
-        } else {
-            currentColors.colorSurfaceContainerHigh = new Color(currentColors.colorSurfaceContainer).darken(3).hex;
-            currentColors.colorSurfaceContainerHighest = new Color(currentColors.colorSurfaceContainer).darken(6).hex;
-        }
-        currentColors.colorOnSurfaceVariant2 = new Color(currentColors.colorOnSurfaceVariant).setAlpha(170).hex;
-        Object.keys(currentColors).forEach((c) => {
-            rootViewStyle?.setUnscopedCssVariable('--' + c, currentColors[c]);
-        });
-        colors.set(currentColors);
-
-        Application.notify({ eventName: 'colorsChange', colors: currentColors });
-        // DEV_LOG && console.log('changed colors', rootView, JSON.stringify(currentColors));
-        rootView?._onCssStateChange();
-        const rootModalViews = rootView?._getRootModalViews();
-        rootModalViews.forEach((rootModalView) => rootModalView._onCssStateChange());
-    } catch (error) {
-        console.error(error, error.stack);
-    }
-}

@@ -18,6 +18,7 @@
     import { WeatherProps, weatherDataService } from '~/services/weatherData';
     import { actionBarButtonHeight } from '~/variables';
     import HourlyChartView from './HourlyChartView.svelte';
+    import { isLandscape } from '~/utils/ui';
 
     const legendIconPaint = new Paint();
     legendIconPaint.textSize = 13;
@@ -61,8 +62,8 @@
     let legends: ObservableArray<any>;
 
     function onOrientationChanged(event: OrientationChangedEventData) {
-        const isLandscape = event.newValue === 'landscape';
-        chartHeight = !isLandscape && !ApplicationSettings.getBoolean('charts_portrait_fullscreen', CHARTS_PORTRAIT_FULLSCREEN) ? screenWidthDips : undefined;
+        const landscape = isLandscape(event.newValue);
+        chartHeight = !landscape && !ApplicationSettings.getBoolean('charts_portrait_fullscreen', CHARTS_PORTRAIT_FULLSCREEN) ? screenWidthDips : undefined;
     }
 
     onMount(async () => {

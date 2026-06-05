@@ -1,14 +1,15 @@
 import { ApplicationSettings, Screen } from '@nativescript/core';
 import { prefs } from '~/services/preferences';
 
+
+export * from '@shared/constants';
+
 export const DATA_VERSION = 1;
 
 export const ALERT_OPTION_MAX_HEIGHT = Screen.mainScreen.heightDIPs * 0.67;
 
-export const SETTINGS_LANGUAGE = 'language';
 export const SETTINGS_IMPERIAL = 'imperial';
 export const SETTINGS_FONTSCALE = 'fontscale';
-export const SETTINGS_COLOR_THEME = 'color_theme';
 export const SETTINGS_ENABLE_CRASH_REPORT = 'enable_crash_report';
 
 export const SETTINGS_HOURLY_VIEW_MODE = 'hourly_view_mode';
@@ -35,7 +36,6 @@ export const SETTINGS_MAPTILER_DEFAULT_KEY = 'maptiler_api_key';
 export const SETTINGS_HOURLY_MAIN_DATA = 'hourly_main_data';
 
 export const DEFAULT_COLOR_THEME = 'default';
-export const DEFAULT_LOCALE = 'auto';
 
 export const MAIN_PAGE_HOURLY_CHART = false;
 export const HOURLY_VIEW_MODE = 'classic';

@@ -103,8 +103,8 @@ export async function showPopoverMenu<T = any>({
     return result;
 }
 
-export function isLandscape() {
-    return Application.orientation() === 'landscape';
+export function isLandscape(orientation = Application.orientation()) {
+    return orientation === 'landscape';
 }
 
 export function createView<T extends View>(claz: new () => T, props: Partial<Pick<T, keyof T>> = {}, events?) {

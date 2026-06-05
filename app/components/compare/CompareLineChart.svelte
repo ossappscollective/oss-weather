@@ -29,6 +29,7 @@
     import type { DailyData, Hourly, WeatherData } from '~/services/providers/weather';
     import { convertWeatherValueToUnit, getWeatherDataTitle, propToUnit } from '~/services/weatherData';
     import { colors, fontScale, screenWidthDips } from '~/variables';
+    import { isLandscape } from '~/utils/ui';
 
     const legendIconPaint = new Paint();
     legendIconPaint.textSize = 13;
@@ -406,8 +407,8 @@
         if (!chart) {
             return;
         }
-        const isLandscape = event.newValue === 'landscape';
-        chartHeight = !isLandscape && !ApplicationSettings.getBoolean('charts_portrait_fullscreen', CHARTS_PORTRAIT_FULLSCREEN) ? screenWidthDips : undefined;
+        const landscape = isLandscape(event.newValue);
+        chartHeight = !landscape && !ApplicationSettings.getBoolean('charts_portrait_fullscreen', CHARTS_PORTRAIT_FULLSCREEN) ? screenWidthDips : undefined;
         chartNeedsZoomUpdate = true;
     }
     function onLayoutChanged(event: EventData) {
