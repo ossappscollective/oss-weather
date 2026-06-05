@@ -2,6 +2,7 @@
     "whitelist-plugins-usages": true,
     "whitelist": [
         "com.akylas.weather*:*",
+        "android.view:OrientationEventListener",
         "android.view:View.OnApplyWindowInsetsListener",
         "android.view:WindowInsets",
         "android.graphics:Insets",

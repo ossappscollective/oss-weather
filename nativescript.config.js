@@ -9,6 +9,7 @@ module.exports = {
     appResourcesPath: 'App_Resources',
     buildPath: 'platforms',
     webpackPackageName: '@akylas/nativescript-webpack',
+    corePackageName: '@akylas/nativescript',
     webpackConfigPath: 'app.webpack.config.js',
     appPath: 'app',
     forceLog: loggingEnabled,
