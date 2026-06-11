@@ -759,6 +759,7 @@ module.exports = (env, params = {}) => {
     config.resolve.fallback.buffer = false;
     config.resolve.fallback.util = false;
     config.resolve.fallback.path = false;
+    config.resolve.fallback.crypto = false;
     config.resolve.fallback.fs = false;
     config.resolve.fallback.assert = false;
     config.resolve.fallback.tty = false;
