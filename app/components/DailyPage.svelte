@@ -20,7 +20,7 @@
     import HourlyView from './HourlyView.svelte';
     import TidesChartView from './TidesChartView.svelte';
     import WeatherIcon from './WeatherIcon.svelte';
-    const weatherIconSize = 100;
+    const weatherIconSize = 70;
     const PADDING_LEFT = 7;
 
     const textIconPaint = new Paint();

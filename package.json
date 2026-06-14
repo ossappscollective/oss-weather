@@ -108,7 +108,7 @@
         "mini-css-extract-plugin": "^2.10.2",
         "minimizer-webpack-plugin": "^5.6.1",
         "svelte-loader": "3.2.4",
-        "swc-loader": "^0.2.6"
+        "swc-loader": "^0.2.7"
     },
     "commitlint": {
         "extends": [

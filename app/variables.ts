@@ -40,9 +40,10 @@ export const fonts = writable({
 
 initVariables({
     onInitRootView: (context, rootViewStyle) => {
+        DEV_LOG && console.log('onInitRootView', { mdi: rootViewStyle.getCssVariable('--mdiFontFamily'), app: rootViewStyle.getCssVariable('--appFontFamily'), wi: rootViewStyle.getCssVariable('--wiFontFamily') });
         fonts.set({ mdi: rootViewStyle.getCssVariable('--mdiFontFamily'), app: rootViewStyle.getCssVariable('--appFontFamily'), wi: rootViewStyle.getCssVariable('--wiFontFamily') });
     },
-    getTheme: (colorTheme) => `~/themes/${__APP_ID__}/${colorTheme}.json`,
+    getTheme: (colorTheme) => require(`~/themes/${colorTheme}.json`),
     updateSystemFontScale: (value) => {
         value = value || 1; // forbid 0
         systemFontScale.set(value);
