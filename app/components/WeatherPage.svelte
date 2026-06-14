@@ -63,12 +63,16 @@
         Providers,
         ProvidersClasses,
         aqi_providers,
+        getAirQuality,
         getAqiProvider,
         getAqiProviderType,
         getCachedWeather,
+        getFullCachedWeather,
         getMarineProvider,
+        getMarineWeather,
         getProviderClass,
         getProviderType,
+        getWeather,
         getWeatherProvider,
         onProviderChanged,
         providerRequiresApiKey,
@@ -93,9 +97,10 @@
     $: ({ colorBackground, colorError, colorOnBackground, colorOnError, colorOnSurface, colorOnSurfaceVariant, colorOutlineVariant, colorPrimary, colorSurface } = $colors);
 
     let loading = false;
-    let provider: ProviderType;
     let weatherLocation: FavoriteLocation = JSON.parse(ApplicationSettings.getString(SETTINGS_WEATHER_LOCATION, DEFAULT_LOCATION || 'null'));
-    let weatherData: WeatherData = getCachedWeather(provider, weatherLocation, { model: weatherLocation?.omModel, ignoreCache: false }, 0);
+    let provider: ProviderType = weatherLocation?.provider || getProviderType();
+    let weatherData: WeatherData = getFullCachedWeather(provider, weatherLocation);
+
     DEV_LOG && console.log('weatherData', !!weatherData);
     const data_version = ApplicationSettings.getNumber('data_version', -1);
     if (data_version !== DATA_VERSION) {
@@ -307,19 +312,17 @@
             const result = await Promise.all<Promise<WeatherData>[]>(
                 (
                     [
-                        getWeatherProvider(provider)
-                            .getWeather(weatherLocation, { model: weatherLocation.omModel })
-                            .then((data) => {
-                                // we update as soon as possible in case other requests are slow
-                                if (data) {
-                                    applyNewWeatherDataTimeout = setTimeout(() => applyNewWeatherData(data), 100);
-                                }
-                                return data;
-                            })
+                        getWeather(weatherLocation, { model: weatherLocation.omModel }, provider).then((data) => {
+                            // we update as soon as possible in case other requests are slow
+                            if (data) {
+                                applyNewWeatherDataTimeout = setTimeout(() => applyNewWeatherData(data), 100);
+                            }
+                            return data;
+                        })
                     ] as any
                 )
-                    .concat(usedWeatherData.indexOf(WeatherProps.aqi) !== -1 ? [getAqiProvider(weatherLocation.providerAqi).getAirQuality(weatherLocation)] : [])
-                    .concat(weatherLocation.providerMarine ? [getMarineProvider(weatherLocation.providerMarine).getMarineWeather(weatherLocation)] : [])
+                    .concat(usedWeatherData.indexOf(WeatherProps.aqi) !== -1 ? [getAirQuality(weatherLocation.providerAqi, weatherLocation)] : [])
+                    .concat(weatherLocation.providerMarine ? [getMarineWeather(weatherLocation.providerMarine, weatherLocation)] : [])
             );
             const newData = result[0];
             if (newData) {

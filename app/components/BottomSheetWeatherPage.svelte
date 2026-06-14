@@ -8,7 +8,7 @@
     import { FavoriteLocation, favoriteIcon, favoriteIconColor, toggleFavorite } from '~/helpers/favorites';
     import { l, lc } from '~/helpers/locale';
     import { WeatherLocation, getTimezone, networkService, prepareItems } from '~/services/api';
-    import { getAqiProvider, getMarineProvider, getProviderType, getWeatherProvider, onProviderChanged, providers } from '~/services/providers/weatherproviderfactory';
+    import { getAqiProvider, getMarineProvider, getProviderType, getWeather, getWeatherProvider, onProviderChanged, providers } from '~/services/providers/weatherproviderfactory';
     import { WeatherProps, mergeWeatherData, weatherDataService } from '~/services/weatherData';
     import { actionBarButtonHeight, colors } from '~/variables';
 
@@ -34,14 +34,13 @@
         }
         loading = true;
         try {
-            // weatherData = await getWeatherProvider(provider).getWeather(weatherLocation, { model: weatherLocation.omModel });
             let applyNewWeatherDataTimeout;
             const usedWeatherData = weatherDataService.allWeatherData;
             const [weatherData, timezoneData, ...others] = await Promise.all(
                 (
                     [
                         await Promise.all([
-                            getWeatherProvider().getWeather(weatherLocation, { model: weatherLocation.omModel }),
+                            getWeather(weatherLocation, { model: weatherLocation.omModel }, getProviderType()),
                             !!weatherLocation.timezone ? Promise.resolve(undefined) : getTimezone(weatherLocation).catch((err) => console.error(err))
                         ]).then(([weatherData, timezoneData]) => {
                             // we update as soon as possible in case other requests are slow

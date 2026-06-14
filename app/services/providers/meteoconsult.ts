@@ -152,6 +152,8 @@ function parseDateTime(weatherLocation: WeatherLocation, dateStr: string): numbe
 }
 
 export class MeteoConsultProvider extends MarineWeatherProvider {
+    static id = 'meteoconsult';
+    id = MeteoConsultProvider.id;
     /** Fetch and parse marine weather for the given coordinates.
      *  Merges tides into weatherData.tides and marine props into daily/hourly arrays. */
     async getMarineWeather(weatherLocation: WeatherLocation, options?: GetWeatherOptions): Promise<Partial<WeatherData>> {

@@ -16,7 +16,7 @@
     import { l, lc, slc } from '~/helpers/locale';
     import { NetworkConnectionStateEvent, NetworkConnectionStateEventData, networkService } from '~/services/api';
     import type { ProviderType } from '~/services/providers/weather';
-    import { getProviderForType, providers } from '~/services/providers/weatherproviderfactory';
+    import { getProviderForType, getWeather, providers } from '~/services/providers/weatherproviderfactory';
     import { AVAILABLE_COMPARE_WEATHER_DATA, WeatherProps, getWeatherDataIcon, getWeatherDataTitle } from '~/services/weatherData';
     import { actionBarButtonHeight, colors, windowInset } from '~/variables';
     import CompareLineChart from './CompareLineChart.svelte';
@@ -136,9 +136,8 @@
                         try {
                             const data = modelId.split(':');
                             const providerType = data[0] as ProviderType;
-                            const provider = getProviderForType(providerType);
                             // TODO: for Open-Meteo make a single request for all models
-                            const weatherData = await provider.getWeather(weatherLocation, { minutely: false, current: false, warnings: false, forceModel: true, model: data[1] });
+                            const weatherData = await getWeather(weatherLocation, { minutely: false, current: false, warnings: false, forceModel: true, model: data[1] }, providerType);
                             const model = modelsList.find((m) => m.id === modelId);
                             return { weatherData, model };
                         } catch (error) {

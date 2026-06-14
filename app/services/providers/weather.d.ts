@@ -32,7 +32,6 @@ export interface AirQualityData {
     // minutely?: AirQualityMinutely;
 }
 
-
 export interface MarineWeatherData {
     time: number;
     currently?: MarineWeatherCurrently;
@@ -40,7 +39,6 @@ export interface MarineWeatherData {
     hourly: MarineWeatherHourly[];
     minutely?: MarineWeatherMinutely;
 }
-
 
 export interface Alert {
     sender_name?: string;
