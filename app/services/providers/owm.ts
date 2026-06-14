@@ -177,11 +177,11 @@ export class OWMProvider extends WeatherProvider {
     }
 
     static readOwmApiKeySetting() {
-        let key = ApplicationSettings.getString(API_KEY_SETTING, OWM_MY_KEY || OWM_DEFAULT_KEY);
+        let key = ApplicationSettings.getString(API_KEY_SETTING);
         // DEV_LOG && console.log('readOwmApiKeySetting', key);
         if (!key || key?.length === 0) {
             ApplicationSettings.remove(API_KEY_SETTING);
-            key = OWM_MY_KEY || OWM_DEFAULT_KEY;
+            key = null;
         }
         return key?.trim();
     }

@@ -246,10 +246,10 @@ export class AccuWeatherProvider extends WeatherProvider {
     }
 
     static readAccuWeatherApiKeySetting() {
-        let key = ApplicationSettings.getString(API_KEY_SETTING, ACCUWEATHER_DEFAULT_KEY);
+        let key = ApplicationSettings.getString(API_KEY_SETTING);
         if (!key || key?.length === 0) {
             ApplicationSettings.remove(API_KEY_SETTING);
-            key = ACCUWEATHER_DEFAULT_KEY || ACCUWEATHER_DEFAULT_KEY;
+            key = null;
         }
         return key?.trim();
     }
