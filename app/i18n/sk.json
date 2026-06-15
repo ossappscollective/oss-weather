@@ -1,1 +1,16 @@
-{}
+{
+    "E": "V",
+    "ENE": "VSV",
+    "ESE": "VJV",
+    "N": "S",
+    "NE": "SV",
+    "NNE": "SSV",
+    "NNW": "SSZ",
+    "about": "O nás",
+    "about_to_quit": "Aplikácia sa zavrie, keďže chýba API kľúč",
+    "absolute_vigilance": "Kompletná ostražitosť",
+    "add_widget_config": "Pridaj Nastavenie Widgetu",
+    "all_in_one": "všetko v jednom",
+    "alnus": "jelša",
+    "always_show_precip_prob": "vždy zobrazuj pravdepodobnosť zrážok"
+}
