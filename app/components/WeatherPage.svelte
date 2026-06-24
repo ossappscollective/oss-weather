@@ -1246,7 +1246,7 @@
                         <cspan fontFamily={$fonts.mdi} fontSize={20 * $fontScale} text="mdi-magnify" verticalAlignment="middle" />
                         <cspan ios:fontSize={16 * $fontScale} text={' ' + $sl('search_location').toUpperCase()} verticalAlignment="middle" />
                     </mdbutton>
-                    <mdbutton id="search" margin="4 0 4 0" textAlignment="center" variant="outline" verticalTextAlignment="center" on:tap={selectLocationOnMap}>
+                    <mdbutton id="search_map" margin="4 0 4 0" textAlignment="center" variant="outline" verticalTextAlignment="center" on:tap={selectLocationOnMap}>
                         <cspan fontFamily={$fonts.mdi} fontSize={20 * $fontScale} text="mdi-map-plus" verticalAlignment="middle" />
                         <cspan ios:fontSize={16 * $fontScale} text={' ' + $sl('select_location_map').toUpperCase()} verticalAlignment="middle" />
                     </mdbutton>
