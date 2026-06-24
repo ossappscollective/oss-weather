@@ -769,43 +769,43 @@ module.exports = (env, params = {}) => {
     const actual_keep_classnames_functionnames = keep_classnames_functionnames || platform !== 'android';
     config.optimization.usedExports = true;
     config.optimization.minimizer = [
-        new MinimizerPlugin({
-            minify: MinimizerPlugin.esbuildMinify,
-            // `minimizerOptions` will be passed to `swc` (`@swc/core`)
-            // Link to options - https://swc.rs/docs/config-js-minify
-            minimizerOptions: {},
-        })
-        // new TerserPlugin({
-        //     parallel: true,
-        //     terserOptions: {
-        //         ecma: 2020,
-        //         module: true,
-        //         toplevel: false,
-        //         keep_classnames: actual_keep_classnames_functionnames,
-        //         keep_fnames: actual_keep_classnames_functionnames,
-        //         output: {
-        //             comments: false,
-        //             semicolons: !isAnySourceMapEnabled
-        //         },
-        //         mangle: {
-        //             properties: {
-        //                 reserved: ['__metadata'],
-        //                 regex: /^(m[A-Z])/
-        //             }
-        //         },
-        //         compress: {
-        //             ecma: 2020,
-        //             directives: true, // messed span vertical align
-        //             unused: true, //breaks css on first start
-        //             // The Android SBG has problems parsing the output
-        //             // when these options are enabled
-        //             collapse_vars: platform !== 'android',
-        //             sequences: platform !== 'android',
-        //             passes: 3,
-        //             drop_console: production && noconsole
-        //         }
-        //     }
+        // new MinimizerPlugin({
+        //     minify: MinimizerPlugin.esbuildMinify,
+        //     // `minimizerOptions` will be passed to `swc` (`@swc/core`)
+        //     // Link to options - https://swc.rs/docs/config-js-minify
+        //     minimizerOptions: {},
         // })
+        new TerserPlugin({
+            parallel: true,
+            terserOptions: {
+                ecma: 2020,
+                module: true,
+                toplevel: false,
+                keep_classnames: actual_keep_classnames_functionnames,
+                keep_fnames: actual_keep_classnames_functionnames,
+                output: {
+                    comments: false,
+                    semicolons: !isAnySourceMapEnabled
+                },
+                mangle: {
+                    properties: {
+                        reserved: ['__metadata'],
+                        regex: /^(m[A-Z])/
+                    }
+                },
+                compress: {
+                    ecma: 2020,
+                    directives: false, // messed span vertical align
+                    unused: false, //breaks css on first start
+                    // The Android SBG has problems parsing the output
+                    // when these options are enabled
+                    collapse_vars: platform !== 'android',
+                    sequences: platform !== 'android',
+                    passes: 3,
+                    drop_console: production && noconsole
+                }
+            }
+        })
     ];
     if (buildweathermap) {
         if (env.adhoc || env.adhoc_sentry) {
