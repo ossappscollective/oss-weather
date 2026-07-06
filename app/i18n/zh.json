@@ -225,6 +225,8 @@
     "map_settings": "地图设置",
     "maptiler_api_key": "Maptiler API密钥",
     "maptiler_api_key_required_description": "在 %1$s 上注册免费的API 密钥以使用 maptiler 雷达",
+    "maptiler_max_time_span": "每小时最多转数",
+    "maptiler_show_past_data": "展示历史数据",
     "marine_weather": "海洋气象",
     "max": "最大",
     "max_temperature": "最高温度",
