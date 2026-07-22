@@ -1,4 +1,3 @@
-
 <img title="" src="fastlane/metadata/android/en-US/images/featureGraphic.png">
 
 <div align="center">
@@ -23,18 +22,21 @@
 
 |  ||
 |:-:|:-:|
-|[<img src="https://izzyondroid.org/assets/static/IzzyOnDroidButtonGreyBorder_nofont.png" alt="Get it on IzzyOnDroid" style="height:50px">](https://apt.izzysoft.de/packages/com.akylas.weather)|[<img src="https://raw.githubusercontent.com/pioug/google-play-badges/refs/heads/main/svg/en.svg" alt="Get it on PlayStore" style="height:50px">](https://play.google.com/store/apps/details?id=com.akylas.weather)|
+|[<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroidButtonGreyBorder_nofont.png" height="50" alt="Get OSS Weather at IzzyOnDroid">](https://apt.izzysoft.de/fdroid/index/apk/com.akylas.weather)|[<img src="https://raw.githubusercontent.com/pioug/google-play-badges/refs/heads/main/svg/en.svg" alt="Get it on PlayStore" style="height:50px">](https://play.google.com/store/apps/details?id=com.akylas.weather)|
 |[<img src="https://raw.githubusercontent.com/Akylas/OSS-DocumentScanner/main/graphics/badge_github.png" alt="Get it on GitHub" style="height:50px">](https://github.com/ossappscollective/oss-weather/releases)|<div><a href="https://apps.apple.com/fr/app/oss-weather/id1499117252"><img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83&amp;releaseDate=1496188800" alt="Download on the App Store" style="height:58px"></a></div>|
 </div>
  
 #### AppVerifier hashes 
+
 **OSS Weather**: 
+
 ```
 com.akylas.weather
 68:70:80:D4:CF:6F:CF:FE:8D:82:FD:1D:78:3C:90:C2:95:94:80:AA:13:C3:8A:D8:D0:4E:C3:40:66:FC:13:F1
 ```
 
 <h2 align="center">Enjoying OSS Weather?</h2>
+
 <p align="center">Please consider making a small donation to help fund the project. Developing an application, especially one that is open source and completely free, takes a lot of time and effort.
 <br>
 <br>
@@ -72,13 +74,11 @@ You can,
 
 The Translations are hosted by [Weblate.org](https://hosted.weblate.org/engage/oss-weather/).
 
-
 <p align="center">
   <a href="https://raw.githubusercontent.com/farfromrefug/sponsorkit/main/sponsors.svg">
 	<img src='https://raw.githubusercontent.com/farfromrefug/sponsorkit/main/sponsors.svg'/>
   </a>
 </p>
-
 
 Feature Graphic generated with [hotpot.ai](https://hotpot.ai/design/google-play-feature-graphic)
 
@@ -94,23 +94,4 @@ This project is optimized to be built with [Akylas Fork](https://github.com/Akyl
 
 You need to use yarn with this project as it uses the `portal:` protocol for some dependencies.
 Note that the project has some `yarn link` for easy local dev for me. The best is for you to remove the `resolutions` part of the `package.json`
-
-### dotenv
-
-The app uses `.env` file to set up needed environment variables. `.env` is not commited as it contains sensitive data
-Simply create a `.env` file with:
-```
-source .env.ci
-```
-
-Then "source" the file in the terminal so that variable are exported and available to nativescript cli.
-I use dotenv plugin for zsh which automatically loads the `.env` file
-
-### Building
-
-Now that all is setup and that you prepared the 3rd party libraries you can actually build and run the app:
-
-* `yarn`
-* `ns run android --no-hmr --env.devlog` (replace by `ios` for iOS...)
-
 This should run the app on the first discovered device or emulator.

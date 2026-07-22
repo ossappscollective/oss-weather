@@ -225,6 +225,8 @@
     "map_settings": "ustawienia mapy",
     "maptiler_api_key": "Klucz API Maptiler",
     "maptiler_api_key_required_description": "Aby korzystać z radaru Maptiler, musisz zarejestrować bezpłatny klucz API na %1$s",
+    "maptiler_max_time_span": "maksymalny okres czasu w godzinach",
+    "maptiler_show_past_data": "pokaż dane historyczne",
     "marine_weather": "Pogoda morska",
     "max": "maks",
     "max_temperature": "Temperatura maksymalna",
@@ -299,7 +301,7 @@
     "provider_marine": {
         "meteoconsult": "MétéoConsult",
         "none": "Brak",
-        "title": "Marine Weather Provider"
+        "title": "Dostawca pogody morskiej"
     },
     "providers": "Dostawcy",
     "providers_settings": "wybór dostawcy i ustawienia",
@@ -411,6 +413,7 @@
     "weather_data_layout": "układ danych pogodowych dla widoków dziennych i najważniejszych prognoz pogody",
     "weather_data_settings": "wybierz wyświetlane dane pogodowe i ich ustawienia",
     "weather_data_to_show_on_main": "dane pogodowe do wyświetlenia na stronie głównej",
+    "weather_data_to_show_on_windy": "dane pogodowe do wyświetlenia w widoku wietrznym",
     "weather_map": "Mapa pogody",
     "weather_map_colors": "schemat kolorów mapy pogodowej",
     "weather_map_layer": "domyślna warstwa mapy pogody",
@@ -463,5 +466,6 @@
     "wind_bearing": "kierunkowość wiatru",
     "wind_beaufort": "skala wiatru Beauforta",
     "wind_gust": "podmuch wiatru",
-    "wind_speed": "prędkość wiatru"
+    "wind_speed": "prędkość wiatru",
+    "windy_view": "wietrznie"
 }
