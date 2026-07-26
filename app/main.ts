@@ -23,8 +23,6 @@ import { networkService } from './services/api';
 import { navigate } from '@shared/utils/svelte/ui';
 import { SETTINGS_ENABLE_CRASH_REPORT } from '~/helpers/constants';
 
-import '~/app.ios.scss';
-
 try {
     const shouldEnableSentry = ApplicationSettings.getBoolean(SETTINGS_ENABLE_CRASH_REPORT, PLAY_STORE_BUILD);
     if (shouldEnableSentry) {
