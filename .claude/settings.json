@@ -1,0 +1,76 @@
+{
+    "permissions": {
+        "defaultMode": "plan",
+        "deny": [
+            "Read(**/.env*)",
+            "Read(**/*.private)",
+            "Read(**/*.p8)",
+            "Read(**/*.p12)",
+            "Read(**/*.jks)",
+            "Read(**/*.mobileprovision)",
+            "Read(**/google-services*.json)",
+            "Read(**/GoogleService-Info*.plist)",
+            "Read(**/*service-account*.json)",
+            "Write(**/.env*)",
+            "Write(**/*.private)",
+            "Bash(rm -rf *)",
+            "Bash(sudo *)",
+            "Bash(curl * | sh)",
+            "Bash(git push --force *)",
+            "Bash(git push -f *)"
+        ],
+        "ask": [
+            "Bash(bash:*)",
+            "Bash(sh:*)",
+            "Bash(zsh:*)",
+            "Bash(eval:*)",
+            "Bash(node:*)",
+            "Bash(node -e:*)",
+            "Bash(python:*)",
+            "Bash(python3:*)",
+            "Bash(perl:*)",
+            "Bash(ruby:*)",
+            "Bash(osascript:*)",
+            "Bash(curl:*)",
+            "Bash(wget:*)",
+            "Bash(nc:*)",
+            "Bash(ncat:*)",
+            "Bash(telnet:*)",
+            "Bash(ssh:*)",
+            "Bash(scp:*)",
+            "Bash(git push:*)",
+            "Bash(git config:*)",
+            "Bash(git clean:*)",
+            "Bash(git reset --hard:*)",
+            "Bash(gh api:*)",
+            "Bash(gh pr create:*)",
+            "Bash(gh pr edit:*)",
+            "Bash(gh pr close:*)",
+            "Bash(gh secret set:*)",
+            "Bash(gh release create:*)",
+            "Bash(gh release delete:*)",
+            "Bash(gh workflow run:*)",
+            "Bash(gh repo delete:*)",
+            "Bash(gh gist create:*)"
+        ]
+    },
+    "hooks": {
+        "PostToolUse": [
+            {
+                "matcher": "Edit|Write|NotebookEdit",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "npx prettier --write \"$CLAUDE_FILE_PATHS\" 2>/dev/null || true"
+                    }
+                ]
+            }
+        ]
+    },
+    "enabledPlugins": {
+        "skill-creator@claude-plugins-official": true
+    },
+    "env": {
+        "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
+    }
+}
