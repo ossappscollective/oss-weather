@@ -19,7 +19,7 @@ module.exports = {
     },
     ios: {
         runtimePackageName: '@akylas/nativescript-ios-runtime',
-        ignoredNativeDependencies: ['plugin-widgets'],
+        ignoredNativeDependencies: ['plugin-widgets']
         // SPMPackages: [
         //     {
         //         name: 'IQKeyboardManagerSwift',
