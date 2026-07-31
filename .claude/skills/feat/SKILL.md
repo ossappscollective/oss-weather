@@ -35,7 +35,7 @@ What's lifted, vs interactive build:
 
 Verification & failure (the unattended safety core):
 
-- **Green gate** — before opening the PR, the relevant `npx vitest run <path>` is green, `yarn svelte-check` is clean, and `npx eslint <changed files>` passes (`npx prettier --write` fixes formatting). Loop commits still require green tests first.
+- **Green gate** — before opening the PR, the relevant `npx vitest run <path>` is green, `yarn svelte-check` is clean, and `npx eslint <changed files>` passes. Loop commits still require green tests first.
 - **Mutation-smoke every test you write** — break the code under test; the test must go red, then **revert the mutation** (committing mutated code unattended ships a broken build). A green test that asserts nothing fakes the safety net; judge by mutations caught, never coverage %.
 - **Adversarial review** — run the review subagent (Phase 8), fix criticals yourself, note the rest in the PR.
 - **Self-repair while it converges** — review rejects or the green gate won't pass → fix and retry. Keep going as long as **each round clears a distinct new failure** (real progress) — no fixed retry cap. Stop the moment a round **repeats a failure or makes no progress** (spinning, not converging) → **do not open a PR**: post a comment on the GitHub issue (`gh issue comment`) with the reason (no issue → report it in the run output), then stop. **Never push red, never open a failing PR, never loop on the same failure.**

@@ -16,7 +16,6 @@ description: MANDATORY skill for ALL commits. Must be used EVERY TIME before cre
     - Tests: `npx vitest run <path>` when a `*.test.ts` covers the change (isolate with a path or `-t '<name>'`)
     - Types/Svelte: `yarn svelte-check` when `.svelte`/`.ts` typing is affected (this one is a real script)
     - Lint: `npx eslint <changed files>`
-    - Format: `npx prettier --write <changed files>` — stage any resulting changes before committing
 5. **ALWAYS** generate a commit message following the format below
 6. **NEVER** commit automatically as a side effect of making code changes. Only commit when the user explicitly invokes the commit skill or says "commit".
 

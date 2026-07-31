@@ -28,7 +28,9 @@ Applies to EVERY task, including ad-hoc debugging.
 ## Verification
 
 - Non-trivial changes require verification. The user should specify how (a Vitest test, `svelte-check`, eslint, manual run); if unspecified, propose a method and confirm.
-- Unit tests run via **Vitest**: `npx vitest run <path>` (there is no `test` script and no vitest config — invoke the binary directly; `yarn vitest` fails on Yarn 4). Isolate with a path or `-t '<name>'`. Existing tests live at `app/services/trash.test.ts`, `app/components/ocr/OCRDataUpdater.test.ts`, `app/services/sync/deletedDocuments.test.ts`.
+- Unit tests run via **Vitest**: `yarn test` (all tests, CI-equivalent) or `yarn test:watch`. Isolate with `npx vitest run <path>` or `-t '<name>'`; `yarn vitest` fails on Yarn 4, so use `npx` for the binary. Config lives in [`vitest.config.ts`](../vitest.config.ts) + [`vitest.setup.ts`](../vitest.setup.ts); tests are `app/**/*.test.ts` and run on every pull request via [`.github/workflows/unit-tests.yml`](../.github/workflows/unit-tests.yml).
+- Writing tests: import the **real** production function — never re-declare its logic (a regex, a format string) inside the test, or the test passes while the app breaks. `vitest.setup.ts` mocks the NativeScript runtime and native plugins, and `vitest.config.ts` mirrors the webpack `DefinePlugin` globals and the `.common.ts` platform resolution; add to those when a module fails to import. `ApplicationSettings` is an in-memory store that resets between tests, so settings-dependent behaviour can be seeded with `ApplicationSettings.setX`. `TZ` is pinned to UTC because filename/date formatting is timezone sensitive.
+- Modules that transitively import the NativeScript UI layer (e.g. `app/models/OCRDocument.ts`) cannot be imported under Vitest; extract the pure logic into a sibling module — as done for `app/services/sync/folderFilter.ts` and `app/utils/exportUtils.ts` — and test that.
 - Types/Svelte: `yarn svelte-check` (this one is a real package.json script). Lint: `npx eslint <files>` (flat config).
 - UI/behavioral changes: run the app on device/emulator — `ns run ios` / `ns run android` (the repo also ships `yarn run.ios.production` / `yarn run.android.production`). This needs the git submodules + native toolchain (see `Readme.md` "Building Setup"), so it is heavy; when a native run isn't possible, state that a visual check is still required.
 - Trivial changes (typos, comments) can skip formal verification.
@@ -37,7 +39,7 @@ Applies to EVERY task, including ad-hoc debugging.
 
 The repo config files are the source of truth — follow them, don't restate them:
 
-- [`.prettierrc.js`](../.prettierrc.js) — Prettier is enforced: `tabWidth: 4` (4 spaces), `printWidth: 200`, `singleQuote: true`, `semi: true`, `trailingComma: 'none'`, `prettier-plugin-svelte` (`svelteSortOrder: 'options-styles-scripts-markup'`). Run `npx prettier --write` on changed files.
+- [`.prettierrc.js`](../.prettierrc.js) — Prettier is enforced
 - [`eslint.config.mjs`](../eslint.config.mjs) — ESLint flat config (typescript-eslint recommendedTypeChecked + prettier + svelte). Run `npx eslint <files>`.
 
 Beyond those:

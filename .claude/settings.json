@@ -54,19 +54,6 @@
             "Bash(gh gist create:*)"
         ]
     },
-    "hooks": {
-        "PostToolUse": [
-            {
-                "matcher": "Edit|Write|NotebookEdit",
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": "npx prettier --write \"$CLAUDE_FILE_PATHS\" 2>/dev/null || true"
-                    }
-                ]
-            }
-        ]
-    },
     "enabledPlugins": {
         "skill-creator@claude-plugins-official": true
     },
