@@ -36,7 +36,7 @@ What's lifted, vs interactive build:
 Verification & failure (the unattended safety core):
 
 - **Green gate** — before opening the PR, the relevant `npx vitest run <path>` is green, `yarn svelte-check` is clean, and `npx eslint <changed files>` passes. Loop commits still require green tests first.
-- **Mutation-smoke every test you write** — break the code under test; the test must go red, then **revert the mutation** (committing mutated code unattended ships a broken build). A green test that asserts nothing fakes the safety net; judge by mutations caught, never coverage %.
+- **Red before green** — every test is written before the code it covers and observed failing first (Phase 6). For a test added on **pre-existing** code there is nothing to be red against, so mutation-smoke it instead: break the code under test, watch it go red, then **revert the mutation** (committing mutated code unattended ships a broken build). A green test that asserts nothing fakes the safety net; judge by failures caught, never coverage %.
 - **Adversarial review** — run the review subagent (Phase 8), fix criticals yourself, note the rest in the PR.
 - **Self-repair while it converges** — review rejects or the green gate won't pass → fix and retry. Keep going as long as **each round clears a distinct new failure** (real progress) — no fixed retry cap. Stop the moment a round **repeats a failure or makes no progress** (spinning, not converging) → **do not open a PR**: post a comment on the GitHub issue (`gh issue comment`) with the reason (no issue → report it in the run output), then stop. **Never push red, never open a failing PR, never loop on the same failure.**
 - **Stop at the draft PR** — `open-pr` opens a draft; lead the body with a **⚠️ banner** listing each recorded assumption ("observed behavior, assumed intended — to confirm") and a **🐞 Suspected bugs** section. Never mark it ready or merge.
@@ -134,16 +134,20 @@ Wrap the long sections (Impacted files, Steps, Test strategy) in `<details><summ
 
 ## Phase 5: Test plan — _build only_
 
-Define the testing strategy before implementing. Check for missing tests on the touched code and propose to write them where a unit is testable in isolation (services/utils/transformers are the natural fit; `.svelte` UI is verified by running). Present a test-plan table (Vitest unit scenario + file; any manual check); user confirms. Tests are written in Phase 6 alongside the code. _Auto: define the plan and proceed without confirmation._
+Define the testing strategy before implementing. Check for missing tests on the touched code and propose to write them where a unit is testable in isolation (services/utils/transformers are the natural fit; `.svelte` UI is verified by running). Present a test-plan table (Vitest unit scenario + file; any manual check); user confirms. Tests are written in Phase 6, **red first**. _Auto: define the plan and proceed without confirmation._
+
+**Testability is part of the design, not an afterthought.** When the new behaviour would only live inside a `.svelte` file or a module that imports the NativeScript runtime, plan the pure part as a sibling module (`app/utils/`, `app/services/…`) so a test can reach it — as `app/utils/slider.ts` does for `RangeSlider.svelte`. Say so explicitly in the plan when a chunk is genuinely untestable and will be covered by a manual check instead.
 
 ## Phase 6: Implement & verify — _build only_
 
 **Precondition**: a plan exists (auto needs only this); interactive additionally requires it grilled and user-approved — the long grill-me interview is the most common place this gets dropped, so if you can't point to an approved plan, finish Phase 3 first.
 
-Core loop (repeat for each commit from the Phase 3 plan):
+Core loop (repeat for each commit from the Phase 3 plan), **red → green**:
 
-1. Write implementation code + Vitest tests for ONE logical chunk.
-2. Run `npx vitest run <path>` — must stay green. Tests breaking → fix before continuing. Run `yarn svelte-check` when `.svelte`/typing is touched.
+1. For ONE logical chunk: write the Vitest test **first**, run `npx vitest run <path>` and watch it **fail for the expected reason** (assertion, not an import error — an import error means the test is broken, not the code). Then write the implementation until it goes green. Tests and code land in the same commit.
+    - This replaces the mutation-smoke step for new code: a test that was red before the code existed has already proven it asserts something.
+    - When the chunk is genuinely untestable (`.svelte` UI, native-only path), say so in the step summary and name the manual check instead — do not silently skip.
+2. Run `npx vitest run <path>` — the whole file must be green, not just the new test. Run `yarn svelte-check` when `.svelte`/typing is touched.
 3. **STOP before committing — even for a one-file change.** Mandatory, not optional, never skip. List changed files, summarize, say: "Step N done. Please review in your editor and confirm when ready to commit." Do NOT commit without explicit approval. _Auto: skip steps 3-4 — mutation-smoke any test written (break code → red → revert), then once tests are green commit directly and continue._
 4. Once the user confirms → commit via the `commit` skill.
 

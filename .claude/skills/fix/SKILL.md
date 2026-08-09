@@ -183,6 +183,9 @@ Types to consider: **Patch** (guard clause, null check), **Structural** (fix the
 
 ## Phase 10: Implement & verify — _build only_
 
+- **Reproduce the bug as a failing test first, whenever the root cause is reachable from a unit test.** Write the test against the confirmed hypothesis, run `npx vitest run <path>`, and watch it go **red for the right reason** — that red run is what proves the diagnosis and, later, that the fix is what turned it green. Only then apply the fix. Test and fix land in the same commit.
+    - Not reachable (the cause lives in a `.svelte` cell, a native call, a device-only path)? Say so explicitly and fall back to the manual repro steps — but first check whether the pure part can be extracted to a sibling module (as `app/utils/slider.ts` is for `RangeSlider.svelte`), which is usually the better fix anyway.
+    - Same for each spread instance: one test case per instance when they are testable.
 - Apply the chosen fix; fix **all** spread instances; implement prevention tasks; mark tasks completed.
 - Verify the bug is resolved and tests pass (`npx vitest run <path>`; `yarn svelte-check` when `.svelte`/typing is touched).
 - **STOP before committing — even for a one-file change.** Mandatory, not optional. List changed files, summarize, say: "Fix ready. Please review in your editor and confirm when ready to commit." Do NOT commit without explicit approval. Never skip this.
