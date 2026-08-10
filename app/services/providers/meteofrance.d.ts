@@ -136,12 +136,113 @@ interface MFWarnings {
     color_max: number;
     timelaps: Timelap[];
     phenomenons_items: Phenomenonsitem[];
-    advices?: any;
-    consequences?: any;
+    advices?: MFWarningAdvice[];
+    consequences?: MFWarningConsequence[];
     max_count_items?: any;
     comments: Comments;
-    text?: any;
-    text_avalanche?: any;
+    text?: MFWarningText;
+    text_avalanche?: MFWarningText;
+}
+
+interface MFWarningAdvice {
+    phenomenon_id: string;
+    phenomenon_max_color_id: number;
+    text_advice: string;
+}
+
+interface MFWarningConsequence {
+    phenomenon_id: string;
+    phenomenon_max_color_id: number;
+    text_consequence: string;
+}
+
+interface MFWarningSubdivisionText {
+    underline_text?: string;
+    bold_text?: string;
+    text?: string[];
+}
+
+interface MFWarningTermItem {
+    term_names?: string;
+    risk_name?: string;
+    start_time?: string;
+    end_time?: string;
+    subdivision_text?: MFWarningSubdivisionText[];
+}
+
+interface MFWarningTextItem {
+    type_code?: string;
+    /** phenomenon id the block is about, `null` for the general situation blocks */
+    hazard_code?: string;
+    hazard_name?: string;
+    term_items?: MFWarningTermItem[];
+}
+
+interface MFWarningTextBlocItem {
+    type_name?: string;
+    text_items?: MFWarningTextItem[];
+}
+
+interface MFWarningText {
+    bloc_title?: string;
+    text_bloc_item?: MFWarningTextBlocItem[];
+}
+
+/** `v2/warning/full`, used for overseas territories: phenomenon ids are numbers and the text is flat. */
+interface MFWarningsOverseas {
+    update_time: number;
+    end_validity_time: number;
+    domain_id: string;
+    color_max: number;
+    timelaps: MFOverseasTimelap[];
+    advices?: MFOverseasAdvice[];
+    consequences?: MFOverseasConsequence[];
+    comments?: MFOverseasText;
+    text?: MFOverseasText;
+}
+
+interface MFOverseasTimelap {
+    phenomenon_id: number;
+    timelaps_items: Timelapsitem[];
+}
+
+interface MFOverseasAdvice {
+    phenomenon_id: number;
+    text_advice: string;
+}
+
+interface MFOverseasConsequence {
+    phenomenon_id: number;
+    text_consequence: string;
+}
+
+interface MFOverseasText {
+    begin_time?: number;
+    end_time?: number;
+    text_bloc_item?: MFOverseasTextBlocItem[];
+}
+
+interface MFOverseasTextBlocItem {
+    title?: string;
+    text?: string[];
+}
+
+/** `v2/warning/dictionary`, gives the overseas phenomenon names and vigilance colors. */
+interface MFWarningDictionary {
+    phenomenons?: MFWarningDictionaryPhenomenon[];
+    colors?: MFWarningDictionaryColor[];
+}
+
+interface MFWarningDictionaryPhenomenon {
+    id: number;
+    name: string;
+}
+
+interface MFWarningDictionaryColor {
+    id: number;
+    level?: number;
+    name: string;
+    hexaCode: string;
 }
 
 interface Comments {

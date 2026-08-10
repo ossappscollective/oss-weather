@@ -2,7 +2,8 @@ import { lc, titlecase } from '@nativescript-community/l';
 import { ApplicationSettings } from '@nativescript/core';
 import { WeatherDataType, weatherDataIconColors } from '~/helpers/formatter';
 import { getStartOfDay, lang } from '~/helpers/locale';
-import { WeatherLocation, request } from '../api';
+import { RequestResult, WeatherLocation, request } from '../api';
+import { buildAccuAlerts } from './alerts';
 import { WeatherProvider } from './weatherprovider';
 import { Currently, DailyData, Hourly, WeatherData } from './weather';
 import { FEELS_LIKE_TEMPERATURE, NB_DAYS_FORECAST, NB_HOURS_FORECAST } from '~/helpers/constants';
@@ -10,6 +11,38 @@ import { prefs } from '../preferences';
 import { AirQualityProvider } from './airqualityprovider';
 import { AirQualityData, CommonAirQualityData } from './weather';
 import { Pollutants } from '../airQualityData';
+
+/** `alerts/v1/geoposition` — only served on the paid AccuWeather plans. */
+export interface AccuWeatherAlert {
+    AlertID: number;
+    Description?: {
+        Localized?: string;
+        English?: string;
+    };
+    Category?: string;
+    /** 1 (most severe) to 5 */
+    Priority: number;
+    Type?: string;
+    Level?: string;
+    Color?: {
+        Red: number;
+        Green: number;
+        Blue: number;
+        Hex?: string;
+    };
+    Source?: string;
+    SourceId?: number;
+    Area?: AccuWeatherAlertArea[];
+}
+
+export interface AccuWeatherAlertArea {
+    /** seconds */
+    EpochStartTime?: number;
+    /** seconds */
+    EpochEndTime?: number;
+    Text?: string;
+    Summary?: string;
+}
 
 // Map AccuWeather icon codes to OpenWeatherMap-style icon codes for compatibility
 // AccuWeather uses 1-44 icon codes, we need to map to OWM style (e.g., 200-800)
@@ -127,6 +160,12 @@ export class AccuWeatherProvider extends WeatherProvider {
         // Fetch daily forecast (5 days)
         const dailyResult = await AccuWeatherProvider.fetch<any>(`forecasts/v1/daily/5day/${locationKey}`);
 
+        // Alerts are only served on the paid plans: never fail the whole forecast on them
+        const alertsResult =
+            warnings !== false
+                ? await AccuWeatherProvider.fetch<AccuWeatherAlert[]>('alerts/v1/geoposition', { q: `${coords.lat},${coords.lon}` }).catch(() => null as RequestResult<AccuWeatherAlert[]>)
+                : null;
+
         const r = {
             time: Date.now(),
             currently: weatherDataIconColors(
@@ -196,7 +235,7 @@ export class AccuWeatherProvider extends WeatherProvider {
             minutely: {
                 data: []
             },
-            alerts: []
+            alerts: buildAccuAlerts(alertsResult?.content)
         } as WeatherData;
 
         if (hourlyResult.content) {

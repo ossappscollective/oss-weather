@@ -4,7 +4,8 @@ import dayjs from 'dayjs';
 import { WeatherDataType, weatherDataIconColors } from '~/helpers/formatter';
 import { getEndOfDay, getStartOfDay, lang, lc } from '~/helpers/locale';
 import { RequestResult, WeatherLocation, request } from '../api';
-import type { Coord, Dailyforecast, ForecastForecast, MFCurrent, MFForecastResult, MFMinutely, MFWarnings, Probabilityforecast } from './meteofrance';
+import type { Coord, Dailyforecast, ForecastForecast, MFCurrent, MFForecastResult, MFMinutely, MFWarningDictionary, MFWarnings, MFWarningsOverseas, Probabilityforecast } from './meteofrance';
+import { MFWarningLabels, buildAlertsFromWarnings, buildOverseasAlerts, getMfDomain } from './mfWarnings';
 import { WeatherProvider } from './weatherprovider';
 import { Alert, Currently, DailyData, Hourly, MinutelyData, WeatherData } from './weather';
 import { ApplicationSettings } from '@nativescript/core';
@@ -17,6 +18,9 @@ const mfApiKey = getString('mfApiKey', MF_DEFAULT_KEY);
 
 interface MFParams extends Partial<Coord> {
     domain?: string;
+    /** `J0` (today) or `J1` (tomorrow), warnings only */
+    echeance?: string;
+    warning_type?: string;
 }
 
 const API_KEY_SETTING = 'mfApiKey';
@@ -332,21 +336,13 @@ export class MFProvider extends WeatherProvider {
         const forecast = result[0]?.content;
         const rain = result[1]?.content;
         const currentData = result[2]?.content;
-        let warningsData: MFWarnings;
-        if (warnings !== false && forecast.properties.french_department) {
-            warningsData = (
-                await this.fetch<MFWarnings>('v3/warning/full', {
-                    ...coords,
-                    domain: forecast.properties.french_department
-                }).catch((err) => null as RequestResult<MFWarnings>)
-            )?.content;
-        }
+        const now = Date.now();
+        const domain = warnings !== false ? getMfDomain(forecast.properties.french_department) : null;
+        const alerts = domain ? await this.getAlerts(domain, now) : [];
         // }
         // DEV_LOG && console.log('forecast', JSON.stringify(forecast));
         // DEV_LOG && console.log('rain', JSON.stringify(rain));
         // DEV_LOG && console.log('current', JSON.stringify(current));
-        // DEV_LOG && console.log('warningsData', JSON.stringify(warningsData));
-        const now = Date.now();
         const forecastData = forecast.properties.forecast;
         let hourlyData: Hourly[];
         if (forecastData) {
@@ -437,24 +433,44 @@ export class MFProvider extends WeatherProvider {
                             }) as MinutelyData
                     ) || []
             },
-            alerts: warningsData
-                ? warningsData.timelaps.reduce((acc, timelaps) => {
-                      timelaps.timelaps_items
-                          .filter((it) => it.color_id > 1 && it.end_time * 1000 > now)
-                          .forEach((w) => {
-                              acc.push({
-                                  start: w.begin_time * 1000,
-                                  end: w.end_time * 1000,
-                                  event: this.getWarningType(timelaps.phenomenon_id) + ' - ' + this.getWarningText(w.color_id),
-                                  description: w.color_id >= 1 ? this.getWarningContent(timelaps.phenomenon_id, warningsData) : undefined
-                              } as Alert);
-                          });
-                      return acc;
-                  }, [])
-                : []
+            alerts
         } as WeatherData;
         r.hourly = hourlyData || [];
         return r;
+    }
+
+    private get warningLabels(): MFWarningLabels {
+        return {
+            phenomenon: (phenomenonId) => this.getWarningType(phenomenonId),
+            level: (colorId) => this.getWarningText(colorId),
+            consequencesTitle: lc('possible_consequences'),
+            adviceTitle: lc('behavioral_tips'),
+            bulletinTitle: lc('weather_bulletin')
+        };
+    }
+
+    /**
+     * Metropolitan France publishes today (J0) and tomorrow (J1) on `v3`; overseas territories have
+     * their own `v2` endpoints, whose phenomenon names and colors come from a dictionary.
+     */
+    private async getAlerts(domain: string, now: number): Promise<Alert[]> {
+        if (domain.startsWith('VIGI')) {
+            const [warnings, dictionary] = await Promise.all([
+                this.fetch<MFWarningsOverseas>('v2/warning/full', {
+                    domain,
+                    // needed for La Réunion
+                    ...(domain === 'VIGI974' ? { warning_type: 'vigilance4colors' } : {})
+                }).catch(() => null as RequestResult<MFWarningsOverseas>),
+                this.fetch<MFWarningDictionary>('v2/warning/dictionary', { domain }).catch(() => null as RequestResult<MFWarningDictionary>)
+            ]);
+            return buildOverseasAlerts(warnings?.content, dictionary?.content, now, this.warningLabels);
+        }
+        const [today, tomorrow] = await Promise.all([
+            this.fetch<MFWarnings>('v3/warning/full', { domain, echeance: 'J0' }).catch(() => null as RequestResult<MFWarnings>),
+            // tomorrow is not published yet right after midnight
+            this.fetch<MFWarnings>('v3/warning/full', { domain, echeance: 'J1' }).catch(() => null as RequestResult<MFWarnings>)
+        ]);
+        return buildAlertsFromWarnings(today?.content, tomorrow?.content, now, this.warningLabels);
     }
 
     private getWarningType(phemononId: string) {
@@ -493,41 +509,6 @@ export class MFProvider extends WeatherProvider {
             default:
                 return lc('no_particular_vigilance');
         }
-    }
-
-    private getWarningColor(colorId: number) {
-        switch (colorId) {
-            case 4:
-                return 'rgb(204, 0, 0)';
-            case 3:
-                return 'rgb(255, 184, 43)';
-            case 2:
-                return 'rgb(255, 246, 0)';
-            case 1:
-                return 'rgb(49, 170, 53)';
-            default:
-                return null;
-        }
-    }
-
-    private getWarningContent(phenomenonId: string, warningsResult: MFWarnings): string {
-        const consequences = warningsResult.consequences?.some((it) => it.phenomenonId === phenomenonId)?.textConsequence?.replace('<br>', '\n');
-        const advices = warningsResult.advices?.some((it) => it.phenomenonId === phenomenonId)?.textAdvice?.replace('<br>', '\n');
-        let content = '';
-        if (consequences) {
-            content += lc('possible_consequences') + ':\n' + consequences;
-        }
-        if (advices) {
-            if (content.length) {
-                content += '\n';
-            }
-            content += lc('behavioral_tips') + ':\n' + advices;
-        }
-        // if (!content.length && warningsResult.comments?.text?.length) {
-        //     content = warningsResult.comments?.text[0];
-        // }
-        // There are also text blocks with hour by hour evaluation, but it’s way too detailed
-        return content.length ? content : null;
     }
 
     static apiKey = MFProvider.readApiKeySetting();

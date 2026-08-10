@@ -5,6 +5,7 @@ import { WeatherDataType, weatherDataIconColors } from '~/helpers/formatter';
 import { getStartOfDay, lang } from '~/helpers/locale';
 import { WeatherLocation, request } from '../api';
 import { prefs } from '../preferences';
+import { normalizeOwmAlerts } from './alerts';
 import { CityWeather, Coord, OneCallResult } from './openweathermap';
 import { Currently, DailyData, Hourly, WeatherData } from './weather';
 import { WeatherProvider } from './weatherprovider';
@@ -135,7 +136,7 @@ export class OWMProvider extends WeatherProvider {
                         }))
                         .filter((d, i) => i % 5 === 0) || []
             },
-            alerts: forecast.alerts
+            alerts: normalizeOwmAlerts(forecast.alerts)
         } as WeatherData;
         if (forecast.hourly) {
             const hourlyLastIndex = Math.min(forecast.hourly.length, forecast_hours) - 1;
