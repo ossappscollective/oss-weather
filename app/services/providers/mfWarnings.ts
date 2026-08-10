@@ -1,4 +1,4 @@
-import { AlertSeverity, colorFromSeverity, severityFromColorName, severityFromVigilanceColorId, sortAlerts } from './alerts';
+import { AlertSeverity, colorFromSeverity, sortAlerts } from './alerts';
 import type { MFWarningDictionary, MFWarningText, MFWarnings, MFWarningsOverseas } from './meteofrance';
 import type { Alert } from './weather';
 
@@ -15,6 +15,40 @@ export interface MFWarningLabels {
     consequencesTitle: string;
     adviceTitle: string;
     bulletinTitle: string;
+}
+
+/** Metropolitan vigilance level: 1 green, 2 yellow, 3 orange, 4 red. */
+export function severityFromVigilanceColorId(colorId: number): AlertSeverity {
+    switch (colorId) {
+        case 4:
+            return AlertSeverity.EXTREME;
+        case 3:
+            return AlertSeverity.SEVERE;
+        case 2:
+            return AlertSeverity.MODERATE;
+        case 1:
+            return AlertSeverity.MINOR;
+        default:
+            return AlertSeverity.UNKNOWN;
+    }
+}
+
+/** Overseas vigilance levels are only named, not numbered the same way as the metropolitan ones. */
+export function severityFromColorName(colorName: string): AlertSeverity {
+    const name = colorName?.toLowerCase() ?? '';
+    if (name.includes('rouge') || name.includes('violet')) {
+        return AlertSeverity.EXTREME;
+    }
+    if (name.includes('orange')) {
+        return AlertSeverity.SEVERE;
+    }
+    if (name.includes('jaune') || name.includes('blanc')) {
+        return AlertSeverity.MODERATE;
+    }
+    if (name.includes('vert') || name.includes('bleu')) {
+        return AlertSeverity.MINOR;
+    }
+    return AlertSeverity.UNKNOWN;
 }
 
 /** Overseas territories are not served by `v3/warning/full`, they have their own `VIGI*` domain. */
