@@ -6,7 +6,7 @@ import { getEndOfDay, getStartOfDay, lang, lc } from '~/helpers/locale';
 import { RequestResult, WeatherLocation, request } from '../api';
 import type { Coord, Dailyforecast, ForecastForecast, MFCurrent, MFForecastResult, MFMinutely, MFWarningDictionary, MFWarnings, MFWarningsOverseas, Probabilityforecast } from './meteofrance';
 import { MFWarningLabels, buildAlertsFromWarnings, buildOverseasAlerts, getMfDomain } from './mfWarnings';
-import { WeatherProvider } from './weatherprovider';
+import { GetWeatherOptions, WeatherProvider } from './weatherprovider';
 import { Alert, Currently, DailyData, Hourly, MinutelyData, WeatherData } from './weather';
 import { ApplicationSettings } from '@nativescript/core';
 import { NB_DAYS_FORECAST, NB_HOURS_FORECAST, NB_MINUTES_FORECAST } from '~/helpers/constants';
@@ -337,8 +337,7 @@ export class MFProvider extends WeatherProvider {
         const rain = result[1]?.content;
         const currentData = result[2]?.content;
         const now = Date.now();
-        const domain = warnings !== false ? getMfDomain(forecast.properties.french_department) : null;
-        const alerts = domain ? await this.getAlerts(domain, now) : [];
+        const alerts = warnings !== false ? await this.getAlerts(weatherLocation, { warnings }, forecast) : [];
         // }
         // DEV_LOG && console.log('forecast', JSON.stringify(forecast));
         // DEV_LOG && console.log('rain', JSON.stringify(rain));
@@ -452,8 +451,17 @@ export class MFProvider extends WeatherProvider {
     /**
      * Metropolitan France publishes today (J0) and tomorrow (J1) on `v3`; overseas territories have
      * their own `v2` endpoints, whose phenomenon names and colors come from a dictionary.
+     *
+     * @param forecast the `v2/forecast` payload when `getWeather` already fetched it: it carries the
+     * department the vigilance domain is derived from
      */
-    private async getAlerts(domain: string, now: number): Promise<Alert[]> {
+    public override async getAlerts(weatherLocation: WeatherLocation, options?: GetWeatherOptions, forecast?: MFForecastResult): Promise<Alert[]> {
+        const properties = forecast ? forecast.properties : (await this.fetch<MFForecastResult>('v2/forecast', weatherLocation.coord))?.content?.properties;
+        const domain = getMfDomain(properties?.french_department);
+        if (!domain) {
+            return [];
+        }
+        const now = Date.now();
         if (domain.startsWith('VIGI')) {
             const [warnings, dictionary] = await Promise.all([
                 this.fetch<MFWarningsOverseas>('v2/warning/full', {

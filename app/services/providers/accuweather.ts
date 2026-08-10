@@ -3,9 +3,9 @@ import { ApplicationSettings } from '@nativescript/core';
 import { WeatherDataType, weatherDataIconColors } from '~/helpers/formatter';
 import { getStartOfDay, lang } from '~/helpers/locale';
 import { RequestResult, WeatherLocation, request } from '../api';
-import { buildAccuAlerts } from './alerts';
-import { WeatherProvider } from './weatherprovider';
-import { Currently, DailyData, Hourly, WeatherData } from './weather';
+import { buildAccuAlerts } from './accuAlerts';
+import { GetWeatherOptions, WeatherProvider } from './weatherprovider';
+import { Alert, Currently, DailyData, Hourly, WeatherData } from './weather';
 import { FEELS_LIKE_TEMPERATURE, NB_DAYS_FORECAST, NB_HOURS_FORECAST } from '~/helpers/constants';
 import { prefs } from '../preferences';
 import { AirQualityProvider } from './airqualityprovider';
@@ -141,6 +141,13 @@ export class AccuWeatherProvider extends WeatherProvider {
         return result.content.Key;
     }
 
+    /** `alerts/v1/geoposition` is only served on the paid plans: never fail the whole forecast on it. */
+    public override async getAlerts(weatherLocation: WeatherLocation, options?: GetWeatherOptions): Promise<Alert[]> {
+        const coords = weatherLocation.coord;
+        const result = await AccuWeatherProvider.fetch<AccuWeatherAlert[]>('alerts/v1/geoposition', { q: `${coords.lat},${coords.lon}` }).catch(() => null as RequestResult<AccuWeatherAlert[]>);
+        return buildAccuAlerts(result?.content);
+    }
+
     public override async getWeather(weatherLocation: WeatherLocation, { current, minutely, warnings }: { warnings?: boolean; minutely?: boolean; current?: boolean } = {}) {
         const coords = weatherLocation.coord;
         const feelsLikeTemperatures = ApplicationSettings.getBoolean('feels_like_temperatures', FEELS_LIKE_TEMPERATURE);
@@ -160,11 +167,7 @@ export class AccuWeatherProvider extends WeatherProvider {
         // Fetch daily forecast (5 days)
         const dailyResult = await AccuWeatherProvider.fetch<any>(`forecasts/v1/daily/5day/${locationKey}`);
 
-        // Alerts are only served on the paid plans: never fail the whole forecast on them
-        const alertsResult =
-            warnings !== false
-                ? await AccuWeatherProvider.fetch<AccuWeatherAlert[]>('alerts/v1/geoposition', { q: `${coords.lat},${coords.lon}` }).catch(() => null as RequestResult<AccuWeatherAlert[]>)
-                : null;
+        const alerts = warnings !== false ? await this.getAlerts(weatherLocation, { warnings }) : [];
 
         const r = {
             time: Date.now(),
@@ -235,7 +238,7 @@ export class AccuWeatherProvider extends WeatherProvider {
             minutely: {
                 data: []
             },
-            alerts: buildAccuAlerts(alertsResult?.content)
+            alerts
         } as WeatherData;
 
         if (hourlyResult.content) {

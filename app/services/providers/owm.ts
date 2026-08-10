@@ -5,10 +5,10 @@ import { WeatherDataType, weatherDataIconColors } from '~/helpers/formatter';
 import { getStartOfDay, lang } from '~/helpers/locale';
 import { WeatherLocation, request } from '../api';
 import { prefs } from '../preferences';
-import { normalizeOwmAlerts } from './alerts';
 import { CityWeather, Coord, OneCallResult } from './openweathermap';
-import { Currently, DailyData, Hourly, WeatherData } from './weather';
-import { WeatherProvider } from './weatherprovider';
+import { buildOwmAlerts } from './owmAlerts';
+import { Alert, Currently, DailyData, Hourly, WeatherData } from './weather';
+import { GetWeatherOptions, WeatherProvider } from './weatherprovider';
 
 const API_KEY_SETTING = 'owmApiKey';
 
@@ -61,11 +61,25 @@ export class OWMProvider extends WeatherProvider {
         });
     }
 
+    private static fetchOneCall(coords: Coord) {
+        const onecallVersion = ApplicationSettings.getString('owm_one_call_version', '3.0');
+        return OWMProvider.fetch<OneCallResult>(onecallVersion, 'onecall', coords);
+    }
+
+    /**
+     * One Call ships the alerts along with the forecast.
+     *
+     * @param onecall the payload when `getWeather` already fetched it
+     */
+    public override async getAlerts(weatherLocation: WeatherLocation, options?: GetWeatherOptions, onecall?: OneCallResult): Promise<Alert[]> {
+        const forecast = onecall ?? (await OWMProvider.fetchOneCall(weatherLocation.coord))?.content;
+        return buildOwmAlerts(forecast?.alerts);
+    }
+
     public override async getWeather(weatherLocation: WeatherLocation, { current, minutely, warnings }: { warnings?: boolean; minutely?: boolean; current?: boolean } = {}) {
         const coords = weatherLocation.coord;
         const feelsLikeTemperatures = ApplicationSettings.getBoolean('feels_like_temperatures', FEELS_LIKE_TEMPERATURE);
-        const onecallVersion = ApplicationSettings.getString('owm_one_call_version', '3.0');
-        const result = await OWMProvider.fetch<OneCallResult>(onecallVersion, 'onecall', coords);
+        const result = await OWMProvider.fetchOneCall(coords);
         const forecast = result.content;
         const forecast_days = ApplicationSettings.getNumber('forecast_nb_days', NB_DAYS_FORECAST);
         const forecast_hours = ApplicationSettings.getNumber('forecast_nb_hours', NB_HOURS_FORECAST);
@@ -136,7 +150,7 @@ export class OWMProvider extends WeatherProvider {
                         }))
                         .filter((d, i) => i % 5 === 0) || []
             },
-            alerts: normalizeOwmAlerts(forecast.alerts)
+            alerts: warnings !== false ? await this.getAlerts(weatherLocation, { warnings }, forecast) : []
         } as WeatherData;
         if (forecast.hourly) {
             const hourlyLastIndex = Math.min(forecast.hourly.length, forecast_hours) - 1;
