@@ -1,18 +1,19 @@
-import { Application, ApplicationSettings, Utils } from '@nativescript/core';
+import { ApplicationSettings, Utils } from '@nativescript/core';
+import { lc } from '@nativescript-community/l';
+import { showError } from '@shared/utils/showError';
 import { WeatherLocation } from './api';
+import { buildGadgetbridgePayload } from './gadgetbridgePayload';
 import { WeatherData } from './providers/weather';
-import { getMoonTimes, getTimes } from 'suncalc';
-import dayjs from 'dayjs';
-import { getMoonPhase } from '~/helpers/formatter';
 
 const GADGETBRIDGE_ENABLED_KEY = 'gadgetbridge_enabled';
 
 /**
  * Gadgetbridge Service for broadcasting weather data to smartwatches
- * Delegates to native Kotlin implementation for JSON encoding and broadcasting
+ * The payload is built in `gadgetbridgePayload`; the native Kotlin side only gzips and broadcasts it
  */
 class GadgetbridgeService {
     private enabled = false;
+    private failureReported = false;
 
     constructor() {
         this.enabled = ApplicationSettings.getBoolean(GADGETBRIDGE_ENABLED_KEY, false);
@@ -23,6 +24,7 @@ class GadgetbridgeService {
      */
     setEnabled(enabled: boolean) {
         this.enabled = enabled;
+        this.failureReported = false;
         ApplicationSettings.setBoolean(GADGETBRIDGE_ENABLED_KEY, enabled);
     }
 
@@ -43,34 +45,20 @@ class GadgetbridgeService {
 
         try {
             const context = Utils.android.getApplicationContext();
-
-            // we need to add sun/moon data
-            const toSendData = JSON.parse(JSON.stringify(weatherData)) as WeatherData;
-            toSendData.daily?.data.forEach((d) => {
-                const date = dayjs.utc(d.time);
-                const times = getTimes(date as any, location.coord.lat, location.coord.lon);
-                const moontimes = getMoonTimes(date as any, location.coord.lat, location.coord.lon);
-                d.sunsetTime = dayjs.utc(times.sunsetStart.valueOf()).valueOf();
-                d.sunriseTime = dayjs.utc(times.sunriseEnd.valueOf()).valueOf();
-                d['moonRise'] = dayjs.utc(moontimes.rise.valueOf()).valueOf();
-                if (moontimes.set) {
-                    d['moonSet'] = dayjs.utc(moontimes.set.valueOf()).valueOf();
-                }
-                d['moonPhase'] = getMoonPhase(date as any);
-            });
-            // Convert weather data and location to JSON strings
-            const weatherDataJson = JSON.stringify(toSendData);
-            const locationJson = JSON.stringify(location);
-            DEV_LOG && console.log('locationJson', locationJson);
-            DEV_LOG && console.log('weatherDataJson', weatherDataJson);
+            const weatherSpecsJson = JSON.stringify(buildGadgetbridgePayload(location, weatherData));
+            DEV_LOG && console.log('[Gadgetbridge] weatherSpecsJson', weatherSpecsJson);
 
             // Call native Kotlin method to handle broadcasting on background thread
             const GadgetbridgeServiceClass = com.akylas.weather.gadgetbridge.GadgetbridgeService;
-            GadgetbridgeServiceClass.broadcastWeather(context, weatherDataJson, locationJson);
+            GadgetbridgeServiceClass.broadcastWeather(context, weatherSpecsJson);
 
             DEV_LOG && console.log('[Gadgetbridge] Weather data sent to native service for broadcasting', Date.now());
         } catch (error) {
-            console.error('[Gadgetbridge] Failed to broadcast weather:', error, error.stack);
+            // release builds strip console.*, so tell the user once instead of failing silently
+            if (!this.failureReported) {
+                this.failureReported = true;
+                showError(error, { forcedMessage: lc('gadgetbridge_broadcast_failed'), showAsSnack: true });
+            }
         }
     }
 }

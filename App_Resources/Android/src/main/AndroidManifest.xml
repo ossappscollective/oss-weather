@@ -33,6 +33,10 @@
         <intent>
             <action android:name="android.intent.action.MAIN" />
         </intent>
+        <!-- Gadgetbridge WeatherSpec -->
+        <intent>
+            <action android:name="nodomain.freeyourgadget.gadgetbridge.ACTION_GENERIC_WEATHER" />
+        </intent>
     </queries>
     <application android:requestLegacyExternalStorage="true"
         android:name="com.tns.NativeScriptApplication" android:allowBackup="true"

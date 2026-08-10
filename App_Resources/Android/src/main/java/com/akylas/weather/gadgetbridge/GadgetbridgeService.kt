@@ -4,222 +4,65 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import org.json.JSONArray
-import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.util.zip.GZIPOutputStream
 import kotlin.concurrent.thread
 
 /**
  * Gadgetbridge Service for broadcasting weather data to smartwatches
- * Implements the Gadgetbridge weather protocol with JSON + GZIP compression
+ * The WeatherSpec payload is built in JS (see app/services/gadgetbridgePayload.ts), this only
+ * compresses it and broadcasts it to every known Gadgetbridge variant
  */
 class GadgetbridgeService {
     companion object {
         private const val TAG = "GadgetbridgeService"
         private const val ACTION = "nodomain.freeyourgadget.gadgetbridge.ACTION_GENERIC_WEATHER"
-        
+
+        // https://gadgetbridge.org/internals/development/weather-support/
+        private val PACKAGES = listOf(
+            "nodomain.freeyourgadget.gadgetbridge",
+            "nodomain.freeyourgadget.gadgetbridge.nightly",
+            "nodomain.freeyourgadget.gadgetbridge.nightly_nopebble",
+            "com.espruino.gadgetbridge.banglejs",
+            "com.espruino.gadgetbridge.banglejs.nightly"
+        )
+
         /**
          * Broadcast weather data to Gadgetbridge on a background thread
          * @param context Android context
-         * @param weatherDataJson Weather data as JSON string
-         * @param locationJson Location data as JSON string
+         * @param weatherSpecsJson JSON array of WeatherSpec objects
          */
         @JvmStatic
-        fun broadcastWeather(context: Context, weatherDataJson: String, locationJson: String) {
+        fun broadcastWeather(context: Context, weatherSpecsJson: String) {
             // Run on background thread to avoid blocking main thread
             thread {
                 try {
-                    val weatherData = JSONObject(weatherDataJson)
-                    val location = JSONObject(locationJson)
-                    
-                    // Build Gadgetbridge data array (Gadgetbridge expects an array even for single location)
-                    val gadgetbridgeDataArray = JSONArray()
-                    val gadgetbridgeData = buildGadgetbridgeData(weatherData, location)
-                    gadgetbridgeDataArray.put(gadgetbridgeData)
-                    
-                    // Compress with GZIP - send as array
-                    val weatherGz = gzipCompress(gadgetbridgeDataArray.toString())
-                    
-                    // Send broadcast
-                    // val intent = Intent(ACTION)
-                    // intent.putExtra("WeatherGz", weatherGz)
-                    // intent.putExtra("WeatherJson", gadgetbridgeData.toString())
-                    // intent.setFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES)
-                    val packages = listOf(
-                        "nodomain.freeyourgadget.gadgetbridge",
-                        "nodomain.freeyourgadget.gadgetbridge.nightly"
-                    )
-                    val gadgetbridgeDataString = gadgetbridgeData.toString()
-                    packages.forEach { pkg ->
+                    val weatherSpecs = JSONArray(weatherSpecsJson)
+                    if (weatherSpecs.length() == 0) {
+                        return@thread
+                    }
+
+                    // current format: the whole array, gzipped
+                    val weatherGz = gzipCompress(weatherSpecs.toString())
+                    // deprecated format, kept for older Gadgetbridge versions: the first location only
+                    val weatherJson = weatherSpecs.getJSONObject(0).toString()
+
+                    PACKAGES.forEach { pkg ->
                         val intent = Intent(ACTION).apply {
                             setPackage(pkg)
+                            // Gadgetbridge may be in the stopped state, it would not be woken up otherwise
+                            addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES)
                             putExtra("WeatherGz", weatherGz)
-                            putExtra("WeatherJson", gadgetbridgeDataString)
+                            putExtra("WeatherJson", weatherJson)
                         }
                         context.sendBroadcast(intent)
                     }
-                    
-                    
-                    // Log.d(TAG, "Weather data broadcasted to Gadgetbridge: ${gadgetbridgeData.optString("location")}")
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to broadcast weather to Gadgetbridge", e)
                 }
             }
         }
-        
-        /**
-         * Build Gadgetbridge-compatible JSON from weather data
-         */
-        private fun buildGadgetbridgeData(weatherData: JSONObject, location: JSONObject): JSONObject {
-            val result = JSONObject()
-            
-            try {
-                val currently = weatherData.optJSONObject("currently")
-                val daily = weatherData.optJSONObject("daily")?.optJSONArray("data")
-                val hourly = weatherData.optJSONArray("hourly")
-                
-                // Timestamp (seconds)
-                result.put("timestamp", (weatherData.optLong("time", 0) / 1000).toInt())
-                
-                // Location
-                result.put("location", location.optString("name", ""))
-                
-                // Current weather
-                currently?.let { current ->
-                    result.put("currentTemp", kelvinFromCelsius(current.optDouble("temperature", 0.0)))
-                    result.put("currentConditionCode", current.optInt("iconId", 3200))
-                    result.put("currentCondition", current.optString("description", ""))
-                    result.put("currentHumidity", current.optInt("relativeHumidity", 0))
-                    result.put("windSpeed", current.optDouble("windSpeed", 0.0).toFloat())
-                    result.put("windDirection", current.optInt("windBearing", 0))
-                    result.put("uvIndex", current.optDouble("uvIndex", 0.0).toFloat())
-                    result.put("feelsLikeTemp", kelvinFromCelsius(current.optDouble("apparentTemperature", 0.0)))
-                    result.put("dewPoint", kelvinFromCelsius(current.optDouble("dewpoint", 0.0)))
-                    result.put("pressure", current.optDouble("sealevelPressure", 0.0).toFloat())
-                    result.put("cloudCover", current.optInt("cloudCover", 0))
-                    
-                    // Add air quality data if available
-                    addAirQualityData(result, current)
-                }
-                
-                // Today's min/max from first daily entry
-                if (daily != null && daily.length() > 0) {
-                    val today = daily.getJSONObject(0)
-                    result.put("todayMaxTemp", kelvinFromCelsius(today.optDouble("temperatureMax", 0.0)))
-                    result.put("todayMinTemp", kelvinFromCelsius(today.optDouble("temperatureMin", 0.0)))
-                    result.put("precipProbability", today.optInt("precipProbability", 0))
-                    result.put("sunRise", (today.optLong("sunriseTime", 0) / 1000).toInt())
-                    result.put("sunSet", (today.optLong("sunsetTime", 0) / 1000).toInt())
-                    result.put("moonRise", (today.optLong("moonRise", 0) / 1000).toInt())
-                    result.put("moonSet", (today.optLong("moonSet", 0) / 1000).toInt())
-                    result.put("moonPhase", today.optInt("moonPhase", 0))
-                }
-                
-                // Daily forecasts (skip first day, include up to 7 days)
-                if (daily != null && daily.length() > 1) {
-                    val forecasts = JSONArray()
-                    val maxForecasts = minOf(daily.length(), 8) // First + 7 more
-                    for (i in 1 until maxForecasts) {
-                        val day = daily.getJSONObject(i)
-                        val forecast = JSONObject()
-                        forecast.put("conditionCode", day.optInt("iconId", 3200))
-                        forecast.put("maxTemp", kelvinFromCelsius(day.optDouble("temperatureMax", 0.0)))
-                        forecast.put("minTemp", kelvinFromCelsius(day.optDouble("temperatureMin", 0.0)))
-                        forecast.put("humidity", day.optInt("relativeHumidity", 0))
-                        forecast.put("windSpeed", day.optDouble("windSpeed", 0.0).toFloat())
-                        forecast.put("windDirection", day.optInt("windBearing", 0))
-                        forecast.put("uvIndex", day.optDouble("uvIndex", 0.0).toFloat())
-                        forecast.put("precipProbability", day.optInt("precipProbability", 0))
-                        forecast.put("sunRise", (day.optLong("sunriseTime", 0) / 1000).toInt())
-                        forecast.put("sunSet", (day.optLong("sunsetTime", 0) / 1000).toInt())
-                        forecast.put("moonRise", (day.optLong("moonRise", 0) / 1000).toInt())
-                        forecast.put("moonSet", (day.optLong("moonSet", 0) / 1000).toInt())
-                        forecast.put("moonPhase", day.optInt("moonPhase", 0))
-                        
-                        // Add air quality data for daily forecast if available
-                        addAirQualityData(forecast, day)
-                        
-                        forecasts.put(forecast)
-                    }
-                    result.put("forecasts", forecasts)
-                }
-                
-                // Hourly forecasts
-                if (hourly != null && hourly.length() > 0) {
-                    val hourlyForecasts = JSONArray()
-                    for (i in 0 until minOf(hourly.length(), 48)) { // Up to 48 hours
-                        val hour = hourly.getJSONObject(i)
-                        val hourForecast = JSONObject()
-                        hourForecast.put("timestamp", (hour.optLong("time", 0) / 1000).toInt())
-                        hourForecast.put("temp", kelvinFromCelsius(hour.optDouble("temperature", 0.0)))
-                        hourForecast.put("conditionCode", hour.optInt("iconId", 3200))
-                        hourForecast.put("humidity", hour.optInt("relativeHumidity", 0))
-                        hourForecast.put("windSpeed", hour.optDouble("windSpeed", 0.0).toFloat())
-                        hourForecast.put("windDirection", hour.optInt("windBearing", 0))
-                        hourForecast.put("uvIndex", hour.optDouble("uvIndex", 0.0).toFloat())
-                        hourForecast.put("precipProbability", hour.optInt("precipProbability", 0))
-                        hourlyForecasts.put(hourForecast)
-                    }
-                    result.put("hourly", hourlyForecasts)
-                }
-                
-            } catch (e: Exception) {
-                Log.e(TAG, "Error building Gadgetbridge data", e)
-            }
-            
-            return result
-        }
-        
-        /**
-         * Add air quality data to result object if available
-         */
-        private fun addAirQualityData(result: JSONObject, data: JSONObject) {
-            // Check if AQI is available
-            val aqi = data.optInt("aqi", -1)
-            if (aqi > 0) {
-                val airQuality = JSONObject()
-                airQuality.put("aqi", aqi)
-                
-                // Get pollutants if available
-                val pollutants = data.optJSONObject("pollutants")
-                pollutants?.let { p ->
-                    // CO (convert from mg/m³ to µg/m³ if needed, or use as is)
-                    p.optJSONObject("co")?.let { co ->
-                        airQuality.put("co", co.optDouble("value", 0.0).toFloat())
-                    }
-                    // NO2 (µg/m³)
-                    p.optJSONObject("no2")?.let { no2 ->
-                        airQuality.put("no2", no2.optDouble("value", 0.0).toFloat())
-                    }
-                    // O3 (µg/m³)
-                    p.optJSONObject("o3")?.let { o3 ->
-                        airQuality.put("o3", o3.optDouble("value", 0.0).toFloat())
-                    }
-                    // PM10 (µg/m³)
-                    p.optJSONObject("pm10")?.let { pm10 ->
-                        airQuality.put("pm10", pm10.optDouble("value", 0.0).toFloat())
-                    }
-                    // PM2.5 (µg/m³)
-                    p.optJSONObject("pm2_5")?.let { pm25 ->
-                        airQuality.put("pm25", pm25.optDouble("value", 0.0).toFloat())
-                    }
-                    // SO2 (µg/m³)
-                    p.optJSONObject("so2")?.let { so2 ->
-                        airQuality.put("so2", so2.optDouble("value", 0.0).toFloat())
-                    }
-                }
-                
-                result.put("airQuality", airQuality)
-            }
-        }
-        
-        /**
-         * Convert Celsius to Kelvin (rounded to int)
-         */
-        private fun kelvinFromCelsius(celsius: Double): Int {
-            return (celsius + 273.15).toInt()
-        }
-        
+
         /**
          * Compress string data using GZIP
          */

@@ -1,6 +1,6 @@
 import addressFormatter from '@akylas/address-formatter';
 import { Color } from '@nativescript/core';
-import { getMoonIllumination } from 'suncalc';
+import { getMoonPhase } from '~/helpers/moon';
 import { colorForAqi, colorForPollen, colorForPollutant } from '~/services/airQualityData';
 import { WeatherLocation } from '~/services/api';
 import type { CommonAirQualityData, Currently, DailyData, Hourly } from '~/services/providers/weather';
@@ -402,11 +402,7 @@ export function getMoonPhaseName(age: number) {
 //     return Math.floor(age);
 // }
 
-export function getMoonPhase(date: Date) {
-    const illumination = getMoonIllumination(date);
-    // const phase = calculateMoon(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds());
-    return Math.round(illumination.phase * 28);
-}
+export { getMoonPhase };
 export function moonIcon(moonPhase: number, coord: { lat: number; lon: number }) {
     if (coord.lat < 0) {
         moonPhase = 29 - moonPhase;
