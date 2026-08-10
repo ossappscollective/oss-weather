@@ -1,4 +1,5 @@
 import { Color } from '@nativescript/core';
+import { AlertSeverity } from './alerts';
 import { aqi_providers, marine_providers, providers } from './weatherproviderfactory';
 import { UNIT_FAMILIES } from '~/helpers/units';
 // import { Pollutants } from '../airQualityData';
@@ -43,9 +44,14 @@ export interface MarineWeatherData {
 export interface Alert {
     sender_name?: string;
     event: string;
+    /** milliseconds */
     start: number;
+    /** milliseconds */
     end: number;
-    description: string;
+    description?: string;
+    severity?: AlertSeverity;
+    /** color of the alert level, as given by the provider or derived from `severity` */
+    color?: string;
     tags?: string[];
 }
 
