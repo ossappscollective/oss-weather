@@ -50,6 +50,7 @@ Beyond those:
 
 - Prefer `const`/`let`, never `var`.
 - NEVER use a single-letter variable name — always prefer an explicit name.
+- Colors are ALWAYS hex (`#ffb82b`), never `rgb()`/`rgba()`. When a source gives separate channels, convert to hex before storing it.
 - Avoid `!` (non-null assertion) and `as SomeType` casts (`as const` is fine). Use type guards, narrowing, or restructured types instead.
 
 ## Native APIs
