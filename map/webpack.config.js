@@ -31,7 +31,10 @@ module.exports = (env = {}, params = {}) => {
         entry: ENTRY,
         stats: 'none',
         resolve: {
-            conditionNames: ['svelte', 'import', 'require', 'node', 'default'],
+            // 'browser' (not 'node'): this bundle targets a WebView. With 'node' active,
+            // packages like uuid resolve their `node` export (which imports `node:crypto`)
+            // and webpack fails with UnhandledSchemeError.
+            conditionNames: ['svelte', 'browser', 'import', 'require', 'default'],
             alias: {
                 // svelte: path.resolve(__dirname, '../node_modules/svelte')
             },
