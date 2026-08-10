@@ -131,6 +131,7 @@
   "freezing_rain": "Freezing rain",
   "french": "French",
   "full": "full",
+  "gadgetbridge_broadcast_failed": "Could not send weather data to Gadgetbridge",
   "gadgetbridge_disabled_msg": "Gadgetbridge disabled",
   "gadgetbridge_enabled_msg": "Gadgetbridge enabled",
   "gadgetbridge_enabled": "Enable Gadgetbridge support",

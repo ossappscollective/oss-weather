@@ -20,7 +20,7 @@ declare namespace com {
             }
             export namespace gadgetbridge {
                 export class GadgetbridgeService {
-                    static broadcastWeather(context: globalAndroid.content.Context, weatherDataJson: string, locationJson: string);
+                    static broadcastWeather(context: globalAndroid.content.Context, weatherSpecsJson: string);
                 }
             }
             export namespace ImageUtils {

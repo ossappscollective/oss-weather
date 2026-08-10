@@ -28,9 +28,13 @@ Applies to EVERY task, including ad-hoc debugging.
 ## Verification
 
 - Non-trivial changes require verification. The user should specify how (a Vitest test, `svelte-check`, eslint, manual run); if unspecified, propose a method and confirm.
-- Unit tests run via **Vitest**: `yarn test` (all tests, CI-equivalent) or `yarn test:watch`. Isolate with `npx vitest run <path>` or `-t '<name>'`; `yarn vitest` fails on Yarn 4, so use `npx` for the binary. Config lives in [`vitest.config.ts`](../vitest.config.ts) + [`vitest.setup.ts`](../vitest.setup.ts); tests are `app/**/*.test.ts` and run on every pull request via [`.github/workflows/unit-tests.yml`](../.github/workflows/unit-tests.yml).
-- Writing tests: import the **real** production function — never re-declare its logic (a regex, a format string) inside the test, or the test passes while the app breaks. `vitest.setup.ts` mocks the NativeScript runtime and native plugins, and `vitest.config.ts` mirrors the webpack `DefinePlugin` globals and the `.common.ts` platform resolution; add to those when a module fails to import. `ApplicationSettings` is an in-memory store that resets between tests, so settings-dependent behaviour can be seeded with `ApplicationSettings.setX`. `TZ` is pinned to UTC because filename/date formatting is timezone sensitive.
-- Modules that transitively import the NativeScript UI layer (e.g. `app/models/OCRDocument.ts`) cannot be imported under Vitest; extract the pure logic into a sibling module — as done for `app/services/sync/folderFilter.ts` and `app/utils/exportUtils.ts` — and test that.
+- **Red to green, always.** Any change whose logic a unit test can reach gets its test **written first and observed failing** — a bug fix starts with a test reproducing the bug, a feature starts with a test of the behaviour it adds. Watch the red run and check it fails on the assertion (an import error means the test is broken, not the code), then write the code until it goes green. Test and code go in the same commit.
+    - A test added on code that already works has nothing to be red against: break the code, watch it go red, revert the break.
+    - Testability is a design constraint. When the logic would be trapped in a `.svelte` file or a module importing the NativeScript runtime, extract the pure part into a sibling module — that is what makes it testable, and it is usually the better structure anyway.
+    - Genuinely untestable (UI layout, native-only path, device behaviour)? Say so explicitly and name the manual check instead. Never skip the test silently.
+- Unit tests run via **Vitest**: `yarn test` or `yarn test:watch`. Isolate with `npx vitest run <path>` or `-t '<name>'`; `yarn vitest` fails on Yarn 4, so use `npx` for the binary. Config is [`vitest.config.mts`](../vitest.config.mts) (`~`/`@shared` aliases, node environment); tests are `app/**/*.test.ts`. There is no CI workflow running them yet.
+- Writing tests: import the **real** production function — never re-declare its logic (a regex, a format string) inside the test, or the test passes while the app breaks.
+- There is no NativeScript runtime mock: a module that imports the UI layer, a native plugin, or a webpack `DefinePlugin` global cannot be imported under Vitest. Extract the pure logic into a sibling module — as done for [`app/utils/slider.ts`](../app/utils/slider.ts) — and test that. Add a `vitest.setup.ts` with the needed mocks when a test genuinely requires one.
 - Types/Svelte: `yarn svelte-check` (this one is a real package.json script). Lint: `npx eslint <files>` (flat config).
 - UI/behavioral changes: run the app on device/emulator — `ns run ios` / `ns run android` (the repo also ships `yarn run.ios.production` / `yarn run.android.production`). This needs the git submodules + native toolchain (see `Readme.md` "Building Setup"), so it is heavy; when a native run isn't possible, state that a visual check is still required.
 - Trivial changes (typos, comments) can skip formal verification.
@@ -47,6 +51,13 @@ Beyond those:
 - Prefer `const`/`let`, never `var`.
 - NEVER use a single-letter variable name — always prefer an explicit name.
 - Avoid `!` (non-null assertion) and `as SomeType` casts (`as const` is fine). Use type guards, narrowing, or restructured types instead.
+
+## Native APIs
+
+When app code touches a native Android API, **ALWAYS** check it is declared, and add it to the `whitelist` of [`App_Resources/Android/native-api-usage.json`](../App_Resources/Android/native-api-usage.json) when it is not — in the same commit as the code using it. The metadata generator only keeps declared APIs, so a missing entry is not a build error: it is an `undefined` at runtime, on device only.
+
+- **Check first, add only what is missing.** `@akylas/nativescript` already declares most of the common surface (`android.view:View`, `ViewParent`, `android.graphics:Rect`, `android.os:Build.VERSION`, `java.util:ArrayList`, …) in `node_modules/@akylas/nativescript/platforms/android/native-api-usage.json`; plugins ship their own lists and `whitelist-plugins-usages: true` pulls them in. Grep those before adding anything — a redundant entry is noise.
+- One entry per class, `package:Class`, nested classes spelled out separately (`android.view:WindowInsets.Type` is not covered by `android.view:WindowInsets`).
 
 ## Repo layout
 
