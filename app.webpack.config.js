@@ -1,7 +1,7 @@
 const webpackConfig = require('./webpack.config.js');
 const webpack = require('webpack');
-const { readFileSync, readdirSync } = require('fs');
-const { basename, dirname, join, isAbsolute, relative, resolve } = require('path');
+const { readdirSync, readFileSync } = require('fs');
+const { basename, dirname, isAbsolute, join, relative, resolve } = require('path');
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 const nsWebpack = require('@akylas/nativescript-webpack');
 const CopyPlugin = require('copy-webpack-plugin');
@@ -31,6 +31,8 @@ module.exports = (env, params = {}) => {
             env[k] = true;
         }
     });
+    env.commonjs = true;
+
     if (env.adhoc_sentry) {
         env = Object.assign(
             {},
@@ -100,35 +102,38 @@ module.exports = (env, params = {}) => {
     const isIOS = platform === 'ios';
     const isAndroid = platform === 'android';
     const {
+        accessibility = true,
+        // --env.fakeall
+        adhoc,
         appId,
         appPath,
-        appResourcesPath,
-        hmr, // --env.hmr
-        production, // --env.production
-        sourceMap, // --env.sourceMap
-        hiddenSourceMap, // --env.hiddenSourceMap
-        inlineSourceMap, // --env.inlineSourceMap
-        sentry, // --env.sentry
-        uploadSentry,
-        verbose, // --env.verbose
-        uglify, // --env.uglify
-        noconsole, // --env.noconsole
-        devlog, // --env.devlog
-        testlog, // --env.testlog
-        fakeall, // --env.fakeall
+        appResourcesPath, // --env.playStoreBuild
+        buildweathermap = true, // --env.noconsole
+        devlog, // --env.testlog
+        fakeall, // --env.report
+        fork = true, // --env.sourceMap
+        hiddenSourceMap,
+        hmr, // --env.includeOWMKey
+        includeDefaultLocation, // --env.buildweathermap
+        includeOWMKey, // --env.hiddenSourceMap
+        inlineSourceMap, // --env.theme
+        keep_classnames_functionnames = false, // --env.timeline
+        locale = 'en', // --env.uglify
+        noconsole,
+        playStoreBuild = true, // --env.hmr
+        production, // --env.fakeall
         profile, // --env.profile
-        report, // --env.report
-        fork = true, // --env.fakeall
-        adhoc, // --env.adhoc
-        timeline, // --env.timeline
-        locale = 'en', // --env.locale
-        theme = 'auto', // --env.theme
-        keep_classnames_functionnames = false,
-        accessibility = true,
-        playStoreBuild = true, // --env.playStoreBuild
-        buildweathermap = true, // --env.buildweathermap
-        includeOWMKey, // --env.includeOWMKey
-        includeDefaultLocation, // --env.includeDefaultLocation
+        report, // --env.inlineSourceMap
+        sentry, // --env.production
+        sourceMap, // --env.devlog
+        testlog,
+        // --env.locale
+        theme = 'auto',
+        // --env.adhoc
+        timeline, // --env.verbose
+        uglify, // --env.sentry
+        uploadSentry,
+        verbose, // --env.includeDefaultLocation
         widgets = isAndroid // --env.widgets
     } = env;
     if (widgets) {
@@ -580,8 +585,10 @@ module.exports = (env, params = {}) => {
     );
     config.plugins.push(new webpack.ContextReplacementPlugin(/dayjs[\/\\]locale$/, new RegExp(`(${supportedLocales.map((l) => l.replace('_', '-').toLowerCase()).join('|')}).\js`)));
 
-    // config.optimization.splitChunks.cacheGroups.defaultVendor.test = /[\\/](node_modules|ui-carto|ui-chart|NativeScript[\\/]dist[\\/]packages[\\/]core)[\\/]/;
-    config.optimization.splitChunks.cacheGroups.defaultVendor.test = function (module) {
+    // cache group is named `defaultVendor` in the commonjs base config, `vendor` in the esm one
+    const cacheGroups = config.optimization.splitChunks.cacheGroups;
+    const vendorCacheGroup = cacheGroups.defaultVendor || cacheGroups.vendor;
+    vendorCacheGroup.test = function (module) {
         const absPath = module.resource;
         if (absPath) {
             const relativePath = relative(projectRoot, absPath);
