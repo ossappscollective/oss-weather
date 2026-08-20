@@ -18,7 +18,7 @@
     let webView: NativeViewElementNode<AWebView>;
     let url = '~/assets/map/index.html';
     let zoom = 8;
-    const customSource = ApplicationSettings.getString(SETTINGS_WEATHER_MAP_CUSTOM_TILE_SOURCE, 'http://127.0.0.1:8080?source=data&x={x}&y={y}&z={z}');
+    const customSource = ApplicationSettings.getString(SETTINGS_WEATHER_MAP_CUSTOM_TILE_SOURCE, undefined);
     let mapCenter = focusPos;
     let animated = false;
 
