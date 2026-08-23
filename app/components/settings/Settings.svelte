@@ -1525,7 +1525,7 @@
         if (event.action === 'down') {
             ignoreNextReorderTap = false;
             const index = items.indexOf(item);
-            collectionView.nativeView.startDragging(index, event.getActivePointers()[0]);
+            collectionView.nativeView.startDragging(index, event.getActivePointers()[0] as any);
         }
     }
 </script>

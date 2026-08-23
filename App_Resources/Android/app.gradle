@@ -29,7 +29,6 @@ android {
           abiFilters.addAll(project.findProperty('abiFilters').split(',').collect{it as String})
         }
       }
-
     }
     androidResources {
       generateLocaleConfig = true

@@ -42,7 +42,7 @@
         "@akylas/address-formatter": "5.3.1",
         "@akylas/nativescript": "9.0.23",
         "@akylas/nativescript-app-tools": "portal:tools",
-        "@akylas/nativescript-app-utils": "2.2.14",
+        "@akylas/nativescript-app-utils": "2.2.15",
         "@akylas/nativescript-inapp-purchase": "0.0.5",
         "@akylas/nativescript-inappbrowser": "3.1.8",
         "@mapbox/to-color": "2.3.0",
