@@ -1,18 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-    API 24 only (see res/xml-v25 for API 25+).
-    Android 7.0 has no ISRG root in its trust store (ISRG Root X1 was added in 7.1.1), so every
-    Let's Encrypt host (photon.komoot.io, api.open-meteo.com, nominatim, …) fails the handshake
-    with "Trust anchor for certification path not found". Bundle the roots for those devices only.
--->
 <network-security-config>
-    <base-config>
-        <trust-anchors>
-            <certificates src="system" />
-            <certificates src="@raw/isrg_root_x1" />
-            <certificates src="@raw/isrg_root_yr" />
-        </trust-anchors>
-    </base-config>
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">127.0.0.1</domain>
     </domain-config>
