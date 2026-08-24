@@ -1,0 +1,10 @@
+Bug fixes:
+- weather data correctly cached for use while offline
+- guard missing sun/moon events breaking the broadcast
+- rework weather warnings and fix the empty alert sheet
+- resolve browser exports so the map bundle builds
+- map not showing anymore
+
+Code refactoring:
+- let each provider own its alerts
+- Translations update
