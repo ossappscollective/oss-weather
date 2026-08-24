@@ -3191,13 +3191,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nativescript/android@file:/Volumes/dev/nativescript/napi-ios/build/npm-tarballs/nativescript-android_quickjs_napi-9.0.0.tgz::locator=root-workspace-0b6124%40workspace%3A.":
-  version: 9.0.0
-  resolution: "@nativescript/android@file:/Volumes/dev/nativescript/napi-ios/build/npm-tarballs/nativescript-android_quickjs_napi-9.0.0.tgz#/Volumes/dev/nativescript/napi-ios/build/npm-tarballs/nativescript-android_quickjs_napi-9.0.0.tgz::hash=636ac3&locator=root-workspace-0b6124%40workspace%3A."
-  checksum: 10/ff1ff906ba92827e59b86ddf83678731842891ca8c4e8b8beca95c37e245c2a1c9ae9de39222e0b7aecf223cfe61dfadcc90a148b47ea5d5058d2271ab2843a7
-  languageName: node
-  linkType: hard
-
 "@nativescript/core@npm:~9.0.20":
   version: 9.0.20
   resolution: "@nativescript/core@npm:9.0.20"
@@ -13751,7 +13744,6 @@ __metadata:
     "@nativescript-community/ui-webview": "npm:1.6.2"
     "@nativescript-community/ui-zoomimage": "npm:4.6.20"
     "@nativescript-community/universal-links": "npm:3.0.2"
-    "@nativescript/android": /Volumes/dev/nativescript/napi-ios/build/npm-tarballs/nativescript-android_quickjs_napi-9.0.0.tgz
     "@nativescript/core": "npm:~9.0.20"
     "@nativescript/iqkeyboardmanager": "npm:2.1.2"
     "@swc/core": "npm:1.13.5"

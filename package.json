@@ -101,7 +101,6 @@
         "@akylas/nativescript-android-runtime": "8.9.2",
         "@akylas/nativescript-ios-runtime": "9.0.3",
         "@akylas/nativescript-webpack": "5.0.35",
-        "@nativescript/android": "/Volumes/dev/nativescript/napi-ios/build/npm-tarballs/nativescript-android_quickjs_napi-9.0.0.tgz",
         "@nativescript/core": "~9.0.20",
         "@swc/core": "1.13.5",
         "@types/geojson": "^7946.0.16",
