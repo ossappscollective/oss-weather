@@ -1,0 +1,3 @@
+Bug fixes:
+- Translations update from Hosted Weblate (#502)
+- never draw an icon whose bitmap failed to load (#505)
