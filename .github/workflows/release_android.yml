@@ -170,9 +170,19 @@ jobs:
           mode: ci
           load-mode: strict
 
+      - name: Check flavor .env file
+        id: flavor_env_file
+        if: ${{ inputs.flavor != '' }}
+        run: |
+          if [ -f ".env.ci.${{ inputs.flavor }}" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Load flavor .env file
         uses: xom9ikk/dotenv@v2.3.0
-        if: ${{ inputs.flavor != '' && hashFiles(format('.env.ci.{0}', inputs.flavor)) != '' }}
+        if: ${{ steps.flavor_env_file.outputs.exists == 'true' }}
         with:
           mode: ci.${{ inputs.flavor }}
           load-mode: strict
