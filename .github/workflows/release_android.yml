@@ -111,7 +111,7 @@ jobs:
 
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn config get globalFolder)"
+        run: echo "dir=$(yarn config get globalFolder)" >> "$GITHUB_OUTPUT"
 
       - name: Clean non-patch resolutions
         run: |
@@ -177,7 +177,7 @@ jobs:
           echo "change version to ${{ inputs.release_type }}"
           npx set-version android ${{ inputs.release_type }}
           npx get-version android version
-          echo "VERSION_STR=$(npx get-version android version)"  > $GITHUB_ENV
+          echo "VERSION_STR=$(npx get-version android version)" >> "$GITHUB_ENV"
 
       - name: Run shell prepare script
         if: ${{ hashFiles('scripts/ci.prepare.sh') != '' }}
