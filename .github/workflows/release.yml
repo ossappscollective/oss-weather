@@ -61,7 +61,7 @@ on:
 
 jobs:
   release-android:
-    uses: ossappscollective/app-tools/.github/workflows/release_android.yml@main
+    uses: ./.github/workflows/release_android.yml
     if: github.event.inputs.android == 'true'
     with:
       release_type: ${{ github.event.inputs.release_type }}
