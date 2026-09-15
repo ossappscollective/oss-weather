@@ -94,7 +94,9 @@ jobs:
           packages: ''
 
       - name: install jq
-        run: sudo apt-get install jq
+        run: |
+          sudo apt-get update
+          sudo apt-get install jq
 
       - name: Enable CorePack
         run: |
@@ -159,13 +161,14 @@ jobs:
 
       - name: Generate flavor ci file name
         id: define_flavor_ci_string
+        if: ${{ inputs.flavor != '' }}
         run: |
           echo "FLAVOR_CI_FILENAME=.env.ci.${{ inputs.flavor }}" >> $GITHUB_ENV
           echo "FLAVOR_CI_MODE=ci.${{ inputs.flavor }}" >> $GITHUB_ENV
 
       - name: Load flavor .env file
         uses: xom9ikk/dotenv@v2.3.0
-        if: ${{ hashFiles(env.FLAVOR_CI_FILENAME) != '' }}
+        if: ${{ inputs.flavor != '' && hashFiles(env.FLAVOR_CI_FILENAME) != '' }}
         with:
           mode: ${{ env.FLAVOR_CI_MODE }}
           load-mode: strict
@@ -190,7 +193,7 @@ jobs:
           KEYSTORE_PATH: ${{ secrets.KEYSTORE_PATH }}
         run: |
           mkdir -p "$(dirname "$KEYSTORE_PATH")"
-          echo $KEYSTORE_BASE64 | base64 -d > $KEYSTORE_PATH
+          printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$KEYSTORE_PATH"
 
       - name: publish beta
         if: inputs.publish == 'true' || (inputs.fakepublish == 'true' && inputs.android_playstore == 'true')
