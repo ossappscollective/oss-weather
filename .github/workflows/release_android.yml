@@ -152,7 +152,7 @@ jobs:
         id: node_modules
         with:
           path: node_modules
-          key: ${{ runner.os }}node_modules-${{ hashFiles('**/package.json') }}
+          key: ${{ runner.os }}-node_modules-${{ hashFiles('**/package.json') }}
           restore-keys: |
             ${{ runner.os }}-node_modules-
 
