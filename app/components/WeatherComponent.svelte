@@ -28,6 +28,19 @@
         collectionView?.nativeView?.refresh();
     }
 
+    // CollectionView drops refresh() while unloaded and only replays it for lists setting
+    // colWidth/rowHeight, so items changed behind another page keep a stale item count.
+    let needsRefreshOnLoaded = false;
+    $: if (items && collectionView?.nativeView?.isLoaded === false) {
+        needsRefreshOnLoaded = true;
+    }
+    function onCollectionViewLoaded() {
+        if (needsRefreshOnLoaded) {
+            needsRefreshOnLoaded = false;
+            collectionView?.nativeView?.refresh();
+        }
+    }
+
     let isLayedout = false;
     function onCollectionViewLayoutCompleted() {
         if (!isLayedout) {
@@ -73,7 +86,8 @@
     itemTemplateSelector={selectTemplate}
     {items}
     paddingBottom={(__ANDROID__ ? $windowInset.bottom : 0) + 16}
-    on:layoutCompleted={onCollectionViewLayoutCompleted}>
+    on:layoutCompleted={onCollectionViewLayoutCompleted}
+    on:loaded={onCollectionViewLoaded}>
     <Template key="topView" let:item>
         <TopWeatherView {fakeNow} height={topHeight} {item} {weatherLocation} on:tap={() => onTap(item)} />
     </Template>
