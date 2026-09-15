@@ -16,7 +16,7 @@
     import { showError } from '@shared/utils/showError';
     import type { NativeViewElementNode } from '@nativescript-community/svelte-native/dom';
     import type HourlyPopover__SvelteComponent_ from '~/components/HourlyPopover.svelte';
-    import { windIcon } from '~/helpers/formatter';
+    import { formatValueToUnit, windIcon } from '~/helpers/formatter';
     import { formatTime, getLocalTime, lc } from '~/helpers/locale';
     import { isEInk, onThemeChanged } from '~/helpers/theme';
     import type { CommonWeatherData, DailyData, Hourly } from '~/services/providers/weather';
@@ -29,7 +29,18 @@
     import { Utils as ChartUtils } from '@nativescript-community/ui-chart/utils/Utils';
     import { onDestroy, onMount } from 'svelte';
     import { iconService } from '~/services/icon';
-    import { WeatherProps, appPaint, convertWeatherValueToUnit, getWeatherDataColor, getWeatherDataTitle, showHourlyPopover, weatherDataService } from '~/services/weatherData';
+    import {
+        WeatherProps,
+        appPaint,
+        convertWeatherValueToUnit,
+        defaultPropUnit,
+        getWeatherDataColor,
+        getWeatherDataTitle,
+        propToUnit,
+        showHourlyPopover,
+        weatherDataService
+    } from '~/services/weatherData';
+    import { ValueRange, computeDataRange, getNaturalRange, makeScaler, pickReferenceProp, resolveRange } from '~/utils/chartScale';
     import { generateGradient, loadImage } from '~/utils/utils.common';
 
     const highlightPaint = new Paint();
@@ -45,6 +56,11 @@
         [WeatherProps.precipAccumulation]: 'precipitationchart',
         [WeatherProps.cloudCover]: 'linechart'
     };
+
+    const SCALED_SUFFIX = 'ChartScaled';
+    // iconId and windBearing are fake sets pinned to the right axis, cloudCover already rescales
+    // itself through `ignoreForMinMax` and the `drawFill` custom renderer
+    const NOT_SCALED: WeatherProps[] = [WeatherProps.iconId, WeatherProps.windBearing, WeatherProps.cloudCover];
 </script>
 
 <script lang="ts">
@@ -74,7 +90,9 @@
     let chartView: NativeViewElementNode<CombinedChart>;
     let highlightCanvas: NativeViewElementNode<CanvasView>;
 
-    let temperatureData: { min: number; max: number };
+    let temperatureData: ValueRange;
+    // plotted raw, so the left axis describes it. Every other line metric is remapped into its range
+    let referenceProp: WeatherProps;
     let startTimestamp = 0;
     let timeRange = 0;
     let timezoneOffset;
@@ -124,6 +142,42 @@
     let lastXLabelIconHour: number;
     let valuesToDraw: number[] = [];
     let hasSnowFall = false;
+
+    // the left axis spans every line metric at once, so the biggest magnitude used to flatten all the
+    // others. Returns the property each remapped metric is plotted from, raw values staying untouched
+    function computeScaledValues(data: CommonWeatherData[]) {
+        const scaledKeys: { [k: string]: string } = {};
+        const lineProps = dataToShow.filter((key) => (CHART_TYPE[key] || 'linechart') === 'linechart' && NOT_SCALED.indexOf(key) === -1);
+        referenceProp = pickReferenceProp(lineProps);
+        if (lineProps.length < 2) {
+            return scaledKeys;
+        }
+        const referenceRange = referenceProp === WeatherProps.temperature ? temperatureData : computeDataRange(data.map((d) => d[referenceProp]));
+        // a flat reference leaves nothing to map the others into, better keep the chart as it was
+        if (!referenceRange || referenceRange.max <= referenceRange.min) {
+            return scaledKeys;
+        }
+        for (const key of lineProps) {
+            if (key === referenceProp) {
+                continue;
+            }
+            const sourceRange = getNaturalRange(key) || computeDataRange(data.map((d) => d[key]));
+            if (!sourceRange) {
+                continue;
+            }
+            const scale = makeScaler(sourceRange, referenceRange);
+            const scaledKey = key + SCALED_SUFFIX;
+            for (const entry of data) {
+                const value = entry[key];
+                if (value !== undefined && value !== null && !isNaN(value)) {
+                    entry[scaledKey] = scale(value);
+                }
+            }
+            scaledKeys[key] = scaledKey;
+        }
+        return scaledKeys;
+    }
+
     function updateLineChart(setData = true) {
         try {
             const chart = chartView?.nativeView;
@@ -161,6 +215,16 @@
                     xAxis.axisMinimum = -1.5;
                     leftAxis.spaceBottom = rightAxis.spaceBottom = 5;
                     leftAxis.spaceTop = rightAxis.spaceTop = 5;
+                    // axes hold raw values, so they must be converted to the units the user picked
+                    leftAxis.valueFormatter = {
+                        getAxisLabel: (value) => (referenceProp ? formatValueToUnit(value, propToUnit(referenceProp), defaultPropUnit(referenceProp)) : value + '')
+                    };
+                    rightAxis.valueFormatter = {
+                        getAxisLabel: (value) =>
+                            dataToShow.indexOf(WeatherProps.precipAccumulation) !== -1
+                                ? formatValueToUnit(value, propToUnit(WeatherProps.precipAccumulation), defaultPropUnit(WeatherProps.precipAccumulation))
+                                : value + ''
+                    };
                     chart.data = combinedChartData;
                     chart.customRenderer = {
                         drawFill(canvas: Canvas, dataSet: LineDataSet, spline: Path, trans: any, min: number, max: number, superMethod: Function) {
@@ -207,7 +271,8 @@
                         },
                         drawValue(c: Canvas, chart, dataSet, dataSetIndex: number, entry, entryIndex: number, valueText: string, x: number, y: number, color: string | Color, paint: Paint) {
                             if (valuesToDraw.indexOf(entryIndex) !== -1) {
-                                const yProperty = dataSet.yProperty;
+                                // the label keeps the real prop even when the set is plotted from a scaled one
+                                const yProperty = dataSet.label;
                                 const value = entry as CommonWeatherData;
                                 const prevValue: CommonWeatherData = entryIndex > 0 ? dataSet.getEntryForIndex(entryIndex - 1) : null;
                                 // const nextValue: CommonWeatherData = entryIndex < dataSet.entryCount - 1 ? dataSet.getEntryForIndex(entryIndex + 1) : null;
@@ -386,6 +451,7 @@
                 if (dataToShow.indexOf(WeatherProps.temperature) !== -1) {
                     temperatureData = { min: tempMin, max: tempMax };
                 }
+                const scaledKeys = computeScaledValues(data);
                 xAxis.axisMaximum = data[data.length - 1].deltaHours + 1.5;
                 // const lastTimestamp = data[data.length - 1].time;
                 // weatherData.daily.data.forEach((d) => {
@@ -486,7 +552,8 @@
                         }
                         case 'linechart':
                         default: {
-                            const set = new LineDataSet(data, key, 'deltaHours', key === WeatherProps.iconId || key === WeatherProps.windBearing ? 'setFakeKey' : key);
+                            const yProperty = scaledKeys[key] || (key === WeatherProps.iconId || key === WeatherProps.windBearing ? 'setFakeKey' : key);
+                            const set = new LineDataSet(data, key, 'deltaHours', yProperty);
                             set.color = setColor;
                             switch (key) {
                                 case WeatherProps.windSpeed:
@@ -584,6 +651,11 @@
                     combinedChartData.barData = null;
                 }
                 chart.data = combinedChartData;
+                // setting the data recomputes the axis bounds and invalidates before the shader
+                // changes, so the gradient can only be built now, and needs its own invalidate
+                if (updateGradient()) {
+                    chart.invalidate();
+                }
                 if (startTime !== null) {
                     highlightOnDate(startTime);
                 }
@@ -644,14 +716,21 @@
     function updateGradient() {
         const chart = chartView?.nativeView;
         const height = chart.viewPortHandler.contentRect.height();
-        if (temperatureData && height && (!lastGradient || lastGradient.height !== height || lastGradient.min !== temperatureData.min || lastGradient.max !== temperatureData.max)) {
-            lastGradient = generateGradient(5, temperatureData.min, temperatureData.max, height, 0);
-            const dataSet = chart.lineData?.getDataSetByLabel(WeatherProps.temperature, false);
-            if (dataSet) {
-                dataSet.shader = lastGradient.gradient;
-            }
-            // chartView?.nativeView?.redraw()
+        if (!temperatureData || !height) {
+            return false;
         }
+        // the gradient spans the whole content height, so it follows the axis, not the temperature
+        // range. Temperature is always the reference when charted, so the axis is in the same unit
+        const { max, min } = resolveRange(chart.leftAxis.axisMinimum, chart.leftAxis.axisMaximum, temperatureData);
+        if (lastGradient && lastGradient.height === height && lastGradient.min === min && lastGradient.max === max) {
+            return false;
+        }
+        lastGradient = generateGradient(5, min, max, height, 0);
+        const dataSet = chart.lineData?.getDataSetByLabel(WeatherProps.temperature, false);
+        if (dataSet) {
+            dataSet.shader = lastGradient.gradient;
+        }
+        return true;
     }
     function onLayoutChanged(event: EventData) {
         updateGradient();
