@@ -53,6 +53,21 @@ jobs:
     permissions:
       contents: write
     runs-on: ubuntu-24.04
+    env:
+      ACCUWEATHER_DEFAULT_KEY: ${{ secrets.ACCUWEATHER_DEFAULT_KEY }}
+      ATMO_DEFAULT_KEY: ${{ secrets.ATMO_DEFAULT_KEY }}
+      KEYSTORE_ALIAS_PASSWORD: ${{ secrets.KEYSTORE_ALIAS_PASSWORD }}
+      KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+      KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+      KEYSTORE_PATH: ${{ secrets.KEYSTORE_PATH }}
+      MAPTILER_KEY: ${{ secrets.MAPTILER_KEY }}
+      MF_API_KEY: ${{ secrets.MF_API_KEY }}
+      OWM_DEFAULT_KEY: ${{ secrets.OWM_DEFAULT_KEY }}
+      OWM_MY_KEY: ${{ secrets.OWM_MY_KEY }}
+      REPOSITORY: ${{ github.server_url }}/${{ github.repository }}
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+      SENTRY_URL: ${{ secrets.SENTRY_URL }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -96,7 +111,7 @@ jobs:
       - name: install jq
         run: |
           sudo apt-get update
-          sudo apt-get install jq
+          sudo apt-get install -y jq
 
       - name: Enable CorePack
         run: |
@@ -149,28 +164,17 @@ jobs:
         env:
           YARN_ENABLE_IMMUTABLE_INSTALLS: false
 
-      - uses: oNaiPs/secrets-to-env-action@v1
-        with:
-          secrets: ${{ toJSON(secrets) }}
-
       - name: Load .env file
         uses: xom9ikk/dotenv@v2.3.0
         with:
           mode: ci
           load-mode: strict
 
-      - name: Generate flavor ci file name
-        id: define_flavor_ci_string
-        if: ${{ inputs.flavor != '' }}
-        run: |
-          echo "FLAVOR_CI_FILENAME=.env.ci.${{ inputs.flavor }}" >> $GITHUB_ENV
-          echo "FLAVOR_CI_MODE=ci.${{ inputs.flavor }}" >> $GITHUB_ENV
-
       - name: Load flavor .env file
         uses: xom9ikk/dotenv@v2.3.0
-        if: ${{ inputs.flavor != '' && hashFiles(env.FLAVOR_CI_FILENAME) != '' }}
+        if: ${{ inputs.flavor != '' && hashFiles(format('.env.ci.{0}', inputs.flavor)) != '' }}
         with:
-          mode: ${{ env.FLAVOR_CI_MODE }}
+          mode: ci.${{ inputs.flavor }}
           load-mode: strict
 
       - name: update Version
@@ -188,9 +192,6 @@ jobs:
           sh scripts/ci.prepare.sh --platform android --flavor "${{ inputs.flavor }}" --version "${{ env.VERSION_STR }}"
 
       - name: Decode Keystore
-        env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-          KEYSTORE_PATH: ${{ secrets.KEYSTORE_PATH }}
         run: |
           mkdir -p "$(dirname "$KEYSTORE_PATH")"
           printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$KEYSTORE_PATH"
