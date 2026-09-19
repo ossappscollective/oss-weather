@@ -1,5 +1,8 @@
 name: 'release'
 
+permissions:
+  contents: write
+
 on:
   workflow_dispatch:
     inputs:
@@ -61,10 +64,11 @@ on:
 
 jobs:
   release-android:
-    uses: ossappscollective/app-tools/.github/workflows/release_android.yml@main
+    uses: ./.github/workflows/release_android.yml
     if: github.event.inputs.android == 'true'
     with:
       release_type: ${{ github.event.inputs.release_type }}
+      flavor: ''
       android_playstore: ${{ github.event.inputs.android_playstore }}
       publish: ${{ github.event.inputs.publish }}
       github: ${{ github.event.inputs.github }}
