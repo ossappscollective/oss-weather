@@ -1,0 +1,241 @@
+name: 'release'
+
+on:
+  workflow_call:
+    inputs:
+      release_type:
+        description: "Release type"
+        required: true
+        type: string
+        default: patch
+      flavor:
+        description: "App flavor"
+        required: false
+        type: string
+      publish:
+        description: "Should we publish on the Playstore?"
+        default: 'true'
+        required: false
+        type: string
+      fakepublish:
+        description: "build publish even if not publishing?"
+        default: 'true'
+        required: false
+        type: string
+      android_playstore:
+        description: "build aab with fake build?"
+        default: 'false'
+        required: false
+        type: string
+      github:
+        description: "Should we publish on Github?"
+        default: 'true'
+        required: false
+        type: string
+      sentry:
+        description: "Should we use sentry?"
+        default: 'true'
+        required: false
+        type: string
+      sentry_fdroid:
+        description: "Should we use sentry with fdroid build?"
+        default: 'false'
+        required: false
+        type: string
+      logging:
+        description: "Should we force logging enabled"
+        default: 'false'
+        required: true
+        type: string
+
+jobs:
+  release:
+    permissions:
+      contents: write
+    runs-on: ubuntu-24.04
+    env:
+      ACCUWEATHER_DEFAULT_KEY: ${{ secrets.ACCUWEATHER_DEFAULT_KEY }}
+      ATMO_DEFAULT_KEY: ${{ secrets.ATMO_DEFAULT_KEY }}
+      KEYSTORE_ALIAS_PASSWORD: ${{ secrets.KEYSTORE_ALIAS_PASSWORD }}
+      KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+      KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+      KEYSTORE_PATH: ${{ secrets.KEYSTORE_PATH }}
+      MAPTILER_KEY: ${{ secrets.MAPTILER_KEY }}
+      MF_API_KEY: ${{ secrets.MF_API_KEY }}
+      OWM_DEFAULT_KEY: ${{ secrets.OWM_DEFAULT_KEY }}
+      OWM_MY_KEY: ${{ secrets.OWM_MY_KEY }}
+      REPOSITORY: ${{ github.server_url }}/${{ github.repository }}
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+      SENTRY_URL: ${{ secrets.SENTRY_URL }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          filter: tree:0
+          submodules: recursive
+
+      - uses: oleksiyrudenko/gha-git-credentials@v2-latest
+        with:
+          token: '${{ secrets.GITHUB_TOKEN }}'
+          actor: farfromrefug
+          name: Martin Guillon
+          email: dev@akylas.fr
+
+      - name: Git config
+        run: |
+          git config pull.rebase false
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: false
+          dotnet: true
+          haskell: true
+          large-packages: false
+          docker-images: true
+          swap-storage: true
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: ''
+
+      - name: install jq
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Enable CorePack
+        run: |
+          corepack enable
+          yarn config get globalFolder
+
+      - name: Install NativeScript
+        run: |
+          python3 -m pip install --upgrade pip six
+          npm i -g @akylas/nativescript-cli --ignore-scripts --legacy-peer-deps
+          ns package-manager set yarn2
+          ns usage-reporting disable
+          ns error-reporting disable
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "dir=$(yarn config get globalFolder)" >> "$GITHUB_OUTPUT"
+
+      - name: Clean non-patch resolutions
+        run: |
+          node -e '
+            const fs = require("fs");
+            try {
+              const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
+              if (pkg.resolutions) {
+                pkg.resolutions = Object.fromEntries(
+                  Object.entries(pkg.resolutions).filter(([_, v]) => typeof v === "string" && v.startsWith("patch:"))
+                );
+              }
+              fs.writeFileSync("package.json", JSON.stringify(pkg, null, 2));
+            } catch (e) {
+              console.warn("Skipping cleanup: invalid package.json");
+            }
+          '
+
+      - uses: actions/cache@v4
+        name: Handle node_modules Cache
+        id: node_modules
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node_modules-${{ hashFiles('**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node_modules-
+
+      - name: Install deps
+        uses: bahmutov/npm-install@v1
+        with:
+          useLockFile: false
+          install-command: yarn install --silent
+        env:
+          YARN_ENABLE_IMMUTABLE_INSTALLS: false
+
+      - name: Load .env file
+        uses: xom9ikk/dotenv@v2.3.0
+        with:
+          mode: ci
+          load-mode: strict
+
+      - name: Check flavor .env file
+        id: flavor_env_file
+        if: ${{ inputs.flavor != '' }}
+        run: |
+          if [ -f ".env.ci.${{ inputs.flavor }}" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Load flavor .env file
+        uses: xom9ikk/dotenv@v2.3.0
+        if: ${{ steps.flavor_env_file.outputs.exists == 'true' }}
+        with:
+          mode: ci.${{ inputs.flavor }}
+          load-mode: strict
+
+      - name: update Version
+        id: update_version
+        if: inputs.release_type != 'none'
+        run: |
+          echo "change version to ${{ inputs.release_type }}"
+          npx set-version android ${{ inputs.release_type }}
+          npx get-version android version
+          echo "VERSION_STR=$(npx get-version android version)" >> "$GITHUB_ENV"
+
+      - name: Run shell prepare script
+        if: ${{ hashFiles('scripts/ci.prepare.sh') != '' }}
+        run: |
+          sh scripts/ci.prepare.sh --platform android --flavor "${{ inputs.flavor }}" --version "${{ env.VERSION_STR }}"
+
+      - name: Decode Keystore
+        run: |
+          mkdir -p "$(dirname "$KEYSTORE_PATH")"
+          printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$KEYSTORE_PATH"
+
+      - name: publish beta
+        if: inputs.publish == 'true' || (inputs.fakepublish == 'true' && inputs.android_playstore == 'true')
+        run: |
+          bundle exec fastlane android beta create_tag:${{ inputs.publish }} publish:${{ inputs.publish }} sentry:${{ inputs.sentry }} github:false logging:${{ inputs.logging }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: publish github
+        if: inputs.github == 'true' || inputs.fakepublish == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          bundle exec fastlane android github create_tag:${{ inputs.publish }} publish:${{ inputs.github }} sentry:${{ inputs.sentry_fdroid }} github:${{ inputs.github }} logging:${{ inputs.logging }}
+
+      - uses: actions/upload-artifact@v4
+        if: inputs.github == 'true' || inputs.fakepublish == 'true'
+        with:
+          name: ${{ env.APP_ID }}.android.${{ env.VERSION_STR }}
+          path: |
+            dist/*.apk
+          retention-days: 7
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        if: inputs.publish == 'false' && (inputs.fakepublish == 'true' && inputs.android_playstore == 'true')
+        with:
+          name: ${{ env.APP_ID }}.android.aab.${{ env.VERSION_STR }}
+          path: |
+            dist/*.aab
+          retention-days: 7
+          if-no-files-found: error
