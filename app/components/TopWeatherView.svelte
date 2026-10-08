@@ -12,7 +12,7 @@
     import dayjs from 'dayjs';
     import HourlyView from '~/components/HourlyView.svelte';
     import WeatherIcon from '~/components/WeatherIcon.svelte';
-    import { HOURLY_VIEW_MODE, MAIN_CHART_NB_HOURS, SETTINGS_HOURLY_VIEW_MODE, SETTINGS_MAIN_CHART_NB_HOURS } from '~/helpers/constants';
+    import { HOURLY_VIEW_MODE, MAIN_CHART_NB_HOURS, MAIN_CHART_VISIBLE_HOURS, SETTINGS_HOURLY_VIEW_MODE, SETTINGS_MAIN_CHART_NB_HOURS, SETTINGS_MAIN_CHART_VISIBLE_HOURS } from '~/helpers/constants';
     import type { FavoriteLocation } from '~/helpers/favorites';
     import { isFavorite } from '~/helpers/favorites';
     import { formatDate, formatTime, l, lc } from '~/helpers/locale';
@@ -720,6 +720,10 @@
     prefs.on(`key:${SETTINGS_MAIN_CHART_NB_HOURS}`, () => {
         hourlyChartNbHours = ApplicationSettings.getNumber(SETTINGS_MAIN_CHART_NB_HOURS, MAIN_CHART_NB_HOURS);
     });
+    let hourlyChartVisibleHours = ApplicationSettings.getNumber(SETTINGS_MAIN_CHART_VISIBLE_HOURS, MAIN_CHART_VISIBLE_HOURS);
+    prefs.on(`key:${SETTINGS_MAIN_CHART_VISIBLE_HOURS}`, () => {
+        hourlyChartVisibleHours = ApplicationSettings.getNumber(SETTINGS_MAIN_CHART_VISIBLE_HOURS, MAIN_CHART_VISIBLE_HOURS);
+    });
 </script>
 
 <!-- modern: the hourly section is a card (its margins are added to the height) -->
@@ -781,7 +785,8 @@
             {onChartConfigure}
             rightAxisSuggestedMaximum={8}
             showCurrentTimeLimitLine={false}
-            temperatureLineWidth={3} />
+            temperatureLineWidth={3}
+            visibleHours={hourlyChartVisibleHours} />
     {:else if $hourlyViewMode === 'windy'}
         <WindyView {dataToShow} items={item.hourly} />
     {:else}

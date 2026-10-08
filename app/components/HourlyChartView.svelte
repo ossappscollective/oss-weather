@@ -43,7 +43,7 @@
         wdPaint,
         weatherDataService
     } from '~/services/weatherData';
-    import { ValueRange, computeDataRange, getNaturalRange, makeScaler, pickReferenceProp, resolveRange } from '~/utils/chartScale';
+    import { ValueRange, computeDataRange, getNaturalRange, makeScaler, pickReferenceProp, resolveRange, visibleHoursScale } from '~/utils/chartScale';
     import { generateGradient, loadImage, tempColor } from '~/utils/utils.common';
     import { contentGradientRange, extremaIndexes, nightSpans, plotPadding } from '~/utils/chartLabels';
 
@@ -104,6 +104,8 @@
     export let barWidth = 0.8;
     export let fixedBarScale = false;
     export let rightAxisSuggestedMaximum = 10;
+    // hours shown at once in portrait (default: about 10px per hour)
+    export let visibleHours: number = null;
     export let showCurrentTimeLimitLine = true;
     // modern: day name pills on each day change (useless for a single day chart)
     export let showDayLabels = true;
@@ -643,8 +645,8 @@
                 //     }
                 //     DEV_LOG && console.log('daily', d.time, index, lastTimestamp);
                 // });
-                if (!screenOrientation && Application.orientation() !== 'landscape') {
-                    chart.setScale(10 / (screenWidthDips / maxDatalength), 1);
+                if (zoomsInOrientation()) {
+                    chart.setScale(zoomScale(), 1);
                 } else {
                     chart.resetZoom();
                 }
@@ -993,6 +995,17 @@
         }
         canvas.restore();
     }
+    $: if (visibleHours && maxDatalength && chartView?.nativeView) {
+        chartView.nativeView.setScale(zoomScale(), 1);
+    }
+    // landscape shows the whole range, unless a number of visible hours is asked
+    function zoomsInOrientation() {
+        return !!visibleHours || (!screenOrientation && Application.orientation() !== 'landscape');
+    }
+    function zoomScale() {
+        // the x axis also has 1.5h of margin on each side
+        return visibleHours ? visibleHoursScale(maxDatalength + 3, visibleHours) : 10 / (screenWidthDips / maxDatalength);
+    }
     function onLayoutChanged(event: EventData) {
         if (updatePlotPadding()) {
             chartView?.nativeView.notifyDataSetChanged();
@@ -1003,10 +1016,10 @@
             const chart = event.object as CombinedChart;
             if (chart && chartNeedsZoomUpdate) {
                 chartNeedsZoomUpdate = false;
-                if (screenOrientation || Application.orientation() === 'landscape') {
-                    chart.resetZoom();
+                if (zoomsInOrientation()) {
+                    chart.setScale(zoomScale(), 1);
                 } else {
-                    chart.setScale(10 / (screenWidthDips / maxDatalength), 1);
+                    chart.resetZoom();
                 }
                 chart.highlight(null);
                 chart.invalidate();

@@ -484,5 +484,7 @@
   "show_empty_data": "show missing values",
   "show_empty_data_desc": "keep a faint placeholder for data with no value in the aligned grid and chips layouts",
   "data_intensity": "show data intensity",
-  "data_intensity_desc": "tint the chips and grid cells of precipitation, cloud cover and UV index by their intensity"
+  "data_intensity_desc": "tint the chips and grid cells of precipitation, cloud cover and UV index by their intensity",
+  "main_chart_visible_hours": "hours visible at once in main view hourly chart",
+  "main_chart_visible_hours_desc": "chart zoom, scroll to see the other hours"
 }

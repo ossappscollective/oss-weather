@@ -36,6 +36,7 @@
         FEELS_LIKE_TEMPERATURE,
         HOURLY_VIEW_MODE,
         MAIN_CHART_NB_HOURS,
+        MAIN_CHART_VISIBLE_HOURS,
         MAX_NB_DAYS_FORECAST,
         MIN_UV_INDEX,
         NB_DAYS_FORECAST,
@@ -55,6 +56,7 @@
         SETTINGS_IMPERIAL,
         SETTINGS_LANGUAGE,
         SETTINGS_MAIN_CHART_NB_HOURS,
+        SETTINGS_MAIN_CHART_VISIBLE_HOURS,
         SETTINGS_METRIC_CM_TO_MM,
         SETTINGS_METRIC_TEMP_DECIMAL,
         SETTINGS_MIN_UV_INDEX,
@@ -653,6 +655,14 @@
                             title: lc('main_chart_nb_hours'),
                             values: Array.from(Array(MAX_NB_DAYS_FORECAST * 2), (_, index) => ({ value: (index + 1) * 12, title: (index + 1) * 12 })),
                             rightValue: () => ApplicationSettings.getNumber(SETTINGS_MAIN_CHART_NB_HOURS, MAIN_CHART_NB_HOURS)
+                        },
+                        {
+                            key: SETTINGS_MAIN_CHART_VISIBLE_HOURS,
+                            id: 'setting',
+                            title: lc('main_chart_visible_hours'),
+                            description: lc('main_chart_visible_hours_desc'),
+                            values: [6, 12, 24, 36, 48].map((hours) => ({ value: hours, title: hours })),
+                            rightValue: () => ApplicationSettings.getNumber(SETTINGS_MAIN_CHART_VISIBLE_HOURS, MAIN_CHART_VISIBLE_HOURS)
                         },
                         {
                             type: 'sectionheader',

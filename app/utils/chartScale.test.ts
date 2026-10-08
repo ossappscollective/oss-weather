@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { computeDataRange, getNaturalRange, makeScaler, pickReferenceProp, resolveRange } from './chartScale';
+import { computeDataRange, getNaturalRange, makeScaler, pickReferenceProp, resolveRange, visibleHoursScale } from './chartScale';
 
 describe('getNaturalRange', () => {
     it('returns the fixed scale of a bounded metric', () => {
@@ -71,5 +71,14 @@ describe('resolveRange', () => {
     it('falls back on inverted or empty bounds', () => {
         expect(resolveRange(30, 2, fallback)).toEqual(fallback);
         expect(resolveRange(10, 10, fallback)).toEqual(fallback);
+    });
+});
+
+describe('visibleHoursScale', () => {
+    it('zooms so that the requested number of hours fills the chart', () => {
+        expect(visibleHoursScale(72, 24)).toBe(3);
+    });
+    it('never zooms out past the whole data', () => {
+        expect(visibleHoursScale(12, 24)).toBe(1);
     });
 });

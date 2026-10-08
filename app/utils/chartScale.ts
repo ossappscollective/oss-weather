@@ -51,3 +51,8 @@ export function makeScaler(from: ValueRange, to: ValueRange): (value: number) =>
 export function resolveRange(min: number, max: number, fallback: ValueRange): ValueRange {
     return isFinite(min) && isFinite(max) && max > min ? { min, max } : fallback;
 }
+
+// x scale of the chart showing visibleHours of the totalHours at once
+export function visibleHoursScale(totalHours: number, visibleHours: number) {
+    return Math.max(1, totalHours / visibleHours);
+}
