@@ -8,8 +8,8 @@
 
     const items = [
         {
-            moduleName: 'Material Design Icons',
-            moduleUrl: 'https://pictogrammers.com/library/mdi/'
+            moduleName: 'Tabler Icons',
+            moduleUrl: 'https://tabler.io/icons'
         },
         {
             moduleName: 'Weather Icons',

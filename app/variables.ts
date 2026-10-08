@@ -35,6 +35,8 @@ import { initVariables } from '@shared/variables';
 export const fonts = writable({
     mdi: '',
     wi: '',
+    wd: '',
+    wdThin: '',
     app: ''
 });
 
@@ -46,7 +48,13 @@ initVariables({
                 app: rootViewStyle.getCssVariable('--appFontFamily'),
                 wi: rootViewStyle.getCssVariable('--wiFontFamily')
             });
-        fonts.set({ mdi: rootViewStyle.getCssVariable('--mdiFontFamily'), app: rootViewStyle.getCssVariable('--appFontFamily'), wi: rootViewStyle.getCssVariable('--wiFontFamily') });
+        fonts.set({
+            mdi: rootViewStyle.getCssVariable('--mdiFontFamily'),
+            app: rootViewStyle.getCssVariable('--appFontFamily'),
+            wi: rootViewStyle.getCssVariable('--wiFontFamily'),
+            wd: rootViewStyle.getCssVariable('--wdFontFamily'),
+            wdThin: rootViewStyle.getCssVariable('--wdThinFontFamily')
+        });
     },
     getTheme: (colorTheme) => require(`~/themes/${colorTheme}.json`),
     updateSystemFontScale: (value) => {

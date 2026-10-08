@@ -335,9 +335,18 @@ module.exports = (env, params = {}) => {
             appIcons[v.name.replace('$app-', '')] = String.fromCharCode(parseInt(v.value.slice(11, -2), 16));
         });
 
+    const weatherDataIcons = {};
+    for (const [, name, code] of readFileSync(resolve(projectRoot, 'css/_ossweatherdata.scss'))
+        .toString()
+        .matchAll(/^\$wd-([a-z0-9-_]+): "\\([0-9a-f]+)";$/gm)) {
+        weatherDataIcons[name] = String.fromCharCode(parseInt(code, 16));
+    }
+
     const scssPrepend = `$appFontFamily: ossweather;
+    $wdFontFamily: ossweatherdata;
+    $wdThinFontFamily: ossweatherdata-thin;
     $wiFontFamily: ${platform === 'android' ? 'weathericons-regular-webfont' : 'Weather Icons'};
-    $mdiFontFamily: ${platform === 'android' ? 'materialdesignicons-webfont' : 'Material Design Icons'};
+    $mdiFontFamily: ossweather-ui;
     `;
     const scssLoaderRuleIndex = config.module.rules.findIndex((r) => r.test && r.test.toString().indexOf('scss') !== -1);
     config.module.rules.splice(scssLoaderRuleIndex, 1, {
@@ -395,7 +404,6 @@ module.exports = (env, params = {}) => {
         //     ]
     });
 
-    const usedMDIICons = [];
     const usedWIICons = [];
     config.module.rules.push({
         // rules to replace mdi icons and not use nativescript-font-icon
@@ -411,7 +419,6 @@ module.exports = (env, params = {}) => {
                             const unicodeHex = mdiIcons[p1];
                             const numericValue = parseInt(unicodeHex, 16);
                             const character = fixedFromCharCode(numericValue);
-                            usedMDIICons.push(numericValue);
                             return character;
                         }
                         return match;
@@ -445,6 +452,14 @@ module.exports = (env, params = {}) => {
                 options: {
                     search: 'app-([a-z0-9-_]+)',
                     replace: (match, p1, offset, str) => appIcons[p1] || match,
+                    flags: 'g'
+                }
+            },
+            {
+                loader: 'string-replace-loader',
+                options: {
+                    search: 'wd-([a-z0-9-_]+)',
+                    replace: (match, p1, offset, str) => weatherDataIcons[p1] || match,
                     flags: 'g'
                 }
             },
@@ -497,29 +512,6 @@ module.exports = (env, params = {}) => {
             transform: !!production
                 ? {
                       transformer: (content, path) => Promise.resolve(Buffer.from(JSON.stringify(JSON.parse(content.toString())), 'utf8'))
-                  }
-                : undefined
-        },
-        {
-            from: 'node_modules/@mdi/font/fonts/materialdesignicons-webfont.ttf',
-            to: 'fonts',
-            globOptions,
-            transform: !!production
-                ? {
-                      transformer(content, path) {
-                          return new Promise((resolve, reject) => {
-                              new Fontmin()
-                                  .src(content)
-                                  .use(Fontmin.glyph({ subset: usedMDIICons }))
-                                  .run(function (err, files) {
-                                      if (err) {
-                                          reject(err);
-                                      } else {
-                                          resolve(files[0].contents);
-                                      }
-                                  });
-                          });
-                      }
                   }
                 : undefined
         },
