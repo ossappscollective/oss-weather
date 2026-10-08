@@ -6,7 +6,8 @@ import { closePopover, showPopover } from '@nativescript-community/ui-popover/sv
 import { AlertOptions, Application, GridLayout, View } from '@nativescript/core';
 import { debounce } from '@nativescript/core/utils';
 import { showError } from '@shared/utils/showError';
-import { ComponentInstanceInfo, hideLoading, resolveComponentElement, showSnack } from '@shared/utils/ui';
+import { ComponentInstanceInfo, hideLoading, resolveComponentElement } from '@shared/utils/ui';
+import { showSnack } from './snack';
 import { ComponentProps } from 'svelte';
 import { get } from 'svelte/store';
 import type OptionSelect__SvelteComponent_ from '~/components/common/OptionSelect.svelte';

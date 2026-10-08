@@ -8,7 +8,7 @@
     import { Label } from '@nativescript-community/ui-label';
     import { showBottomSheet } from '@nativescript-community/ui-material-bottomsheet/svelte';
     import { confirm, prompt } from '~/utils/ui/dialogs';
-    import { showSnack } from '@nativescript-community/ui-material-snackbar';
+    import { showSnack } from '~/utils/ui/snack';
     import { TextField, TextFieldProperties } from '@nativescript-community/ui-material-textfield';
     import { TextView } from '@nativescript-community/ui-material-textview';
     import { Application, ApplicationSettings, File, ObservableArray, Page, ScrollView, StackLayout, TouchGestureEventData, Utils, View } from '@nativescript/core';

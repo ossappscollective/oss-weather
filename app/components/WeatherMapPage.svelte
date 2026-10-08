@@ -47,7 +47,7 @@
     } from '~/services/providers/maptiler';
     import { queryString } from '~/utils/http';
     import { hideLoading, openLink, showPopoverMenu } from '~/utils/ui';
-    import { fontScale, screenWidthDips, windowInset } from '~/variables';
+    import { designStyle, fontScale, fonts, screenWidthDips, windowInset } from '~/variables';
 </script>
 
 <script lang="ts">
@@ -87,6 +87,7 @@
                 layer,
                 opacity: ApplicationSettings.getNumber(SETTINGS_WEATHER_MAP_LAYER_OPACITY, WEATHER_MAP_LAYER_OPACITY),
                 dark: $currentTheme,
+                modern: $designStyle === 'modern',
                 maxTimeSpan: ApplicationSettings.getNumber(SETTINGS_WEATHER_MAP_MAX_TIME_SPAN, 0),
                 showHistory: ApplicationSettings.getBoolean(SETTINGS_WEATHER_MAP_SHOW_HISTORY, true),
                 source: customSource ? encodeURIComponent(customSource) : undefined
@@ -330,11 +331,15 @@
 
 <page actionBarHidden={true}>
     <gridlayout class="pageContent" rows="auto,*" android:paddingBottom={$windowInset.bottom}>
-        <CActionBar title={lc('weather_map')}>
-            <mdbutton class="actionBarButton" text="mdi-palette" variant="text" verticalAlignment="middle" on:tap={seletMapColors} />
-            <mdbutton class="actionBarButton" text="mdi-layers-triple" variant="text" verticalAlignment="middle" on:tap={selectLayer} />
-            <mdbutton class="actionBarButton" text="mdi-dots-vertical" variant="text" verticalAlignment="middle" on:tap={showOptions} />
-        </CActionBar>
+        {#if $designStyle === 'modern'}
+            <CActionBar title={lc('weather_map')} />
+        {:else}
+            <CActionBar title={lc('weather_map')}>
+                <mdbutton class="actionBarButton" text="mdi-palette" variant="text" verticalAlignment="middle" on:tap={seletMapColors} />
+                <mdbutton class="actionBarButton" text="mdi-layers-triple" variant="text" verticalAlignment="middle" on:tap={selectLayer} />
+                <mdbutton class="actionBarButton" text="mdi-dots-vertical" variant="text" verticalAlignment="middle" on:tap={showOptions} />
+            </CActionBar>
+        {/if}
         <awebview
             bind:this={webView}
             debugMode={consoleEnabled}
@@ -344,5 +349,17 @@
             src={url}
             webConsoleEnabled={consoleEnabled}
             on:shouldOverrideUrlLoading={shouldOverrideUrlLoading} />
+        {#if $designStyle === 'modern'}
+            <!-- floating controls over the map: current layer chip, then layers, colors and options buttons -->
+            <label class="modernChip modernMapChip" horizontalAlignment="left" margin={10} row={1} verticalAlignment="top" on:tap={selectLayer}>
+                <cspan fontFamily={$fonts.mdi} fontSize={16 * $fontScale} fontWeight="normal" text="mdi-radar" />
+                <cspan text={' ' + getLayerTitle(layer)} />
+            </label>
+            <stacklayout horizontalAlignment="right" margin={10} row={1} verticalAlignment="top">
+                <mdbutton class="modernMapButton" text="mdi-layers" variant="text" on:tap={selectLayer} />
+                <mdbutton class="modernMapButton" text="mdi-palette" variant="text" on:tap={seletMapColors} />
+                <mdbutton class="modernMapButton" text="mdi-tune" variant="text" on:tap={showOptions} />
+            </stacklayout>
+        {/if}
     </gridlayout>
 </page>

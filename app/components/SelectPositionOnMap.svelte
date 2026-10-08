@@ -9,7 +9,7 @@
     import { currentTheme, onThemeChanged } from '~/helpers/theme';
     import { networkService } from '~/services/api';
     import { openLink } from '~/utils/ui';
-    import { windowInset } from '~/variables';
+    import { accentFontWeight, designStyle, fontScale, fonts, windowInset } from '~/variables';
     import { SETTINGS_WEATHER_MAP_CUSTOM_TILE_SOURCE } from '~/services/providers/maptiler';
 </script>
 
@@ -90,6 +90,22 @@
             on:shouldOverrideUrlLoading={shouldOverrideUrlLoading}
             on:position={onPositionChanged} />
 
-        <mdbutton marginBottom={30} row={1} text={lc('select_location')} verticalAlignment="bottom" visibility={selectedLocation ? 'visible' : 'hidden'} on:tap={confirmLocation} />
+        {#if $designStyle === 'modern'}
+            <!-- spans do not inherit the button css weight -->
+            <mdbutton
+                class="modernButton"
+                horizontalAlignment="center"
+                marginBottom={30}
+                padding="0 22"
+                row={1}
+                verticalAlignment="bottom"
+                visibility={selectedLocation ? 'visible' : 'hidden'}
+                on:tap={confirmLocation}>
+                <cspan fontFamily={$fonts.mdi} fontSize={18 * $fontScale} fontWeight="normal" text="mdi-check" />
+                <cspan fontWeight={$accentFontWeight} text={'  ' + lc('select_location')} />
+            </mdbutton>
+        {:else}
+            <mdbutton marginBottom={30} row={1} text={lc('select_location')} verticalAlignment="bottom" visibility={selectedLocation ? 'visible' : 'hidden'} on:tap={confirmLocation} />
+        {/if}
     </gridlayout>
 </page>

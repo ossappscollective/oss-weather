@@ -7,7 +7,7 @@
     import DrawerElement from '@nativescript-community/ui-drawer/svelte';
     import { showBottomSheet } from '@nativescript-community/ui-material-bottomsheet/svelte';
     import { confirm, prompt } from '~/utils/ui/dialogs';
-    import { showSnack } from '@nativescript-community/ui-material-snackbar';
+    import { showSnack } from '~/utils/ui/snack';
     import { VerticalPosition } from '@nativescript-community/ui-popover';
     import { closePopover } from '@nativescript-community/ui-popover/svelte';
     import { PullToRefresh } from '@nativescript-community/ui-pulltorefresh';

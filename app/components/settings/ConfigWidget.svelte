@@ -1,6 +1,7 @@
 <script context="module" lang="ts">
-    import { showSnack } from '@nativescript-community/ui-material-snackbar';
-    import { ObservableArray, Page, Screen, View, path } from '@nativescript/core';
+    import { showSnack } from '~/utils/ui/snack';
+    import { Color, ObservableArray, Page, Screen, View, path } from '@nativescript/core';
+    import { modernColors } from '~/helpers/modernTheme';
     import { showError } from '@shared/utils/showError';
     import { showModal } from '@shared/utils/svelte/ui';
     import { WIDGET_NAMES, WeatherWidgetData, WidgetConfig, WidgetConfigManager, isDefaultLocation, widgetService } from 'plugin-widgets';
@@ -12,12 +13,14 @@
     import { OpenMeteoModels } from '~/services/providers/om';
     import { getProviderType, providers } from '~/services/providers/weatherproviderfactory';
     import { hideLoading, selectValue, showPopoverMenu } from '~/utils/ui';
-    import { actionBarHeight, colors, fontScale, fonts, onFontScaleChanged, windowInset } from '~/variables';
+    import { actionBarHeight, colors, designStyle, fontScale, fonts, onFontScaleChanged, windowInset } from '~/variables';
+    import { groupPosition } from '~/utils/settingsGroups';
+    import { styleModernSwitch } from '~/utils/ui/modernSwitch';
 
     import { CheckBox } from '@nativescript-community/ui-checkbox';
     import { CollectionView } from '@nativescript-community/ui-collectionview';
     import { pickColor } from '@nativescript-community/ui-color';
-    import { confirm } from '@nativescript-community/ui-material-dialogs';
+    import { confirm } from '~/utils/ui/dialogs';
     import { VerticalPosition } from '@nativescript-community/ui-popover';
     import { closePopover } from '@nativescript-community/ui-popover/svelte';
     import IconButton from '@shared/components/IconButton.svelte';
@@ -414,7 +417,7 @@
                 // }
             ] as any[]
         )
-            .concat(isKindConfig ? [{ description: lc('default_widget_settings_note') }] : [])
+            .concat(isKindConfig ? [{ type: 'info', title: lc('default_widget_settings_note') }] : [])
             .concat([
                 {
                     type: 'rightIcon',
@@ -443,7 +446,7 @@
         newItems.push(
             {
                 type: 'sectionheader',
-                title: lc('settings')
+                title: $designStyle === 'modern' ? lc('appearance') : lc('settings')
             },
             {
                 type: 'switch',
@@ -518,13 +521,19 @@
             });
         }
         newItems.push({
-            description: isKindConfig ? lc('widget_kind_configuration_note') : lc('widget_configuration_note')
+            type: 'info',
+            title: isKindConfig ? lc('widget_kind_configuration_note') : lc('widget_configuration_note')
         });
         // items = new ObservableArray(newItems)
         items.splice(0, items.length, ...newItems);
     }
 
     const items = new ObservableArray([]);
+    // modern: rows grouped in cards like the settings, section headers as small labels
+    $: modern = $designStyle === 'modern';
+    function rowGroupPosition(item) {
+        return modern ? (groupPosition(items.indexOf(item), items.length, (index) => items.getItem(index)?.type) ?? null) : null;
+    }
 
     refresh();
 
@@ -658,32 +667,54 @@
     <gridlayout class="pageContent" rows="auto,auto,*">
         <!-- Preview Section -->
         {#if widgetComponent && previewData && previewSize}
-            <svelte:component
-                this={widgetComponent}
-                backgroundColor={config?.settings?.transparent ? '#ffffff00' : (config?.settings?.backgroundColor ?? colorWidgetBackground)}
-                {config}
-                data={actualPreviewData}
-                horizontalAlignment="center"
-                row={1}
-                size={widgetSize} />
+            <!-- modern: the preview sits on a tinted card, like a home screen -->
+            <gridlayout
+                backgroundColor={modern ? new Color($modernColors.colorModernAccent).setAlpha(36).hex : undefined}
+                borderRadius={modern ? 20 : 0}
+                margin={modern ? '8 14 4 14' : 0}
+                padding={modern ? 20 : 0}
+                row={1}>
+                <svelte:component
+                    this={widgetComponent}
+                    backgroundColor={config?.settings?.transparent ? '#ffffff00' : (config?.settings?.backgroundColor ?? colorWidgetBackground)}
+                    {config}
+                    data={actualPreviewData}
+                    horizontalAlignment="center"
+                    size={widgetSize} />
+            </gridlayout>
         {/if}
         <collectionview bind:this={collectionView} itemTemplateSelector={selectTemplate} {items} row={2} android:paddingBottom={$windowInset.bottom}>
             <Template key="sectionheader" let:item>
-                <label class="sectionHeader" {...item.additionalProps || {}} text={item.title} />
+                {#if modern}
+                    <label color={colorOnSurfaceVariant} fontSize={13 * $fontScale} padding="18 28 6 28" {...item.additionalProps || {}} text={item.title} />
+                {:else}
+                    <label class="sectionHeader" {...item.additionalProps || {}} text={item.title} />
+                {/if}
             </Template>
             <Template key="switch" let:item>
-                <ListItemAutoSize fontSize={20} item={{ ...item, title: getTitle(item), subtitle: getDescription(item) }} leftIcon={item.icon} on:tap={(event) => onTap(item, event)}>
-                    <switch id="checkbox" checked={item.value} col={1} marginLeft={10} verticalAlignment="center" on:checkedChange={(e) => onCheckBox(item, e)} />
+                <ListItemAutoSize
+                    fontSize={20}
+                    groupPosition={rowGroupPosition(item)}
+                    item={{ ...item, title: getTitle(item), subtitle: getDescription(item) }}
+                    leftIcon={item.icon}
+                    on:tap={(event) => onTap(item, event)}>
+                    <switch id="checkbox" checked={item.value} col={1} marginLeft={10} verticalAlignment="center" on:loaded={styleModernSwitch} on:checkedChange={(e) => onCheckBox(item, e)} />
                 </ListItemAutoSize>
             </Template>
             <Template key="checkbox" let:item>
-                <ListItemAutoSize fontSize={20} item={{ ...item, title: getTitle(item), subtitle: getDescription(item) }} leftIcon={item.icon} on:tap={(event) => onTap(item, event)}>
+                <ListItemAutoSize
+                    fontSize={20}
+                    groupPosition={rowGroupPosition(item)}
+                    item={{ ...item, title: getTitle(item), subtitle: getDescription(item) }}
+                    leftIcon={item.icon}
+                    on:tap={(event) => onTap(item, event)}>
                     <checkbox id="checkbox" checked={item.value} col={1} on:checkedChange={(e) => onCheckBox(item, e)} />
                 </ListItemAutoSize>
             </Template>
             <Template key="rightIcon" let:item>
                 <ListItemAutoSize
                     fontSize={20}
+                    groupPosition={rowGroupPosition(item)}
                     item={{ ...item, title: getTitle(item), subtitle: getDescription(item) }}
                     onLongPress={(event) => onLongPress(item, event)}
                     showBottomLine={false}
@@ -695,6 +726,7 @@
                 <ListItemAutoSize
                     columns="auto,*,auto"
                     fontSize={20}
+                    groupPosition={rowGroupPosition(item)}
                     item={{ ...item, title: getTitle(item), subtitle: getDescription(item) }}
                     mainCol={1}
                     showBottomLine={false}
@@ -705,14 +737,30 @@
             <Template key="color" let:item>
                 <ListItemAutoSize
                     fontSize={20}
+                    groupPosition={rowGroupPosition(item)}
                     item={{ ...item, title: getTitle(item), subtitle: getDescription(item), color: null }}
                     onLongPress={(event) => clearColor(item, event)}
                     on:tap={(e) => changeColor(item, e)}>
-                    <absolutelayout backgroundColor={item.color} borderColor={colorOutline} borderRadius="50%" borderWidth={2} col={1} height={40} marginLeft={10} width={40} />
+                    <!-- modern: a small swatch with a hairline border -->
+                    <absolutelayout
+                        backgroundColor={item.color}
+                        borderColor={modern ? $modernColors.colorModernHairlineStrong : colorOutline}
+                        borderRadius="50%"
+                        borderWidth={modern ? 1 : 2}
+                        col={1}
+                        height={modern ? 24 : 40}
+                        marginLeft={10}
+                        verticalAlignment="center"
+                        width={modern ? 24 : 40} />
                 </ListItemAutoSize>
             </Template>
             <Template key="image" let:item>
-                <ListItemAutoSize fontSize={20} item={{ ...item, title: getTitle(item), subtitle: getDescription(item) }} showBottomLine={false} on:tap={(event) => onTap(item, event)}>
+                <ListItemAutoSize
+                    fontSize={20}
+                    groupPosition={rowGroupPosition(item)}
+                    item={{ ...item, title: getTitle(item), subtitle: getDescription(item) }}
+                    showBottomLine={false}
+                    on:tap={(event) => onTap(item, event)}>
                     <image col={1} height={45} src={item.image()} />
                 </ListItemAutoSize>
             </Template>
@@ -720,7 +768,12 @@
                 <label color={colorOnSurfaceVariant} fontSize={14} margin="16" text={item.title} textWrap={true} />
             </Template>
             <Template let:item>
-                <ListItemAutoSize fontSize={20} item={{ ...item, title: getTitle(item), subtitle: getDescription(item) }} showBottomLine={false} on:tap={(event) => onTap(item, event)}>
+                <ListItemAutoSize
+                    fontSize={20}
+                    groupPosition={rowGroupPosition(item)}
+                    item={{ ...item, title: getTitle(item), subtitle: getDescription(item) }}
+                    showBottomLine={false}
+                    on:tap={(event) => onTap(item, event)}>
                 </ListItemAutoSize>
             </Template>
         </collectionview>

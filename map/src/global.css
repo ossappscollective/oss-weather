@@ -68,3 +68,85 @@ body {
     .maplibregl-ctrl-attrib-button, .maplibregl-ctrl-attrib.maplibregl-compact-show .maplibregl-ctrl-attrib-button {
         background-color: gray;
     }
+/* modern design style: rounded card without shadow, round accent play button */
+[data-modern='true'] {
+    --range-handle: #378add;
+    --range-handle-focus: #378add;
+    --range-handle-inactive: #378add;
+    --range-slider: #c8c8c8;
+    --range-range: #378add;
+    --range-range-inactive: #378add;
+}
+/* modern: thin track filled up to the round handle, Tabler play / pause icons */
+[data-modern='true'] .rangeSlider {
+    height: 4px;
+    margin: 18px 10px 10px 10px;
+}
+[data-modern='true'] .rangeSlider .rangeBar {
+    height: 4px;
+}
+[data-modern='true'] .rangeSlider .rangeHandle {
+    width: 18px;
+    height: 18px;
+    top: 2px;
+}
+[data-modern='true'] #playBtn,
+[data-modern='true'] #pauseBtn {
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+}
+[data-modern='true'] #playBtn {
+    -webkit-mask-image: url(player-play.svg);
+    mask-image: url(player-play.svg);
+}
+[data-modern='true'] #pauseBtn {
+    -webkit-mask-image: url(player-pause.svg);
+    mask-image: url(player-pause.svg);
+}
+/* modern playback card (App.svelte modernPlayback) */
+.popup.modernPlayback {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
+    padding: 12px 14px 6px 14px;
+    border-radius: 16px;
+    box-shadow: none;
+    border: 0.5px solid #8080804d;
+    font-family: sans-serif;
+}
+.modernPlaybackRow {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+.modernPlaybackText {
+    margin-left: 12px;
+    line-height: 1.25;
+}
+.modernTime {
+    font-size: 15px;
+    font-weight: 600;
+}
+.modernTimeSub {
+    font-size: 12px;
+    color: #888780;
+}
+.playWrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: #378add;
+}
+.playWrap .button {
+    background-color: #ffffff;
+    width: 16px;
+    height: 16px;
+}

@@ -248,6 +248,8 @@
   "no2": "NO₂",
   "no_location_desc": "You haven't chosen a location yet.\nSearch or use your GPS position.",
   "no_location_set": "No location set",
+  "no_results": "No results",
+  "no_results_desc": "Nothing found for \"%s\". Check the spelling or try a nearby city.",
   "no_network": "No network",
   "no_particular_vigilance": "No particular vigilance",
   "no_widgets_configured": "No widgets have been added yet. Add a widget from your home screen to configure it here.",
@@ -430,6 +432,7 @@
   "widget_settings": "Widget Settings",
   "widget_settings_desc": "all settings related to widgets",
   "widget_update_frequency": "Update Frequency",
+  "widget_open_app_on_tap": "Open the app when tapping a widget",
   "widget_update_frequency_description": "How often widgets should refresh their data",
   "widget_update_frequency_saved": "Update frequency saved",
   "wind": "Wind",
@@ -482,6 +485,7 @@
   "librewxr_server": "LibreWXR server",
   "satellite": "satellite",
   "radar_satellite": "radar + satellite",
+  "radar_time_interval": "radar time interval",
   "forecast": "forecast",
   "chips": "chips",
   "chips_desc": "each value in a rounded chip",
@@ -513,5 +517,6 @@
   "selected": "selected",
   "air_quality": "air quality",
   "sun_and_moon": "sun and moon",
-  "all": "all"
+  "all": "all",
+  "weather": "weather"
 }

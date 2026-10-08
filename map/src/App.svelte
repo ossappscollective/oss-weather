@@ -47,6 +47,7 @@
         animated: (urlParamers['animated'] || 'false') === 'true',
         hideAttribution: (urlParamers['hideAttribution'] || 'false') === 'true',
         dark: urlParamers['dark'] || 'light',
+        modern: (urlParamers['modern'] || 'false') === 'true',
         language: urlParamers['lang'] || 'en',
         colors: urlParamers['colors'] || 'RADAR',
         timeInterval: parseFloat(urlParamers['timeInterval'] || 30),
@@ -64,9 +65,11 @@
     config.apiKey = options.apiKey;
     // console.log(`options ${JSON.stringify(options)}`);
 
-    document.documentElement.style.setProperty('--bottom-padding', options.useToPickLocation ? '0px' : '100px');
+    document.documentElement.style.setProperty('--bottom-padding', options.useToPickLocation ? '0px' : options.modern ? '120px' : '100px');
 
     document.documentElement.setAttribute('data-dark', options.dark === 'black' ? 'dark' : options.dark);
+    // modern design style of the app (see global.css)
+    document.documentElement.setAttribute('data-modern', options.modern ? 'true' : 'false');
     if (options.dark === 'dark' || options.dark === 'black') {
         document.documentElement.style.setProperty('--background-color', options.dark === 'black' ? '#000' : '#333');
         document.documentElement.style.setProperty('--button-color', 'white');
@@ -324,20 +327,34 @@
     //     }
     // }
 
+    // modern: weekday and time, then the day and whether it is a forecast
+    function showModernTime(date: Date, forecast: boolean) {
+        document.getElementById('timestamp').innerText = date.toLocaleString(options.language, { weekday: 'short', hour: 'numeric', minute: '2-digit' });
+        const day = date.toLocaleDateString(options.language, { day: 'numeric', month: 'long' });
+        document.getElementById('timestampSub').innerText = forecast ? `${day} · ${options.forecastLabel}` : day;
+    }
     // Update the date time display
     function refreshTime() {
         if (isLibreWXR) {
             const frame = libreWXRLayer.frames[libreWXRLayer.currentIndex];
             if (frame) {
-                const label = new Date(frame.time * 1000).toLocaleString(options.language, { timeStyle: 'short', dateStyle: 'short' });
-                document.getElementById('timestamp').innerText = frame.nowcast ? `${label} (${options.forecastLabel})` : label;
+                if (options.modern) {
+                    showModernTime(new Date(frame.time * 1000), frame.nowcast);
+                } else {
+                    const label = new Date(frame.time * 1000).toLocaleString(options.language, { timeStyle: 'short', dateStyle: 'short' });
+                    document.getElementById('timestamp').innerText = frame.nowcast ? `${label} (${options.forecastLabel})` : label;
+                }
                 sliderValue = libreWXRLayer.currentIndex;
             }
             return;
         }
         const d = weatherLayer.getAnimationTimeDate();
         // console.log('refreshTime', d);
-        document.getElementById('timestamp').innerHTML = d.toLocaleString(options.language, { timeStyle: 'medium', dateStyle: 'short' });
+        if (options.modern) {
+            showModernTime(d, +d > Date.now());
+        } else {
+            document.getElementById('timestamp').innerHTML = d.toLocaleString(options.language, { timeStyle: 'medium', dateStyle: 'short' });
+        }
         sliderValue = +d;
         // timeTextDiv.innerText = d.toString();
     }
@@ -505,7 +522,28 @@
 <div style="height:100%;width:100%;display:flex;justify-content:center  ">
     <div style="height:100%;width:100%;" class="map" use:mapAction />
 
-    {#if !options.useToPickLocation}
+    {#if !options.useToPickLocation && options.modern}
+        <!-- modern: round play button, the time and its day, then a thin slider filled up to the handle -->
+        <div class="popup modernPlayback">
+            <div class="modernPlaybackRow">
+                <span class="playWrap" on:click={startStopAnimation}><button id={isPlaying ? 'pauseBtn' : 'playBtn'} class="button" /></span>
+                <div class="modernPlaybackText">
+                    <div id="timestamp" class="label modernTime"></div>
+                    <div id="timestampSub" class="modernTimeSub"></div>
+                </div>
+            </div>
+            <RangeSlider
+                float
+                {handleFormatter}
+                max={sliderMax}
+                min={sliderMin}
+                range="min"
+                step={isLibreWXR ? 1 : options.timeInterval * 60 * 1000}
+                values={[sliderValue]}
+                on:start={pauseAnimation}
+                on:change={(e) => setIndex(e.detail.value)} />
+        </div>
+    {:else if !options.useToPickLocation}
         <div style="position: absolute; bottom:5px; width: 90%; height: 60px;  align-content: center;flex-direction: row;display: flex;" class="popup">
             <div style="display: flex;flex-direction: column;flex-grow:1;">
                 <div style="display: flex;flex-direction: row;flex-grow:1;">

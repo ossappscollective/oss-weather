@@ -14,7 +14,8 @@
     import { showError } from '@shared/utils/showError';
     import { share } from '@akylas/nativescript-app-utils/share';
     import { hideLoading, onBackButton, openLink, showLoading, showPopoverMenu } from '~/utils/ui';
-    import { actionBarButtonHeight, actionBarHeight, colors, imperial, systemFontScale } from '~/variables';
+    import { modernColors } from '~/helpers/modernTheme';
+    import { accentFontWeight, actionBarButtonHeight, actionBarHeight, colors, designStyle, imperial, systemFontScale } from '~/variables';
 
     function parseUrl(str) {
         const [url, query] = str.split('?');
@@ -29,7 +30,9 @@
 
 <script lang="ts">
     let { colorOnPrimary, colorOnSurface, colorOnSurfaceVariant } = $colors;
-    $: ({ colorOnPrimary, colorOnSurface, colorOnSurfaceVariant } = $colors);
+    $: ({ colorOnPrimary, colorOnSurface, colorOnSurfaceVariant, colorOutlineVariant, colorPrimary } = $colors);
+    // modern tabs: sentence case, selected one in the accent weight over a thin primary underline
+    $: modern = $designStyle === 'modern';
     let currentUrl = null;
     let currentImageSrc = null;
     // let pullRefresh: NativeViewElementNode<PullToRefresh>;
@@ -164,14 +167,17 @@
     const tabs = [
         {
             name: lu('weather'),
+            title: lc('weather'),
             urlId: 'week'
         },
         {
             name: lu('meteogram'),
+            title: lc('meteogram'),
             urlId: 'meteogram'
         },
         {
             name: lu('all_in_one'),
+            title: lc('all_in_one'),
             urlId: 'meteogramone'
         }
         // {
@@ -276,8 +282,8 @@
 <page bind:this={page} actionBarHidden={true} on:navigatedTo={onNavigatedTo}>
     <gridlayout rows="auto,auto,*">
         <CActionBar titleProps={{ visibility: 'visible' }}>
-            <span slot="subtitle" text="meteoblue" />
-            <span slot="subtitle2" color={colorOnSurfaceVariant} fontSize={12} text={'\n' + weatherLocation.name} />
+            <span slot="subtitle" fontWeight={$accentFontWeight} text="meteoblue" />
+            <span slot="subtitle2" color={colorOnSurfaceVariant} fontSize={12} fontWeight="normal" text={'\n' + weatherLocation.name} />
             <activityIndicator busy={loading} height={$actionBarButtonHeight} verticalAlignment="middle" visibility={loading ? 'visible' : 'collapse'} width={$actionBarButtonHeight} />
             <mdbutton class="actionBarButton" text="mdi-refresh" variant="text" verticalAlignment="middle" on:tap={refresh} />
             <mdbutton class="actionBarButton" text="mdi-web" variant="text" verticalAlignment="middle" on:tap={openInBrowser} />
@@ -294,16 +300,21 @@
             {#each tabs as tab, index}
                 <canvaslabel
                     col={index}
-                    color={colorOnSurface}
+                    color={modern && index !== tabIndex ? colorOnSurfaceVariant : colorOnSurface}
                     disableCss={true}
-                    fontSize={15}
-                    fontWeight="500"
-                    text={tab.name}
+                    fontSize={modern ? 14 : 15}
+                    fontWeight={modern ? (index === tabIndex ? $accentFontWeight : 'normal') : '500'}
+                    text={modern ? tab.title : tab.name}
                     textAlignment="center"
                     verticalTextAlignment="center"
                     on:tap={() => setTabIndex(index)} />
             {/each}
-            <absolutelayout backgroundColor={colorOnSurface} col={tabIndex} height={3} verticalAlignment="bottom" width="50%" />
+            {#if modern}
+                <absolutelayout backgroundColor={$modernColors.colorModernHairlineStrong} colSpan={tabs.length} height={1} verticalAlignment="bottom" />
+                <absolutelayout backgroundColor={$modernColors.colorModernAccent} borderRadius={1} col={tabIndex} height={2} verticalAlignment="bottom" width="60%" />
+            {:else}
+                <absolutelayout backgroundColor={colorOnSurface} col={tabIndex} height={3} verticalAlignment="bottom" width="50%" />
+            {/if}
         </gridlayout>
         <!-- <pullrefresh bind:this={pullRefresh} row={2} on:refresh={onPullToRefresh}> -->
 
