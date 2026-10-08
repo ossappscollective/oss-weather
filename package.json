@@ -106,10 +106,13 @@
     "devDependencies": {
         "@akylas/nativescript-ios-runtime": "9.0.3",
         "@akylas/nativescript-webpack": "5.0.35",
+        "@iconotype/cli": "0.3.0",
         "@nativescript/android-quickjs-ng": "9.0.0-alpha.4",
         "@nativescript/core": "~9.0.20",
         "@nativescript/ios": "9.1.0",
+        "@resvg/resvg-js": "2.6.2",
         "@swc/core": "1.13.5",
+        "@tabler/icons": "3.49.0",
         "@types/geojson": "^7946.0.16",
         "@types/polygon-lookup": "^2.6.6",
         "@types/suncalc": "^1.9.2",

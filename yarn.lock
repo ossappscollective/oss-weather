@@ -2078,6 +2078,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@iconotype/cli@npm:0.3.0":
+  version: 0.3.0
+  resolution: "@iconotype/cli@npm:0.3.0"
+  dependencies:
+    "@resvg/resvg-js": "npm:^2.6.2"
+    css-tree: "npm:^3.2.1"
+    fflate: "npm:^0.8.3"
+    paper: "npm:^0.12.18"
+    paperjs-offset: "npm:^2.2.1"
+    svg2ttf: "npm:^6.1.0"
+    svgpath: "npm:^2.6.0"
+    svgson: "npm:^5.3.1"
+    ttf2woff: "npm:^3.0.0"
+    woff2-encoder: "npm:^2.0.0"
+  bin:
+    iconotype: bin/iconotype.cjs
+  checksum: 10/5a061d491aad36eae5934e6c1425e37b5fe585132740f2f35e33d3257eea1f91cb627a5548d3d74885d24e4f2d2bda720da54435be82cd1479b5d4ee188e6ddd
+  languageName: node
+  linkType: hard
+
 "@isaacs/cliui@npm:^8.0.2":
   version: 8.0.2
   resolution: "@isaacs/cliui@npm:8.0.2"
@@ -3502,6 +3522,135 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@resvg/resvg-js-android-arm-eabi@npm:2.6.2":
+  version: 2.6.2
+  resolution: "@resvg/resvg-js-android-arm-eabi@npm:2.6.2"
+  conditions: os=android & cpu=arm
+  languageName: node
+  linkType: hard
+
+"@resvg/resvg-js-android-arm64@npm:2.6.2":
+  version: 2.6.2
+  resolution: "@resvg/resvg-js-android-arm64@npm:2.6.2"
+  conditions: os=android & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@resvg/resvg-js-darwin-arm64@npm:2.6.2":
+  version: 2.6.2
+  resolution: "@resvg/resvg-js-darwin-arm64@npm:2.6.2"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@resvg/resvg-js-darwin-x64@npm:2.6.2":
+  version: 2.6.2
+  resolution: "@resvg/resvg-js-darwin-x64@npm:2.6.2"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@resvg/resvg-js-linux-arm-gnueabihf@npm:2.6.2":
+  version: 2.6.2
+  resolution: "@resvg/resvg-js-linux-arm-gnueabihf@npm:2.6.2"
+  conditions: os=linux & cpu=arm
+  languageName: node
+  linkType: hard
+
+"@resvg/resvg-js-linux-arm64-gnu@npm:2.6.2":
+  version: 2.6.2
+  resolution: "@resvg/resvg-js-linux-arm64-gnu@npm:2.6.2"
+  conditions: os=linux & cpu=arm64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@resvg/resvg-js-linux-arm64-musl@npm:2.6.2":
+  version: 2.6.2
+  resolution: "@resvg/resvg-js-linux-arm64-musl@npm:2.6.2"
+  conditions: os=linux & cpu=arm64 & libc=musl
+  languageName: node
+  linkType: hard
+
+"@resvg/resvg-js-linux-x64-gnu@npm:2.6.2":
+  version: 2.6.2
+  resolution: "@resvg/resvg-js-linux-x64-gnu@npm:2.6.2"
+  conditions: os=linux & cpu=x64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@resvg/resvg-js-linux-x64-musl@npm:2.6.2":
+  version: 2.6.2
+  resolution: "@resvg/resvg-js-linux-x64-musl@npm:2.6.2"
+  conditions: os=linux & cpu=x64 & libc=musl
+  languageName: node
+  linkType: hard
+
+"@resvg/resvg-js-win32-arm64-msvc@npm:2.6.2":
+  version: 2.6.2
+  resolution: "@resvg/resvg-js-win32-arm64-msvc@npm:2.6.2"
+  conditions: os=win32 & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@resvg/resvg-js-win32-ia32-msvc@npm:2.6.2":
+  version: 2.6.2
+  resolution: "@resvg/resvg-js-win32-ia32-msvc@npm:2.6.2"
+  conditions: os=win32 & cpu=ia32
+  languageName: node
+  linkType: hard
+
+"@resvg/resvg-js-win32-x64-msvc@npm:2.6.2":
+  version: 2.6.2
+  resolution: "@resvg/resvg-js-win32-x64-msvc@npm:2.6.2"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@resvg/resvg-js@npm:2.6.2, @resvg/resvg-js@npm:^2.6.2":
+  version: 2.6.2
+  resolution: "@resvg/resvg-js@npm:2.6.2"
+  dependencies:
+    "@resvg/resvg-js-android-arm-eabi": "npm:2.6.2"
+    "@resvg/resvg-js-android-arm64": "npm:2.6.2"
+    "@resvg/resvg-js-darwin-arm64": "npm:2.6.2"
+    "@resvg/resvg-js-darwin-x64": "npm:2.6.2"
+    "@resvg/resvg-js-linux-arm-gnueabihf": "npm:2.6.2"
+    "@resvg/resvg-js-linux-arm64-gnu": "npm:2.6.2"
+    "@resvg/resvg-js-linux-arm64-musl": "npm:2.6.2"
+    "@resvg/resvg-js-linux-x64-gnu": "npm:2.6.2"
+    "@resvg/resvg-js-linux-x64-musl": "npm:2.6.2"
+    "@resvg/resvg-js-win32-arm64-msvc": "npm:2.6.2"
+    "@resvg/resvg-js-win32-ia32-msvc": "npm:2.6.2"
+    "@resvg/resvg-js-win32-x64-msvc": "npm:2.6.2"
+  dependenciesMeta:
+    "@resvg/resvg-js-android-arm-eabi":
+      optional: true
+    "@resvg/resvg-js-android-arm64":
+      optional: true
+    "@resvg/resvg-js-darwin-arm64":
+      optional: true
+    "@resvg/resvg-js-darwin-x64":
+      optional: true
+    "@resvg/resvg-js-linux-arm-gnueabihf":
+      optional: true
+    "@resvg/resvg-js-linux-arm64-gnu":
+      optional: true
+    "@resvg/resvg-js-linux-arm64-musl":
+      optional: true
+    "@resvg/resvg-js-linux-x64-gnu":
+      optional: true
+    "@resvg/resvg-js-linux-x64-musl":
+      optional: true
+    "@resvg/resvg-js-win32-arm64-msvc":
+      optional: true
+    "@resvg/resvg-js-win32-ia32-msvc":
+      optional: true
+    "@resvg/resvg-js-win32-x64-msvc":
+      optional: true
+  checksum: 10/f3fbba7d11e912a931955fdec911db7913c4dae9bf63e5fa5b97faad2b845068438e281bf5cb72371ecd8c95ff31a1f40d413e996f95972e5c8fd47ab5ea3ecd
+  languageName: node
+  linkType: hard
+
 "@rollup/rollup-android-arm-eabi@npm:4.62.5":
   version: 4.62.5
   resolution: "@rollup/rollup-android-arm-eabi@npm:4.62.5"
@@ -4187,6 +4336,13 @@ __metadata:
   dependencies:
     "@swc/counter": "npm:^0.1.3"
   checksum: 10/9cd2b13a640c36d28235a30567dc38330e01dc54ba0ca6ff4000fc56f0be27252b91c3df4989a9ef019b9df9eb722e73fb273913675f8b891428981fb9cc9a0f
+  languageName: node
+  linkType: hard
+
+"@tabler/icons@npm:3.49.0":
+  version: 3.49.0
+  resolution: "@tabler/icons@npm:3.49.0"
+  checksum: 10/b4b973d497997c98abbc7947569f1705cdf3886ce83f2dbf77b7fcaf1f4b42154264075e96feb2b376d1a1035f1925ad0d9efb0f2dd3743c9eff8f62e42c492b
   languageName: node
   linkType: hard
 
@@ -7484,7 +7640,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"css-tree@npm:^3.0.1, css-tree@npm:^3.1.0":
+"css-tree@npm:^3.0.1, css-tree@npm:^3.1.0, css-tree@npm:^3.2.1":
   version: 3.2.1
   resolution: "css-tree@npm:3.2.1"
   dependencies:
@@ -7637,6 +7793,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"cubic2quad@npm:^1.2.1":
+  version: 1.2.1
+  resolution: "cubic2quad@npm:1.2.1"
+  checksum: 10/a8a613d7e6566dbd21935b236801cfd26fc09095c21c89351629c8620d244e2aa61c9bf6ddc75edf3c2e2e453fd574592a0076db93374b9d7797eaba73bd3624
+  languageName: node
+  linkType: hard
+
 "currently-unhandled@npm:^0.4.1":
   version: 0.4.1
   resolution: "currently-unhandled@npm:0.4.1"
@@ -7706,6 +7869,16 @@ __metadata:
   version: 0.1.4
   resolution: "deep-is@npm:0.1.4"
   checksum: 10/ec12d074aef5ae5e81fa470b9317c313142c9e8e2afe3f8efa124db309720db96d1d222b82b84c834e5f87e7a614b44a4684b6683583118b87c833b3be40d4d8
+  languageName: node
+  linkType: hard
+
+"deep-rename-keys@npm:^0.2.1":
+  version: 0.2.1
+  resolution: "deep-rename-keys@npm:0.2.1"
+  dependencies:
+    kind-of: "npm:^3.0.2"
+    rename-keys: "npm:^1.1.2"
+  checksum: 10/1a8533e8a1f886e85e06e60ae33c2e68c913d5633c02a7575cb26b067e65aba17267b2a59550c7aeb84a4a949971204b9c647452815c600a80c11f4d5c55b5ec
   languageName: node
   linkType: hard
 
@@ -8768,6 +8941,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"eventemitter3@npm:^2.0.0":
+  version: 2.0.3
+  resolution: "eventemitter3@npm:2.0.3"
+  checksum: 10/828903ea7e5115f1870d3d28508c42c9a93f9bc7ce37a46764f9d055ab3172ec0321cba07948c1eea30c3a64008455de0f92057a404889ec3a2556bbf151d8ff
+  languageName: node
+  linkType: hard
+
 "eventemitter3@npm:^4.0.0":
   version: 4.0.7
   resolution: "eventemitter3@npm:4.0.7"
@@ -8929,7 +9109,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fflate@npm:^0.8.0":
+"fflate@npm:^0.8.0, fflate@npm:^0.8.3":
   version: 0.8.3
   resolution: "fflate@npm:0.8.3"
   checksum: 10/6ebf528dc9c56e78e715eac615b009b25dc33e15c1920b11ebba44e6d76181c647756a81a23e19247907496b93aa99928514c53090579a65109e026ac2824aa7
@@ -10400,6 +10580,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"kind-of@npm:^3.0.2":
+  version: 3.2.2
+  resolution: "kind-of@npm:3.2.2"
+  dependencies:
+    is-buffer: "npm:^1.1.5"
+  checksum: 10/b6e7eed10f9dea498500e73129c9bf289bc417568658648aecfc2e104aa32683b908e5d349563fc78d6752da0ea60c9ed1dda4b24dd85a0c8fc0c7376dc0acac
+  languageName: node
+  linkType: hard
+
 "kind-of@npm:^6.0.2, kind-of@npm:^6.0.3":
   version: 6.0.3
   resolution: "kind-of@npm:6.0.3"
@@ -10971,6 +11160,13 @@ __metadata:
   version: 1.1.2
   resolution: "methods@npm:1.1.2"
   checksum: 10/a385dd974faa34b5dd021b2bbf78c722881bf6f003bfe6d391d7da3ea1ed625d1ff10ddd13c57531f628b3e785be38d3eed10ad03cebd90b76932413df9a1820
+  languageName: node
+  linkType: hard
+
+"microbuffer@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "microbuffer@npm:1.0.0"
+  checksum: 10/1c18d7fd9f0e7553f91ae19b5a21694ca16c84fa21da91f61bf688f86b07447f584bb145bf1c4c0fe2037d9aa9c1f9bb44827063d49987a31bdca44619e02eb8
   languageName: node
   linkType: hard
 
@@ -11683,7 +11879,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pako@npm:^1.0.1":
+"pako@npm:^1.0.0, pako@npm:^1.0.1":
   version: 1.0.11
   resolution: "pako@npm:1.0.11"
   checksum: 10/1ad07210e894472685564c4d39a08717e84c2a68a70d3c1d9e657d32394ef1670e22972a433cbfe48976cb98b154ba06855dcd3fcfba77f60f1777634bec48c0
@@ -11694,6 +11890,20 @@ __metadata:
   version: 2.2.0
   resolution: "pako@npm:2.2.0"
   checksum: 10/4311a3d5fa32d146d4fd926e8b0af43f9d4713034ac53fce78445065893f541da4435b1e77290a49fd80dd49f82163230fc6ccad39530c844d8c6caf3d21848d
+  languageName: node
+  linkType: hard
+
+"paper@npm:^0.12.18":
+  version: 0.12.18
+  resolution: "paper@npm:0.12.18"
+  checksum: 10/b0d55b48b603454f76614e0750b9a5ab200cef4f7dac891a29a54a58d27c302d2aef8e5faacc33117d5e842c86f33258d29057aa85ffef8d76632c7ea41bedcd
+  languageName: node
+  linkType: hard
+
+"paperjs-offset@npm:^2.2.1":
+  version: 2.2.1
+  resolution: "paperjs-offset@npm:2.2.1"
+  checksum: 10/ed0601cc5e4ff6348c5f3d93761fbda5dca68c5192dca7ac107f2d931f5edfa78332145d11257a0e7f1b087484f4aab8a329a2db857284c8b75db134fcaa4451
   languageName: node
   linkType: hard
 
@@ -13125,6 +13335,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"rename-keys@npm:^1.1.2":
+  version: 1.2.0
+  resolution: "rename-keys@npm:1.2.0"
+  checksum: 10/c1cfe6225231b6cc48b9709e7271b7261664692b0318633d57e68ec0432c5694fc8458ecc291bc38345654034e1540979e1532f6f2d1b276b2c76b641b0aef6f
+  languageName: node
+  linkType: hard
+
 "renderkid@npm:^3.0.0":
   version: 3.0.0
   resolution: "renderkid@npm:3.0.0"
@@ -13381,6 +13598,7 @@ __metadata:
     "@akylas/nativescript-inappbrowser": "npm:3.1.8"
     "@akylas/nativescript-ios-runtime": "npm:9.0.3"
     "@akylas/nativescript-webpack": "npm:5.0.35"
+    "@iconotype/cli": "npm:0.3.0"
     "@mapbox/to-color": "npm:2.3.0"
     "@mdi/font": "npm:7.4.47"
     "@nativescript-community/css-theme": "npm:1.2.14"
@@ -13429,7 +13647,9 @@ __metadata:
     "@nativescript/core": "npm:~9.0.20"
     "@nativescript/ios": "npm:9.1.0"
     "@nativescript/iqkeyboardmanager": "npm:2.1.2"
+    "@resvg/resvg-js": "npm:2.6.2"
     "@swc/core": "npm:1.13.5"
+    "@tabler/icons": "npm:3.49.0"
     "@types/geojson": "npm:^7946.0.16"
     "@types/polygon-lookup": "npm:^2.6.6"
     "@types/suncalc": "npm:^1.9.2"
@@ -14477,6 +14697,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"svg2ttf@npm:^6.1.0":
+  version: 6.1.0
+  resolution: "svg2ttf@npm:6.1.0"
+  dependencies:
+    "@xmldom/xmldom": "npm:^0.9.10"
+    argparse: "npm:^2.0.1"
+    cubic2quad: "npm:^1.2.1"
+    lodash: "npm:^4.17.10"
+    microbuffer: "npm:^1.0.0"
+    svgpath: "npm:^2.1.5"
+  bin:
+    svg2ttf: svg2ttf.js
+  checksum: 10/95360eadb8fccf5b601486bbb00d85d36458fa032ebd70f06b2af51a02a4ae361d9a839a3f59ad55e48015424f1adc658d3ac3d99576ea3a39a5f3c35b26327d
+  languageName: node
+  linkType: hard
+
 "svgo@npm:^4.0.1":
   version: 4.0.2
   resolution: "svgo@npm:4.0.2"
@@ -14491,6 +14727,23 @@ __metadata:
   bin:
     svgo: ./bin/svgo.js
   checksum: 10/35e2015f98ff63ce72c3a1143d4aa4d8d1878639bad2c86063e1ada3b20354e4702f99854ee6b9211234a10134e551690e86ed6f26f4702a073741d4c871f5a6
+  languageName: node
+  linkType: hard
+
+"svgpath@npm:^2.1.5, svgpath@npm:^2.6.0":
+  version: 2.6.0
+  resolution: "svgpath@npm:2.6.0"
+  checksum: 10/88533d11fe44eae7db3751def85f72687554bf60224e7e8fd7cd40564c3c58cb93cf6f32470cb28a2fc29b4ba43273c478f0461f9be07f7233454740ee117873
+  languageName: node
+  linkType: hard
+
+"svgson@npm:^5.3.1":
+  version: 5.3.1
+  resolution: "svgson@npm:5.3.1"
+  dependencies:
+    deep-rename-keys: "npm:^0.2.1"
+    xml-reader: "npm:2.4.3"
+  checksum: 10/c0affdf54c5784ee9d24c59b4364cdaee1eee1a22730002ccbf01ad89eb0a34ce23155b4618ed9e62b738836309ec883e642f02f6a8f74d30c9e9bb99fc7a0b8
   languageName: node
   linkType: hard
 
@@ -14945,6 +15198,18 @@ __metadata:
   bin:
     tsx: dist/cli.mjs
   checksum: 10/167a5571cb211aff257d200cd75a1003b1e0e59d641c1e6ff99f6cdfada46ff6ce311e105722699b4763feb1371b2d8084bcc413c7e54aae3761c852817dc0b0
+  languageName: node
+  linkType: hard
+
+"ttf2woff@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "ttf2woff@npm:3.0.0"
+  dependencies:
+    argparse: "npm:^2.0.1"
+    pako: "npm:^1.0.0"
+  bin:
+    ttf2woff: ttf2woff.js
+  checksum: 10/c8fca24616e1d4356c4141c7ec2e3d7f839185b7b6f3baf0bfb13f2eebba64e5ab3620f9f882161ac71e7c36980a70c6fc2548599ea2f66876e5947acaf65765
   languageName: node
   linkType: hard
 
@@ -15921,6 +16186,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"woff2-encoder@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "woff2-encoder@npm:2.0.0"
+  checksum: 10/78303d66181e866be41feb92df396c0b89805d8879e66bd2eaae51b09a577b12c9dddab7c5d7320243bf6dd5c4db8c28297c8bf6f3321d251836d254a21ddb07
+  languageName: node
+  linkType: hard
+
 "word-wrap@npm:^1.2.5":
   version: 1.2.5
   resolution: "word-wrap@npm:1.2.5"
@@ -15993,6 +16265,25 @@ __metadata:
   dependencies:
     is-wsl: "npm:^3.1.0"
   checksum: 10/de4c92187e04c3c27b4478f410a02e81c351dc85efa3447bf1666f34fc80baacd890a6698ec91995631714086992036013286aea3d77e6974020d40a08e00aec
+  languageName: node
+  linkType: hard
+
+"xml-lexer@npm:^0.2.2":
+  version: 0.2.2
+  resolution: "xml-lexer@npm:0.2.2"
+  dependencies:
+    eventemitter3: "npm:^2.0.0"
+  checksum: 10/12b27c6426a2fcc5d00da0d523e1ebbf77bc3acbaa0b96042626734b165ba026f2ac4c59273fab7f6f2f0db792bc63fb1ee3200de2009e813f2f25f6f122d85f
+  languageName: node
+  linkType: hard
+
+"xml-reader@npm:2.4.3":
+  version: 2.4.3
+  resolution: "xml-reader@npm:2.4.3"
+  dependencies:
+    eventemitter3: "npm:^2.0.0"
+    xml-lexer: "npm:^0.2.2"
+  checksum: 10/50750dbcc2e4a608c2abb678eacc62594f8ffe115f1ca3a0f3ee685bd6d9a7b8622a8ea3d4bf6cfb4756cea0fec594c327ee62dc64cbd74a64b605c7e8e5109e
   languageName: node
   linkType: hard
 
