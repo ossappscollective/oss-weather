@@ -166,6 +166,17 @@ $modernFontFamily: Inter !default;
         width: 34;
         color: var(--colorOnSurface);
     }
+    // slider and switch rows of popovers (SettingsSlider, OptionSelect modernSwitch)
+    .modernSliderRow {
+        padding: 12 14 4 14;
+    }
+    .modernSwitchRow {
+        padding: 10 14;
+    }
+    // multi choice rows (OptionSelect modernCheck): the checkbox touch target gives the height
+    .modernCheckRow {
+        padding: 4 20;
+    }
     // single choice dialog rows (OptionSelect modernChoice)
     .modernChoiceRow {
         padding: 16 20;

@@ -1,6 +1,7 @@
 <script context="module" lang="ts">
     import { Canvas, CanvasView, Paint } from '@nativescript-community/ui-canvas';
     import { conditionalEvent, createEventDispatcher } from '@shared/utils/svelte/ui';
+    import { Color } from '@nativescript/core';
     import { colors, designStyle, fontScale } from '~/variables';
     import type { IListItem } from './OptionSelect.svelte';
     const linePaint = new Paint();
@@ -13,7 +14,9 @@
     let { colorOnSurface, colorOnSurfaceVariant, colorOutlineVariant, colorPrimary } = $colors;
     $: ({ colorOnSurface, colorOnSurfaceVariant, colorOutlineVariant, colorPrimary } = $colors);
 
-    $: linePaint.color = colorOutlineVariant;
+    // modern: lighter full width separators
+    $: modern = $designStyle === 'modern';
+    $: linePaint.color = modern ? new Color(colorOnSurface).setAlpha(30).hex : colorOutlineVariant;
     export let showBottomLine: boolean = false;
     // export let iconFontSize: number = 24;
     export let item: IListItem;
@@ -32,7 +35,7 @@
         const w = canvas.getWidth();
 
         if (item.showBottomLine || showBottomLine) {
-            event.canvas.drawLine(20, h - 1, w, h - 1, linePaint);
+            event.canvas.drawLine(modern ? 0 : 20, h - 1, w, h - 1, linePaint);
         }
         // if (leftIcon) {
         //     const fontSize = iconFontSize * $fontScale;

@@ -1,5 +1,6 @@
 import { restartApp } from '@akylas/nativescript-app-utils';
-import { MDCAlertControlerOptions, alert, confirm } from '@nativescript-community/ui-material-dialogs';
+import { MDCAlertControlerOptions } from '@nativescript-community/ui-material-dialogs';
+import { alert, confirm } from './dialogs';
 import { HorizontalPosition, PopoverOptions, VerticalPosition } from '@nativescript-community/ui-popover';
 import { closePopover, showPopover } from '@nativescript-community/ui-popover/svelte';
 import { AlertOptions, Application, GridLayout, View } from '@nativescript/core';
@@ -12,6 +13,7 @@ import type OptionSelect__SvelteComponent_ from '~/components/common/OptionSelec
 import { ALERT_OPTION_MAX_HEIGHT } from '~/helpers/constants';
 import { l, lc } from '~/helpers/locale';
 import { colors, designStyle, fontScale, screenWidthDips } from '~/variables';
+import { modernColors } from '~/helpers/modernTheme';
 
 export * from '@shared/utils/ui';
 
@@ -57,23 +59,28 @@ export async function showPopoverMenu<T = any>({
     props,
     vertPos
 }: { options; anchor; onClose?; onCheckBox?; onLongPress?; props?; closeOnClose?; onChange? } & Partial<PopoverOptions>) {
-    const { colorSurfaceContainer } = get(colors);
+    const { colorOutlineVariant, colorSurfaceContainer } = get(colors);
+    const { colorModernHairlineStrong, colorModernSurface } = get(modernColors);
     const OptionSelect = (await import('~/components/common/OptionSelect.svelte')).default;
-    // modern: rounder, a bit wider, denser rows
+    // modern: surface colored with a hairline border instead of a shadow, rounder, a bit wider, denser rows
     const modern = get(designStyle) === 'modern';
+    const backgroundColor = modern ? colorModernSurface : colorSurfaceContainer;
     const rowHeight = (props?.rowHeight ?? (modern ? 50 : 58)) * get(fontScale);
     const result: T = await showPopover({
-        backgroundColor: colorSurfaceContainer,
+        backgroundColor,
         view: OptionSelect,
         anchor,
         horizPos: horizPos ?? HorizontalPosition.ALIGN_LEFT,
         vertPos: vertPos ?? VerticalPosition.CENTER,
         props: {
             borderRadius: modern ? 14 : 10,
-            elevation: __IOS__ ? 0 : 3,
+            elevation: __IOS__ || modern ? 0 : 3,
+            borderWidth: modern ? 1 : 0,
+            borderColor: modern ? colorModernHairlineStrong : colorOutlineVariant,
+            isMenu: true,
             margin: 4,
             fontWeight: 500,
-            backgroundColor: colorSurfaceContainer,
+            backgroundColor,
             containerColumns: 'auto',
             rowHeight: !!props?.autoSizeListItem ? null : rowHeight,
             height: props.height !== 'auto' && props?.autoSizeListItem !== true ? Math.min(rowHeight * options.length, props?.maxHeight || 400) : undefined,

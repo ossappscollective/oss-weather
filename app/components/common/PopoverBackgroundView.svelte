@@ -9,7 +9,8 @@
     export let backgroundColor = colorSurfaceContainer;
 </script>
 
-<gesturerootview columns="auto" rows="auto">
+<!-- popovers are separate root views: they do not inherit the root font -->
+<gesturerootview class={$designStyle === 'modern' ? 'ns-modern' : ''} columns="auto" rows="auto">
     <gridlayout {backgroundColor} borderRadius={$designStyle === 'modern' ? 16 : 10} elevation={4} margin={4} padding={$designStyle === 'modern' ? '4 14 4 14' : '0 10 0 10'} {...$$restProps}>
         <slot />
     </gridlayout>

@@ -8,7 +8,7 @@ import PolygonLookup from 'polygon-lookup';
 import { AqiProviderType, MarineProviderType, ProviderType } from '~/services/providers/weather';
 import { SETTINGS_FAVORITES } from './constants';
 import { OpenMeteoModels } from '~/services/providers/om';
-import { confirm } from '@nativescript-community/ui-material-dialogs';
+import { confirm } from '~/utils/ui/dialogs';
 import { l, lc } from '@nativescript-community/l';
 
 export const EVENT_FAVORITE = 'favorite';

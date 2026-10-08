@@ -158,30 +158,37 @@
     }
 </script>
 
-<gesturerootview columns="auto" rows="auto" {...$$restProps} on:tap>
+<!-- popovers are separate root views: the ns-modern class brings the modern css (font, modernPopover) -->
+<gesturerootview class={modernStyle ? 'ns-modern' : ''} columns="auto" rows="auto" {...$$restProps} on:tap>
+    {#if modernStyle}
+        <gridlayout
+            class="modernPopover"
+            columns={`${100 * $fontScale},${50 * $fontScale}`}
+            {isUserInteractionEnabled}
+            rows={`auto,auto,${height}`}
+            on:tap={() => closePopover()}>
+            <WeatherIcon {animated} col={1} iconData={[item.iconId, item.isDay]} {isUserInteractionEnabled} verticalAlignment="top" />
+            <label class="modernTitle modernStrong" colSpan={2} text={formatTime(item.time, 'LT', item.timezoneOffset)} />
+            <label class="modernSubtitle" colSpan={2} marginBottom={8} row={1} text={formatTime(item.time, 'ddd D', item.timezoneOffset) + ' · ' + item.description} textWrap={true} />
+            <canvasView bind:this={canvas} colSpan={2} row={2} on:draw={onDraw} />
+        </gridlayout>
+    {:else}
     <gridlayout
         backgroundColor={new Color(colorBackground).setAlpha(240).hex}
-        borderColor={modernStyle ? colorOutlineVariant : colorOutline}
-        borderRadius={modernStyle ? 12 : __IOS__ ? 14 : 8}
+        borderColor={colorOutline}
+        borderRadius={__IOS__ ? 14 : 8}
         borderWidth={1}
         columns={`${100 * $fontScale},${50 * $fontScale}`}
         {isUserInteractionEnabled}
-        padding={modernStyle ? 10 : 5}
+        padding={5}
         rows={`auto,auto,${height}`}
         on:tap={() => closePopover()}>
         <WeatherIcon {animated} col={1} iconData={[item.iconId, item.isDay]} {isUserInteractionEnabled} verticalAlignment="top" />
-        {#if modernStyle}
-            <label colSpan={2}>
-                <cspan color={colorOnSurface} fontSize={15 * $fontScale} fontWeight="bold" text={formatTime(item.time, 'LT', item.timezoneOffset) + ' '} />
-                <cspan color={colorOnSurfaceVariant} fontSize={12 * $fontScale} text={formatTime(item.time, 'DD/MM', item.timezoneOffset)} />
-            </label>
-            <label colSpan={2} color={colorOnSurfaceVariant} fontSize={13 * $fontScale} marginBottom={8} row={1} text={item.description} />
-        {:else}
-            <label colSpan={2} fontSize={14 * $fontScale} fontWeight="bold" text={formatTime(item.time, 'LT', item.timezoneOffset) + '\n' + formatTime(item.time, 'DD/MM', item.timezoneOffset)} />
-            <label colSpan={2} fontSize={14 * $fontScale} marginBottom={10} row={1} text={item.description} />
-        {/if}
+        <label colSpan={2} fontSize={14 * $fontScale} fontWeight="bold" text={formatTime(item.time, 'LT', item.timezoneOffset) + '\n' + formatTime(item.time, 'DD/MM', item.timezoneOffset)} />
+        <label colSpan={2} fontSize={14 * $fontScale} marginBottom={10} row={1} text={item.description} />
         <!-- <label lineHeight={18 * $fontScale} row={1} text={iconsNativeString} textAlignment="center" verticalTextAlignment="center" /> -->
         <!-- <label col={1} lineHeight={18 * $fontScale} row={1} text={textNativeString} /> -->
         <canvasView bind:this={canvas} colSpan={2} row={2} on:draw={onDraw} />
     </gridlayout>
+    {/if}
 </gesturerootview>

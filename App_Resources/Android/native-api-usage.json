@@ -6,6 +6,8 @@
         "android.view:View.OnApplyWindowInsetsListener",
         "android.view:WindowInsets",
         "android.graphics:Insets",
+        "android.graphics.drawable:GradientDrawable",
+        "android.graphics.drawable:InsetDrawable",
         "androidx.core.widget:NestedScrollView",
         "androidx.appcompat.app:AppCompatDelegate",
         "android.widget:Toast",

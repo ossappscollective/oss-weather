@@ -2,7 +2,8 @@
 
 <script context="module" lang="ts">
     import { Paint } from '@nativescript-community/ui-canvas';
-    import { colors, fonts } from '~/variables';
+    import { colors, designStyle, fonts } from '~/variables';
+    import { styleModernSlider } from '~/utils/ui/modernSlider';
 </script>
 
 <script lang="ts">
@@ -68,33 +69,44 @@
     // }
 </script>
 
-<gridlayout {...$$restProps} columns="auto,*,auto" padding="10 10 10 10" rows="auto,auto,auto">
-    <!-- <canvasview bind:this={canvas} on:draw={onDraw} /> -->
+<!-- modern: icon, title and value on one line, a thin accent slider below (colors from app/_modern.scss) -->
+{#if $designStyle === 'modern'}
+    <gridlayout {...$$restProps} class="modernSliderRow" columns="auto,*,auto" rows="auto,auto,auto">
+        <label class="modernMenuIcon" text={icon} verticalAlignment="center" visibility={icon ? 'visible' : 'collapse'} />
+        <label class="modernMenuTitle" col={1} text={title} textWrap={true} verticalAlignment="center" />
+        <label class="modernSubtitle" col={1} row={1} text={subtitle} visibility={subtitle && subtitle.length > 0 ? 'visible' : 'collapse'} />
+        <label class="modernMenuTitle modernStrong" col={2} marginLeft={8} text={valueFormatter(actualValue)} verticalAlignment="center" />
+        <slider colSpan={3} maxValue={max} minValue={min} row={2} android:stepSize={step} value={actualValue} on:loaded={styleModernSlider} on:valueChange={onValueChange} />
+    </gridlayout>
+{:else}
+    <gridlayout {...$$restProps} columns="auto,*,auto" padding="10 10 10 10" rows="auto,auto,auto">
+        <!-- <canvasview bind:this={canvas} on:draw={onDraw} /> -->
 
-    <label color={colorOnSurface} fontFamily={$fonts.mdi} fontSize={24} text={icon} verticalTextAlignment="center" visibility={icon ? 'visible' : 'collapse'} />
-    <label col={1} color={colorOnSurface} fontSize={15} paddingLeft={10} text={title} textWrap={true} verticalTextAlignment="center" />
-    <label
-        col={1}
-        color={colorOnSurfaceVariant}
-        fontSize={14}
-        paddingLeft={10}
-        row={1}
-        text={subtitle}
-        verticalTextAlignment="center"
-        visibility={subtitle && subtitle.length > 0 ? 'visible' : 'collapse'} />
-    <label col={2} color={colorOnSurface} fontSize={15} text={valueFormatter(actualValue)} textAlignment="right" verticalTextAlignment="center" ios:margin={4} />
-    <label col={2} color={colorOnSurface} fontSize={15} row={2} text={formatter(max)} textAlignment="right" verticalTextAlignment="center" />
-    <label color={colorOnSurface} fontSize={15} row={2} text={formatter(min)} verticalTextAlignment="center" />
-    <slider
-        col={1}
-        color={actualValue === defaultValue ? colorSecondary : colorPrimary}
-        maxValue={max}
-        minValue={min}
-        row={2}
-        android:stepSize={step}
-        ios:margin={10}
-        trackBackgroundColor="#aaaaaa88"
-        value={actualValue}
-        verticalAlignment="bottom"
-        on:valueChange={onValueChange} />
-</gridlayout>
+        <label color={colorOnSurface} fontFamily={$fonts.mdi} fontSize={24} text={icon} verticalTextAlignment="center" visibility={icon ? 'visible' : 'collapse'} />
+        <label col={1} color={colorOnSurface} fontSize={15} paddingLeft={10} text={title} textWrap={true} verticalTextAlignment="center" />
+        <label
+            col={1}
+            color={colorOnSurfaceVariant}
+            fontSize={14}
+            paddingLeft={10}
+            row={1}
+            text={subtitle}
+            verticalTextAlignment="center"
+            visibility={subtitle && subtitle.length > 0 ? 'visible' : 'collapse'} />
+        <label col={2} color={colorOnSurface} fontSize={15} text={valueFormatter(actualValue)} textAlignment="right" verticalTextAlignment="center" ios:margin={4} />
+        <label col={2} color={colorOnSurface} fontSize={15} row={2} text={formatter(max)} textAlignment="right" verticalTextAlignment="center" />
+        <label color={colorOnSurface} fontSize={15} row={2} text={formatter(min)} verticalTextAlignment="center" />
+        <slider
+            col={1}
+            color={actualValue === defaultValue ? colorSecondary : colorPrimary}
+            maxValue={max}
+            minValue={min}
+            row={2}
+            android:stepSize={step}
+            ios:margin={10}
+            trackBackgroundColor="#aaaaaa88"
+            value={actualValue}
+            verticalAlignment="bottom"
+            on:valueChange={onValueChange} />
+    </gridlayout>
+{/if}

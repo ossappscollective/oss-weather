@@ -1,8 +1,10 @@
 <script context="module" lang="ts">
     import { Canvas, CanvasView } from '@nativescript-community/ui-canvas';
     import { conditionalEvent } from '@shared/utils/svelte/ui';
-    import { colors, fontScale, fonts } from '~/variables';
+    import { Color } from '@nativescript/core';
+    import { colors, designStyle, fontScale, fonts } from '~/variables';
     import { IListItem } from './OptionSelect.svelte';
+    import { textFontFamily } from '~/utils/designStyle';
 </script>
 
 <script lang="ts">
@@ -22,6 +24,10 @@
     export let subtitleColor: string | Color = null;
     export let item: IListItem;
     export let onDraw: (event: { canvas: Canvas; object: CanvasView }) => void = null;
+    // modern: popovers do not inherit the root font, set it; a group starts with a light full width line
+    $: modern = $designStyle === 'modern';
+    $: fontFamily = textFontFamily($designStyle);
+    $: groupLineColor = new Color(colorOnSurface).setAlpha(30).hex;
 </script>
 
 <canvasview
@@ -31,9 +37,16 @@
     on:tap
     use:conditionalEvent={{ condition: !!(item.onLongPress || onLongPress), event: 'longPress', callback: item.onLongPress || onLongPress }}
     {...$$restProps}>
-    <canvaslabel col={mainCol} color={item.color || color || colorOnSurface} on:draw={onDraw}>
+    <canvaslabel col={mainCol} color={item.color || color || colorOnSurface} {fontFamily} on:draw={onDraw}>
         <cgroup paddingBottom={item.subtitle ? 10 : 0} verticalAlignment="middle">
-            <cspan fontFamily={leftIconFonFamily} fontSize={iconFontSize * $fontScale} paddingLeft="8" text={item.icon} visibility={item.icon ? 'visible' : 'hidden'} width={iconFontSize * 2} />
+            <cspan
+                color={item.iconColor}
+                fontFamily={leftIconFonFamily}
+                fontSize={iconFontSize * $fontScale}
+                paddingLeft="8"
+                text={item.icon}
+                visibility={item.icon ? 'visible' : 'hidden'}
+                width={iconFontSize * 2} />
         </cgroup>
         <cgroup paddingLeft={(item.icon ? 38 * $fontScale : 0) + extraPaddingLeft} textAlignment="left" verticalAlignment="middle">
             <cspan fontSize={(item.fontSize || fontSize) * $fontScale} {fontWeight} text={item.title || item.name} />
@@ -43,8 +56,19 @@
                 text={item.subtitle ? '\n' + item.subtitle : ''}
                 visibility={item.subtitle ? 'visible' : 'hidden'} />
         </cgroup>
+        {#if item.rightValue}
+            <cspan
+                color={colorOnSurfaceVariant}
+                fontSize={13 * $fontScale}
+                text={typeof item.rightValue === 'function' ? item.rightValue() : item.rightValue}
+                textAlignment="right"
+                verticalAlignment="middle" />
+        {/if}
     </canvaslabel>
     <slot />
+    {#if modern && item.groupStart}
+        <line color={groupLineColor} height="1" startX="0" startY="0" stopX="100%" stopY="0" strokeWidth="1" verticalAlignment="top" />
+    {/if}
     {#if showBottomLine}
         <line color={colorOutlineVariant} height="1" startX="20" startY="0" stopX="100%" stopY="0" strokeWidth="1" verticalAlignment="bottom" />
     {/if}

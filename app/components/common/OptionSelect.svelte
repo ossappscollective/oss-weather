@@ -15,6 +15,7 @@
     import SettingsSlider from '~/components/settings/SettingsSlider.svelte';
     import { lc } from '~/helpers/locale';
     import { accentFontWeight, colors, designStyle, fontScale, fonts } from '~/variables';
+    import { styleModernSwitch } from '~/utils/ui/modernSwitch';
     import { Canvas, CanvasView } from '@nativescript-community/ui-canvas';
 
     export interface IListItem {
@@ -22,6 +23,9 @@
         iconFontSize?: number;
         subtitleFontSize?: number;
         rightValue?: string | (() => string);
+        // modern popover menus: first item of a group, drawn with a separator above
+        groupStart?: boolean;
+        iconColor?: string | Color;
         rightValueFontSize?: number;
         fontSize?: number;
         html?: any;
@@ -89,7 +93,9 @@
     // modern: regular row titles separated by hairlines, the title in the accent weight
     $: modern = $designStyle === 'modern';
     $: rowFontWeight = modern ? 'normal' : fontWeight;
-    $: rowBorders = modern || showBorders;
+    // popover menus only separate their groups (item.groupStart), dialog and sheet lists separate all rows
+    export let isMenu = false;
+    $: rowBorders = (modern && !isMenu) || showBorders;
 
     function updateFiltered(filter) {
         if (filter) {
@@ -136,7 +142,8 @@
             }
         } else if (item.type === 'checkbox' || item.type === 'switch') {
             // we dont want duplicate events so let s timeout and see if we clicking diretly on the checkbox
-            const checkboxView: CheckBox = ((event.object as View).parent as View).getViewById('checkbox');
+            // the modernSwitch row holds its switch, list items are wrapped
+            const checkboxView: CheckBox = (event.object as View).getViewById('checkbox') || ((event.object as View).parent as View).getViewById('checkbox');
             clearCheckboxTimer();
             checkboxTapTimer = setTimeout(() => {
                 checkboxView.checked = !checkboxView.checked;
@@ -201,7 +208,26 @@
         Utils.dismissSoftInput();
     }
 
+    // modern popover menus: icon, title and value chip rows separated by full width lines (app/_modern.scss)
+    function modernMenuRowClass(item: OptionType) {
+        const index = filteredOptions.indexOf(item);
+        return 'modernMenuRow' + (index === 0 ? ' modernMenuFirst' : item.groupStart ? ' modernMenuGroupStart' : '');
+    }
     function itemTemplateSelector(item) {
+        if (modern && isMenu && (!item.type || item.type === 'lefticon')) {
+            return 'modernMenu';
+        }
+        if (modern && isMenu && item.type === 'switch') {
+            return 'modernSwitch';
+        }
+        // modern single choice (selectValue): circle / circle-check rows, a tap picks the option
+        if (modern && item.type === 'checkbox' && item.boxType === 'circle' && !onlyOneSelected) {
+            return 'modernChoice';
+        }
+        // modern multi choice: icon, title and a square check on the right
+        if (modern && item.type === 'checkbox' && item.boxType !== 'circle') {
+            return 'modernCheck';
+        }
         if (item.type) {
             return item.type;
         }
@@ -225,7 +251,8 @@
     }
 </script>
 
-<gesturerootview columns={containerColumns} rows="auto">
+<!-- popovers and dialogs are separate root views: they do not inherit the root font -->
+<gesturerootview class={modern ? 'ns-modern' : ''} columns={containerColumns} rows="auto">
     <gridlayout {backgroundColor} {borderRadius} columns={`${width}`} {height} rows="auto,auto,*" {...$$restProps}>
         {#if title}
             {#if modern}
@@ -316,7 +343,7 @@
                     {...templateProps}
                     onLongPress={onLongPress ? (e) => onLongPress(item, e) : null}
                     on:tap={(event) => onTap(item, event)}>
-                    <switch id="checkbox" checked={item.value} col={1} marginLeft={10} on:checkedChange={(e) => onCheckedChanged(item, e)} />
+                    <switch id="checkbox" checked={item.value} col={1} marginLeft={10} on:loaded={styleModernSwitch} on:checkedChange={(e) => onCheckedChanged(item, e)} />
                 </svelte:component>
             </Template>
             <Template key="righticon" let:item>
@@ -413,6 +440,66 @@
                         on:checkedChange={(e) => onCheckedChanged(item, e)} />
                     <image borderRadius={4} col={2} marginBottom={5} marginRight={10 + (item.imageMargin ?? 0)} marginTop={5} src={item.image} stretch="aspectFit" width={item.imageWidth ?? 50} />
                 </svelte:component>
+            </Template>
+            <Template key="modernMenu" let:item>
+                <gridlayout class={modernMenuRowClass(item)} columns="auto,*,auto" rippleColor={colorOnSurface} on:tap={(event) => onTap(item, event)}>
+                    <!-- text icons ("mb") have an iconFontSize: drawn smaller -->
+                    <label
+                        class={item.iconFontSize ? 'modernMenuIcon modernMenuIconText' : 'modernMenuIcon'}
+                        color={item.iconColor || item.color}
+                        fontFamily={item.iconFontFamily || $fonts.mdi}
+                        text={item.icon}
+                        verticalAlignment="center"
+                        visibility={item.icon ? 'visible' : 'collapse'} />
+                    <stacklayout col={1} verticalAlignment="center">
+                        <label class="modernMenuTitle modernEllipsis" color={item.color} text={item.title || item.name} />
+                        <label class="modernSubtitle modernEllipsis" text={item.subtitle} visibility={item.subtitle ? 'visible' : 'collapse'} />
+                    </stacklayout>
+                    <label
+                        class="modernChip"
+                        col={2}
+                        marginLeft={8}
+                        text={typeof item.rightValue === 'function' ? item.rightValue() : item.rightValue}
+                        verticalAlignment="center"
+                        visibility={item.rightValue ? 'visible' : 'collapse'} />
+                </gridlayout>
+            </Template>
+            <Template key="modernChoice" let:item>
+                <!-- popover menus have a fixed row height: no dialog padding -->
+                <gridlayout class={modernMenuRowClass(item) + (isMenu ? '' : ' modernChoiceRow')} columns="auto,*,auto" rippleColor={colorOnSurface} on:tap={(event) => onCheckBox?.(item, true, event)}>
+                    <label
+                        class={item.value ? 'modernMenuIcon modernChoiceIconSelected' : 'modernMenuIcon modernChoiceIcon'}
+                        text={item.value ? 'mdi-check-circle-outline' : 'mdi-circle-outline'}
+                        verticalAlignment="center" />
+                    <stacklayout col={1} verticalAlignment="center">
+                        <label class={item.value ? 'modernMenuTitle modernStrong' : 'modernMenuTitle'} text={item.title || item.name} textWrap={true} />
+                        <label class="modernSubtitle" text={item.subtitle} textWrap={true} visibility={item.subtitle ? 'visible' : 'collapse'} />
+                    </stacklayout>
+                    <label
+                        class="modernChip"
+                        col={2}
+                        marginLeft={8}
+                        text={typeof item.rightValue === 'function' ? item.rightValue() : item.rightValue}
+                        verticalAlignment="center"
+                        visibility={item.rightValue ? 'visible' : 'collapse'} />
+                </gridlayout>
+            </Template>
+            <Template key="modernCheck" let:item>
+                <gridlayout class={modernMenuRowClass(item) + ' modernCheckRow'} columns="auto,*,auto" rippleColor={colorOnSurface} on:tap={(event) => onTap(item, event)}>
+                    <label class="modernMenuIcon" color={item.iconColor || item.color} text={item.icon} verticalAlignment="center" visibility={item.icon ? 'visible' : 'collapse'} />
+                    <stacklayout col={1} verticalAlignment="center">
+                        <label class="modernMenuTitle" text={item.title || item.name} textWrap={true} />
+                        <label class="modernSubtitle" text={item.subtitle} textWrap={true} visibility={item.subtitle ? 'visible' : 'collapse'} />
+                    </stacklayout>
+                    <checkbox id="checkbox" checked={item.value} col={2} marginLeft={8} verticalAlignment="center" on:checkedChange={(e) => onCheckedChanged(item, e)} />
+                </gridlayout>
+            </Template>
+            <Template key="modernSwitch" let:item>
+                <gridlayout class={modernMenuRowClass(item) + ' modernSwitchRow'} columns="auto,*,auto" rippleColor={colorOnSurface} on:tap={(event) => onTap(item, event)}>
+                    <label class="modernMenuIcon" text={item.icon} verticalAlignment="center" visibility={item.icon ? 'visible' : 'collapse'} />
+                    <label class="modernMenuTitle" col={1} text={item.title || item.name} textWrap={true} verticalAlignment="center" />
+                    <switch id="checkbox" checked={item.value} col={2} marginLeft={8} on:loaded={styleModernSwitch} on:checkedChange={(e) => onCheckedChanged(item, e)} />
+                </gridlayout>
             </Template>
             <Template key="slider" let:item>
                 <SettingsSlider {...item} onChange={(value, event) => onChange?.(item, value, event)} />
