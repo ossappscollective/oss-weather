@@ -7,7 +7,7 @@
     import { openFilePicker, saveFile } from '@nativescript-community/ui-document-picker';
     import { Label } from '@nativescript-community/ui-label';
     import { showBottomSheet } from '@nativescript-community/ui-material-bottomsheet/svelte';
-    import { confirm, prompt } from '@nativescript-community/ui-material-dialogs';
+    import { confirm, prompt } from '~/utils/ui/dialogs';
     import { showSnack } from '@nativescript-community/ui-material-snackbar';
     import { TextField, TextFieldProperties } from '@nativescript-community/ui-material-textfield';
     import { TextView } from '@nativescript-community/ui-material-textview';
@@ -75,7 +75,7 @@
         WEATHER_DATA_LAYOUT
     } from '~/helpers/constants';
     import { clock_24, getLocaleDisplayName, l, lc, onLanguageChanged, selectLanguage, slc } from '~/helpers/locale';
-    import { getColorThemeDisplayName, getThemeDisplayName, onThemeChanged, selectColorTheme, selectTheme } from '~/helpers/theme';
+    import { Themes, getColorThemeDisplayName, getThemeDisplayName, onThemeChanged, selectColorTheme, selectTheme, theme } from '~/helpers/theme';
     import { AVAILABLE_UINTS, UNIT_FAMILIES } from '~/helpers/units';
     import { networkService } from '~/services/api';
     import { gadgetbridgeService } from '~/services/gadgetbridge';
@@ -83,11 +83,50 @@
     import { getLibreWXRSettings, getWeatherMapSourceSetting } from '~/services/providers/librewxr';
     import { MaptilerProvider, getWeatherMapSettings } from '~/services/providers/maptiler';
     import { aqi_providers, getAqiProviderType, getProviderSettins, getProviderType, providers } from '~/services/providers/weatherproviderfactory';
-    import { AVAILABLE_WEATHER_DATA, AVAILABLE_WEATHER_DATA_MAIN_HOURLY, getWeatherDataTitle, weatherDataService } from '~/services/weatherData';
+    import { AVAILABLE_WEATHER_DATA, AVAILABLE_WEATHER_DATA_MAIN_HOURLY, WeatherProps, getWeatherDataIcon, getWeatherDataTitle, weatherDataService } from '~/services/weatherData';
     import { confirmRestartApp, createView, getDateFormatHTMLArgs, hideLoading, openLink, selectValue, showLoading, showSliderPopover } from '~/utils/ui';
-    import { colors, fontScale, fonts, iconColor, imperial, metricDecimalTemp, onFontScaleChanged, onUnitsChanged, unitCMToMM, unitsSettings, windowInset } from '~/variables';
+    import {
+        accentFontWeight,
+        colors,
+        designStyle,
+        fontScale,
+        fonts,
+        iconColor,
+        imperial,
+        metricDecimalTemp,
+        onFontScaleChanged,
+        onUnitsChanged,
+        unitCMToMM,
+        unitsSettings,
+        windowInset
+    } from '~/variables';
+    import { groupPosition } from '~/utils/settingsGroups';
+    import { groupRowClass } from '~/utils/groupClass';
+    import { get } from 'svelte/store';
+    import { styleModernSwitch } from '~/utils/ui/modernSwitch';
+    import { modernDataColor, styledDataIcon } from '~/utils/designStyle';
     import IconButton from '../common/IconButton.svelte';
     const version = __APP_VERSION__ + ' Build ' + __APP_BUILD_NUMBER__;
+    // modern: section icons on a tile in the data palette colors
+    const MODERN_ICON_COLORS = {
+        'mdi-cards-outline': '#7F77DD',
+        'mdi-translate': '#5DCAA5',
+        'mdi-weather-partly-cloudy': '#EF9F27',
+        'mdi-temperature-celsius': '#D85A30',
+        'mdi-cloud-circle': '#378ADD',
+        'mdi-gauge': '#97C459',
+        'mdi-chart-bar': '#888780',
+        'mdi-clock-outline': '#888780',
+        'mdi-map': '#888780',
+        'mdi-map-marker-circle': '#378ADD',
+        'mdi-widgets': '#7F77DD',
+        'mdi-link-variant': '#5DCAA5',
+        'mdi-bug-outline': '#E24B4A',
+        'mdi-bullhorn': '#EF9F27',
+        'mdi-information-outline': '#888780',
+        'mdi-star-outline': '#EF9F27'
+    };
+    const MODERN_DONATE_COLOR = '#D4537E';
     const storeSettings = {};
 </script>
 
@@ -95,6 +134,8 @@
     // technique for only specific properties to get updated on store change
     let { colorOnBackground, colorOnSurfaceVariant, colorPrimary } = $colors;
     $: ({ colorOnBackground, colorOnSurfaceVariant, colorPrimary } = $colors);
+    $: modern = $designStyle === 'modern';
+    // modern: light tint behind the rows (cards) and the section icons
     $: ({ bottom: windowInsetBottom } = $windowInset);
 
     let collectionView: NativeViewElementNode<CollectionView>;
@@ -154,18 +195,31 @@
         }
     }
 
+    // appearance values shown by their title
+    const LAYOUT_TITLE_KEYS = { default: 'blocks', chips: 'chips', grid: 'grid' };
+    const WEIGHT_TITLE_KEYS = { 500: 'font_weight_medium', 600: 'font_weight_semibold', 700: 'font_weight_bold' };
     function getSubSettings(id: string) {
         switch (id) {
             case 'appearance':
                 return async () => [
-                    {
-                        id: 'theme',
-                        description: () => getThemeDisplayName(),
-                        title: lc('theme.title')
-                    },
+                    get(designStyle) === 'modern'
+                        ? {
+                              // modern: a segmented control instead of a picker
+                              type: 'segmented',
+                              id: 'theme',
+                              title: lc('theme.title'),
+                              segments: (['auto', 'light', 'dark', 'black'] as const).map((value: Themes) => ({ value, title: getThemeDisplayName(value) })),
+                              current: () => theme
+                          }
+                        : {
+                              id: 'theme',
+                              description: () => getThemeDisplayName(),
+                              title: lc('theme.title')
+                          },
                     {
                         id: 'color_theme',
                         description: () => getColorThemeDisplayName(),
+                        modernValue: () => getColorThemeDisplayName(),
                         title: lc('color_theme.title')
                     },
                     {
@@ -177,6 +231,7 @@
                     {
                         icon: 'mdi-format-size',
                         id: 'font_scale',
+                        modernValue: () => get(fontScale).toFixed(2),
                         title: lc('font_scale')
                     },
 
@@ -190,11 +245,13 @@
                         key: SETTINGS_WEATHER_DATA_LAYOUT,
                         title: lc('weather_data_layout'),
                         values: [
-                            { value: 'default', title: lc('blocks') },
-                            { value: 'chips', title: lc('chips') },
-                            { value: 'grid', title: lc('grid') }
+                            { value: 'default', title: lc('blocks'), subtitle: lc('blocks_desc') },
+                            { value: 'chips', title: lc('chips'), subtitle: lc('chips_desc') },
+                            { value: 'grid', title: lc('grid'), subtitle: lc('grid_desc') }
                         ],
-                        rightValue: () => ApplicationSettings.getString(SETTINGS_WEATHER_DATA_LAYOUT, WEATHER_DATA_LAYOUT)
+                        // currentValue: the stored value, rightValue: its title
+                        currentValue: () => ApplicationSettings.getString(SETTINGS_WEATHER_DATA_LAYOUT, WEATHER_DATA_LAYOUT),
+                        rightValue: () => lc(LAYOUT_TITLE_KEYS[ApplicationSettings.getString(SETTINGS_WEATHER_DATA_LAYOUT, WEATHER_DATA_LAYOUT)] ?? 'blocks')
                     },
                     {
                         id: 'setting',
@@ -205,7 +262,8 @@
                             { value: 'classic', title: lc('classic_view') },
                             { value: 'modern', title: lc('modern') }
                         ],
-                        rightValue: () => ApplicationSettings.getString(SETTINGS_DESIGN_STYLE, DESIGN_STYLE)
+                        currentValue: () => ApplicationSettings.getString(SETTINGS_DESIGN_STYLE, DESIGN_STYLE),
+                        rightValue: () => lc(ApplicationSettings.getString(SETTINGS_DESIGN_STYLE, DESIGN_STYLE) === 'classic' ? 'classic_view' : 'modern')
                     },
                     {
                         id: 'setting',
@@ -217,7 +275,8 @@
                             { value: 600, title: lc('font_weight_semibold') },
                             { value: 700, title: lc('font_weight_bold') }
                         ],
-                        rightValue: () => ApplicationSettings.getNumber(SETTINGS_ACCENT_FONT_WEIGHT, ACCENT_FONT_WEIGHT) + ''
+                        currentValue: () => ApplicationSettings.getNumber(SETTINGS_ACCENT_FONT_WEIGHT, ACCENT_FONT_WEIGHT),
+                        rightValue: () => lc(WEIGHT_TITLE_KEYS[ApplicationSettings.getNumber(SETTINGS_ACCENT_FONT_WEIGHT, ACCENT_FONT_WEIGHT)] ?? 'font_weight_bold')
                     },
                     {
                         type: 'switch',
@@ -252,6 +311,7 @@
                                 title: lc('right')
                             }
                         ],
+                        currentValue: () => ApplicationSettings.getString(SETTINGS_DAILY_DATA_ALIGNMENT, DEFAULT_DAILY_DATA_ALIGNMENT),
                         rightValue: () => lc(ApplicationSettings.getString(SETTINGS_DAILY_DATA_ALIGNMENT, DEFAULT_DAILY_DATA_ALIGNMENT))
                     }
                 ];
@@ -555,12 +615,7 @@
                         }
                     ]
                         .concat(
-                            currentData.map((k) => ({
-                                id: k,
-                                reorder: true,
-                                type: 'reorder',
-                                title: getWeatherDataTitle(k)
-                            })) as any
+                            currentData.map(weatherDataRow) as any
                         )
                         .concat([
                             {
@@ -571,12 +626,7 @@
                             }
                         ] as any)
                         .concat(
-                            currentSmallData.map((k) => ({
-                                id: k,
-                                reorder: true,
-                                type: 'reorder',
-                                title: getWeatherDataTitle(k)
-                            })) as any
+                            currentSmallData.map(weatherDataRow) as any
                         )
                         .concat([
                             {
@@ -587,12 +637,7 @@
                             }
                         ] as any)
                         .concat(
-                            disabledData.map((k) => ({
-                                id: k,
-                                reorder: true,
-                                type: 'reorder',
-                                title: getWeatherDataTitle(k)
-                            })) as any
+                            disabledData.map(weatherDataRow) as any
                         );
                 };
             case 'map':
@@ -671,12 +716,7 @@
                         }
                     ]
                         .concat(
-                            currentData.map((k) => ({
-                                id: k,
-                                reorder: true,
-                                type: 'reorder',
-                                title: getWeatherDataTitle(k)
-                            }))
+                            currentData.map(weatherDataRow)
                         )
                         .concat([
                             {
@@ -687,12 +727,7 @@
                             }
                         ] as any)
                         .concat(
-                            disabledData.map((k) => ({
-                                id: k,
-                                reorder: true,
-                                type: 'reorder',
-                                title: getWeatherDataTitle(k)
-                            })) as any
+                            disabledData.map(weatherDataRow) as any
                         );
                 };
             case 'widgets':
@@ -832,6 +867,7 @@
                     {
                         id: 'sub_settings',
                         title: lc('icons'),
+                        modernValue: () => iconService.getPackName(),
                         description: lc('icons_settings'),
                         icon: 'mdi-weather-partly-cloudy',
                         options: getSubSettings('icons')
@@ -843,9 +879,12 @@
                         icon: 'mdi-temperature-celsius',
                         subSettingsOptions: 'units'
                     },
+                    // modern: general, weather and about cards
+                    ...(modern ? [{ type: 'sectionheader', title: lc('weather') }] : []),
                     {
                         id: 'sub_settings',
                         title: lc('providers'),
+                        modernValue: () => lc('provider.' + getProviderType()),
                         description: lc('providers_settings'),
                         icon: 'mdi-cloud-circle',
                         options: getSubSettings('providers')
@@ -853,6 +892,7 @@
                     {
                         id: 'sub_settings',
                         title: lc('weather_data'),
+                        modernValue: () => lc('shown_count', weatherDataService.currentWeatherData.length + weatherDataService.currentSmallWeatherData.length),
                         description: lc('weather_data_settings'),
                         reorderEnabled: true,
                         onReordered: (items) => {
@@ -928,6 +968,7 @@
                           ]
                         : ([] as any)
                 )
+                .concat(modern ? [{ type: 'sectionheader', title: lc('about') }] : ([] as any))
                 .concat(
                     PLAY_STORE_BUILD
                         ? ([
@@ -944,6 +985,7 @@
                 .concat([
                     {
                         id: 'third_party',
+                        icon: 'mdi-information-outline',
                         // rightBtnIcon: 'mdi-chevron-right',
                         title: lc('third_parties'),
                         description: lc('list_used_third_parties')
@@ -969,7 +1011,9 @@
                               //       title: lc('share_application')
                               //   },
                               {
-                                  type: 'rightIcon',
+                                  // modern: a tile icon like the other rows, no chevron
+                                  type: modern ? undefined : 'rightIcon',
+                                  icon: modern ? 'mdi-star-outline' : undefined,
                                   id: 'review',
                                   rightBtnIcon: 'mdi-chevron-right',
                                   title: lc('review_application')
@@ -1447,6 +1491,7 @@
                         const result = await selectValue(
                             item.values.map((k) => ({
                                 name: k.title || k.name,
+                                subtitle: k.subtitle,
                                 data: k.value
                             })),
                             (item.currentValue || item.rightValue)?.(),
@@ -1497,6 +1542,27 @@
     }
     onLanguageChanged(refresh);
 
+    // reorderable weather data rows, with the data icon (and its modern color). The moon icon depends on the day
+    const MOON_DATA_ICON = { fontFamily: 'wi', icon: 'wi-moon-waxing-crescent-4' };
+    function weatherDataRow(key: string) {
+        const style = $designStyle;
+        return { id: key, reorder: true, type: 'reorder', title: getWeatherDataTitle(key), dataIcon: styledDataIcon(style, key === WeatherProps.moon ? MOON_DATA_ICON : getWeatherDataIcon(key)), dataIconColor: style === 'modern' ? modernDataColor(key) : undefined };
+    }
+    // modern: navigation rows have no description, only their current value (a chip) when short
+    function rowItem(item) {
+        // navigation rows and rows whose description is their current value
+        if (modern && (item.id === 'sub_settings' || item.modernValue || (item.icon && !item.type))) {
+            return { ...item, title: getTitle(item), subtitle: null, rightValue: item.modernValue };
+        }
+        return { ...item, title: getTitle(item), subtitle: getDescription(item) };
+    }
+    // modern: the rows between section headers are drawn as one card
+    function rowGroupPosition(item) {
+        if (!modern || !items) {
+            return null;
+        }
+        return groupPosition(items.indexOf(item), items.length, (index) => items.getItem(index)?.type) ?? null;
+    }
     function selectTemplate(item, index, items) {
         if (item.type) {
             if (item.type === 'prompt' || item.type === 'slider') {
@@ -1608,82 +1674,145 @@
             on:itemReorderCheck={onItemReorderCheck}
             on:itemReorderStarting={onItemReorderStarting}>
             <Template key="header" let:item>
-                <gridlayout rows="auto,auto">
-                    <gridlayout columns="*,auto,auto" margin="10 16 0 16">
-                        <stacklayout
-                            backgroundColor="#ea4bae"
-                            borderRadius={10}
-                            orientation="horizontal"
-                            padding={10}
-                            rippleColor="white"
-                            verticalAlignment="center"
-                            on:tap={(event) => onTap({ id: 'sponsor' }, event)}>
-                            <label color="white" fontFamily={$fonts.mdi} fontSize={26} marginRight={10} text="mdi-heart" verticalAlignment="center" />
-                            <label color="white" fontSize={12 * $fontScale} text={item.title} textWrap={true} verticalAlignment="center" />
-                        </stacklayout>
-                        {#if __ANDROID__}
-                            <image
-                                borderRadius={6}
-                                col={1}
-                                height={40}
-                                margin="0 10 0 10"
-                                rippleColor="white"
-                                src="~/assets/images/librepay.png"
-                                verticalAlignment="center"
-                                on:tap={(event) => onTap({ id: 'sponsor', type: 'librepay' }, event)} />
-                            <image borderRadius={6} col={2} height={40} rippleColor="#f96754" src="~/assets/images/patreon.png" on:tap={(event) => onTap({ id: 'sponsor', type: 'patreon' }, event)} />
-                        {/if}
-                    </gridlayout>
-
-                    <stacklayout horizontalAlignment="center" marginBottom={0} marginTop={20} row={1} verticalAlignment="center">
-                        <absolutelayout backgroundColor={iconColor} borderRadius="50%" height={50} horizontalAlignment="center" width={50} />
-                        <label fontSize={13 * $fontScale} marginTop={4} text={version} on:longPress={(event) => onLongPress('version', event)} on:touch={(e) => onTouch(item, e)} />
+                {#if modern}
+                    <stacklayout>
+                        <gridlayout class="modernCard" columns="auto,*" marginTop={10} padding="12 14" rippleColor={MODERN_DONATE_COLOR} on:tap={(event) => onTap({ id: 'sponsor' }, event)}>
+                            <label class="modernTile" color={MODERN_DONATE_COLOR} text="mdi-heart" verticalAlignment="center" verticalTextAlignment="center" />
+                            <label class="modernTitle" col={1} marginLeft={12} text={item.title} textWrap={true} verticalAlignment="center" />
+                        </gridlayout>
+                        <label
+                            class="modernSubtitle"
+                            horizontalAlignment="center"
+                            marginTop={6}
+                            text={'OSS Weather ' + version}
+                            on:longPress={(event) => onLongPress('version', event)}
+                            on:touch={(e) => onTouch(item, e)} />
                     </stacklayout>
-                </gridlayout>
+                {:else}
+                    <gridlayout rows="auto,auto">
+                        <gridlayout columns="*,auto,auto" margin="10 16 0 16">
+                            <stacklayout
+                                backgroundColor="#ea4bae"
+                                borderRadius={10}
+                                orientation="horizontal"
+                                padding={10}
+                                rippleColor="white"
+                                verticalAlignment="center"
+                                on:tap={(event) => onTap({ id: 'sponsor' }, event)}>
+                                <label color="white" fontFamily={$fonts.mdi} fontSize={26} marginRight={10} text="mdi-heart" verticalAlignment="center" />
+                                <label color="white" fontSize={12 * $fontScale} text={item.title} textWrap={true} verticalAlignment="center" />
+                            </stacklayout>
+                            {#if __ANDROID__}
+                                <image
+                                    borderRadius={6}
+                                    col={1}
+                                    height={40}
+                                    margin="0 10 0 10"
+                                    rippleColor="white"
+                                    src="~/assets/images/librepay.png"
+                                    verticalAlignment="center"
+                                    on:tap={(event) => onTap({ id: 'sponsor', type: 'librepay' }, event)} />
+                                <image
+                                    borderRadius={6}
+                                    col={2}
+                                    height={40}
+                                    rippleColor="#f96754"
+                                    src="~/assets/images/patreon.png"
+                                    on:tap={(event) => onTap({ id: 'sponsor', type: 'patreon' }, event)} />
+                            {/if}
+                        </gridlayout>
+
+                        <stacklayout horizontalAlignment="center" marginBottom={0} marginTop={20} row={1} verticalAlignment="center">
+                            <absolutelayout backgroundColor={iconColor} borderRadius="50%" height={50} horizontalAlignment="center" width={50} />
+                            <label fontSize={13 * $fontScale} marginTop={4} text={version} on:longPress={(event) => onLongPress('version', event)} on:touch={(e) => onTouch(item, e)} />
+                        </stacklayout>
+                    </gridlayout>
+                {/if}
             </Template>
             <Template key="sectionheader" let:item>
-                <label class="sectionHeader" {...item.additionalProps || {}} text={item.title} />
+                {#if modern}
+                    <label class="modernCaption" {...item.additionalProps || {}} text={item.title} />
+                {:else}
+                    <label class="sectionHeader" {...item.additionalProps || {}} text={item.title} />
+                {/if}
             </Template>
             <Template key="switch" let:item>
-                <ListItemAutoSize item={{ ...item, title: getTitle(item), subtitle: getDescription(item) }} on:tap={(event) => onTap(item, event)}>
-                    <switch id="checkbox" checked={item.value} col={1} marginLeft={10} verticalAlignment="center" on:checkedChange={(e) => onCheckBox(item, e)} />
+                <ListItemAutoSize groupPosition={rowGroupPosition(item)} item={rowItem(item)} on:tap={(event) => onTap(item, event)}>
+                    <switch id="checkbox" checked={item.value} col={1} marginLeft={10} verticalAlignment="center" on:loaded={styleModernSwitch} on:checkedChange={(e) => onCheckBox(item, e)} />
                 </ListItemAutoSize>
             </Template>
             <Template key="checkbox" let:item>
-                <ListItemAutoSize item={{ ...item, title: getTitle(item), subtitle: getDescription(item) }} on:tap={(event) => onTap(item, event)}>
+                <ListItemAutoSize groupPosition={rowGroupPosition(item)} item={rowItem(item)} on:tap={(event) => onTap(item, event)}>
                     <checkbox id="checkbox" checked={item.value} col={1} on:checkedChange={(e) => onCheckBox(item, e)} />
                 </ListItemAutoSize>
             </Template>
             <Template key="rightIcon" let:item>
-                <ListItemAutoSize item={{ ...item, title: getTitle(item), subtitle: getDescription(item) }} showBottomLine={false} on:tap={(event) => onTap(item, event)}>
+                <ListItemAutoSize groupPosition={rowGroupPosition(item)} item={rowItem(item)} showBottomLine={false} on:tap={(event) => onTap(item, event)}>
                     <IconButton col={1} text={item.rightBtnIcon} on:tap={(event) => onRightIconTap(item, event)} />
                 </ListItemAutoSize>
             </Template>
             <Template key="reorder" let:item>
-                <ListItemAutoSize item={{ ...item, title: getTitle(item), subtitle: getDescription(item) }} showBottomLine={false} on:tap={(event) => onTap(item, event)}>
-                    <label col={1} fontFamily={$fonts.mdi} fontSize={24} padding={4} text="mdi-dots-grid" verticalAlignment="center" on:touch={(event) => startReordering(item, event)} />
+                <ListItemAutoSize columns="auto,*,auto" groupPosition={rowGroupPosition(item)} item={rowItem(item)} mainCol={1} showBottomLine={false} on:tap={(event) => onTap(item, event)}>
+                    {#if item.dataIcon}
+                        <label
+                            class={modern ? 'modernTile' : ''}
+                            col={0}
+                            color={item.dataIconColor || colorOnBackground}
+                            fontFamily={$fonts[item.dataIcon.fontFamily]}
+                            fontSize={modern ? 20 : 22}
+                            marginRight={12}
+                            text={item.dataIcon.icon}
+                            textAlignment="center"
+                            verticalAlignment="center"
+                            verticalTextAlignment="center"
+                            width={modern ? 38 : 30} />
+                    {/if}
+                    <label
+                        col={2}
+                        color={modern ? colorOnSurfaceVariant : undefined}
+                        fontFamily={$fonts.mdi}
+                        fontSize={modern ? 20 : 24}
+                        padding={4}
+                        text={modern ? 'mdi-drag-horizontal' : 'mdi-dots-grid'}
+                        verticalAlignment="center"
+                        on:touch={(event) => startReordering(item, event)} />
                 </ListItemAutoSize>
             </Template>
             <Template key="leftIcon" let:item>
-                <ListItemAutoSize
-                    columns="auto,*,auto"
-                    item={{ ...item, title: getTitle(item), subtitle: getDescription(item) }}
-                    mainCol={1}
-                    showBottomLine={false}
-                    on:tap={(event) => onTap(item, event)}>
-                    <label col={0} color={colorOnBackground} fontFamily={$fonts.mdi} fontSize={24} padding="0 10 0 0" text={item.icon} verticalAlignment="center" />
+                <ListItemAutoSize columns="auto,*,auto" groupPosition={rowGroupPosition(item)} item={rowItem(item)} mainCol={1} showBottomLine={false} on:tap={(event) => onTap(item, event)}>
+                    {#if modern}
+                        <label class="modernTile" col={0} color={MODERN_ICON_COLORS[item.icon] || colorOnBackground} marginRight={12} text={item.icon} verticalAlignment="center" verticalTextAlignment="center" />
+                    {:else}
+                        <label col={0} color={colorOnBackground} fontFamily={$fonts.mdi} fontSize={24} padding="0 10 0 0" text={item.icon} verticalAlignment="center" />
+                    {/if}
                 </ListItemAutoSize>
             </Template>
             <Template key="image" let:item>
-                <ListItemAutoSize item={{ ...item, title: getTitle(item), subtitle: getDescription(item) }} showBottomLine={false} on:tap={(event) => onTap(item, event)}>
+                <ListItemAutoSize groupPosition={rowGroupPosition(item)} item={rowItem(item)} showBottomLine={false} on:tap={(event) => onTap(item, event)}>
                     <image col={1} height={45} src={item.image()} />
                 </ListItemAutoSize>
+            </Template>
+            <Template key="segmented" let:item>
+                <gridlayout class={groupRowClass(rowGroupPosition(item))} padding="10 14">
+                    <gridlayout class="modernSegmented" columns={item.segments.map(() => '*').join(',')}>
+                        {#each item.segments as segment, index}
+                            <label
+                                class={segment.value === item.current() ? 'modernSegment modernSegmentSelected' : 'modernSegment'}
+                                col={index}
+                                text={segment.title}
+                                on:tap={() => {
+                                    ApplicationSettings.setString(item.id, segment.value);
+                                    updateItem(item, 'id');
+                                }} />
+                        {/each}
+                    </gridlayout>
+                </gridlayout>
             </Template>
             <Template key="info" let:item>
                 <label color={colorOnSurfaceVariant} fontSize={14} margin="16" text={item.title} textWrap={true} />
             </Template>
             <Template let:item>
-                <ListItemAutoSize item={{ ...item, title: getTitle(item), subtitle: getDescription(item) }} showBottomLine={false} on:tap={(event) => onTap(item, event)}></ListItemAutoSize>
+                <ListItemAutoSize groupPosition={rowGroupPosition(item)} item={rowItem(item)} showBottomLine={false} on:tap={(event) => onTap(item, event)}></ListItemAutoSize>
             </Template>
         </collectionview>
         <CActionBar canGoBack title={title || $slc('settings.title')}>

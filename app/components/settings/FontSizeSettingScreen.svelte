@@ -8,11 +8,13 @@
     import WeatherComponent from '~/components/WeatherComponent.svelte';
     import { WeatherLocation, prepareItems } from '~/services/api';
     import type { WeatherData } from '~/services/providers/weather';
-    import { colors, windowInset } from '~/variables';
+    import { accentFontWeight, colors, designStyle, windowInset } from '~/variables';
+    import { styleModernSlider } from '~/utils/ui/modernSlider';
     import CActionBar from '../common/CActionBar.svelte';
     import { SETTINGS_FONTSCALE } from '~/helpers/constants';
 
     $: ({ colorOutline } = $colors);
+    $: modern = $designStyle === 'modern';
 
     const weatherLocation: WeatherLocation = JSON.parse(
         '{"name":"Grenoble","sys":{"osm_id":80348,"osm_type":"R","extent":[5.6776059,45.2140762,5.7531176,45.1541442],"country":"France","osm_key":"place","osm_value":"city","name":"Grenoble","state":"Auvergne-Rhône-Alpes"},"coord":{"lat":45.1875602,"lon":5.7357819},"timezone":"Europe/Paris","timezoneOffset":1}'
@@ -50,16 +52,40 @@
 </script>
 
 <page actionBarHidden={true}>
-    <gridlayout class="pageContent" rows="auto,auto,*" android:paddingBottom={$windowInset.bottom}>
-        <gridlayout borderColor={colorOutline} borderRadius={10} borderWidth={1} margin="10" row={2}>
-            <WeatherComponent {fakeNow} fullRefresh={false} {items} {weatherLocation} />
+    {#if modern}
+        <!-- modern: the scale in a card (value, slider and its bounds), then the preview card, reset in the action bar -->
+        <gridlayout class="pageContent" rows="auto,auto,auto,*" android:paddingBottom={$windowInset.bottom}>
+            <gridlayout class="modernCard" columns="*,auto" padding="14" row={1} rows="auto,auto,auto">
+                <label class="modernSubtitle" text={lc('font_scale')} verticalAlignment="bottom" />
+                <label col={1} fontSize={22} fontWeight={$accentFontWeight} text={fontScale.toFixed(2)} />
+                <slider colSpan={2} maxValue={2} minValue={0.5} row={1} value={fontScale} on:loaded={styleModernSlider} on:valueChange={(e) => setFontScale(e.value)} />
+                <!-- 1 is at a third of the 0.5 - 2 range -->
+                <gridlayout colSpan={2} columns="*,2*" padding="0 12" row={2}>
+                    <label class="modernSubtitle" text="0.5" />
+                    <label class="modernSubtitle" col={1} text="1" />
+                    <label class="modernSubtitle" col={1} horizontalAlignment="right" text="2" />
+                </gridlayout>
+            </gridlayout>
+            <label class="modernCaption" row={2} text={lc('preview')} />
+            <gridlayout class="modernCard" row={3}>
+                <WeatherComponent {fakeNow} fullRefresh={false} {items} {weatherLocation} />
+            </gridlayout>
+            <CActionBar title={lc('font_scale')}>
+                <mdbutton class="modernButtonText" text={lc('reset')} variant="text" verticalAlignment="middle" on:tap={() => setFontScale(1)} />
+            </CActionBar>
         </gridlayout>
-        <gridlayout columns="*,auto,auto" row={1}>
-            <slider maxValue={2} minValue={0.5} value={fontScale} on:valueChange={(e) => setFontScale(e.value)} />
+    {:else}
+        <gridlayout class="pageContent" rows="auto,auto,*" android:paddingBottom={$windowInset.bottom}>
+            <gridlayout borderColor={colorOutline} borderRadius={10} borderWidth={1} margin="10" row={2}>
+                <WeatherComponent {fakeNow} fullRefresh={false} {items} {weatherLocation} />
+            </gridlayout>
+            <gridlayout columns="*,auto,auto" row={1}>
+                <slider maxValue={2} minValue={0.5} value={fontScale} on:valueChange={(e) => setFontScale(e.value)} />
 
-            <textfield col={1} keyboardType="number" padding="4" text={fontScale.toFixed(2)} variant="outline" verticalTextAlignment="middle" width={70} on:textChange={onTextChange} />
-            <mdbutton col={2} text={lc('reset')} variant="text" verticalAlignment="middle" on:tap={() => setFontScale(1)} />
+                <textfield col={1} keyboardType="number" padding="4" text={fontScale.toFixed(2)} variant="outline" verticalTextAlignment="middle" width={70} on:textChange={onTextChange} />
+                <mdbutton col={2} text={lc('reset')} variant="text" verticalAlignment="middle" on:tap={() => setFontScale(1)} />
+            </gridlayout>
+            <CActionBar title={lc('font_scale')} />
         </gridlayout>
-        <CActionBar title={lc('font_scale')} />
-    </gridlayout>
+    {/if}
 </page>

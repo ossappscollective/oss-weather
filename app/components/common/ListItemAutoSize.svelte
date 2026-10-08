@@ -4,6 +4,8 @@
     import { Color } from '@nativescript/core';
     import { colors, designStyle, fontScale } from '~/variables';
     import type { IListItem } from './OptionSelect.svelte';
+    import type { GroupPosition } from '~/utils/settingsGroups';
+    import { groupRowClass } from '~/utils/groupClass';
     const linePaint = new Paint();
     linePaint.strokeWidth = 1;
 </script>
@@ -28,13 +30,19 @@
     export let onLinkTap: (event) => void = null;
     export let onLongPress: (event) => void = null;
     export let onDraw: (item: IListItem, event: { canvas: Canvas; object: CanvasView }) => void = null;
+    // modern settings: the row is part of a rounded card (css classes), with smaller texts
+    export let groupPosition: GroupPosition = null;
+    $: rightValue = typeof item.rightValue === 'function' ? item.rightValue() : item.rightValue;
+    $: titleFontSize = groupPosition ? 16 : fontSize;
+    $: secondaryFontSize = groupPosition ? 13 : subtitleFontSize;
 
     function draw(event: { canvas: Canvas; object: CanvasView }) {
         const canvas = event.canvas;
         const h = canvas.getHeight();
         const w = canvas.getWidth();
 
-        if (item.showBottomLine || showBottomLine) {
+        // grouped rows are drawn as a card from css (groupRowClass)
+        if (!groupPosition && (item.showBottomLine || showBottomLine)) {
             event.canvas.drawLine(modern ? 0 : 20, h - 1, w, h - 1, linePaint);
         }
         // if (leftIcon) {
@@ -50,7 +58,8 @@
         (item.onDraw || onDraw)?.(item, event);
     }
 
-    $: addedPadding = (item.subtitle?.length > 0 ? 6 : 10) + (__ANDROID__ ? 8 : 12);
+    // grouped rows (modern cards) are denser
+    $: addedPadding = groupPosition ? (item.subtitle?.length > 0 ? 10 : 14) : (item.subtitle?.length > 0 ? 6 : 10) + (__ANDROID__ ? 8 : 12);
 </script>
 
 <!-- <gridlayout>
@@ -75,6 +84,7 @@
 </gridlayout> -->
 
 <canvasview
+    class={groupRowClass(groupPosition)}
     {columns}
     padding="0 16 0 16"
     rippleColor={item.color || colorPrimary}
@@ -103,20 +113,32 @@
         verticalTextAlignment="center"
         {...item.titleProps || $$restProps?.titleProps}
         use:conditionalEvent={{ condition: !!(item.onLinkTap || onLinkTap), event: 'linkTap', callback: item.onLinkTap || onLinkTap }}>
-        <cspan fontSize={fontSize * $fontScale} lineHeight={fontSize * $fontScale * 1.3} text={item.title || item.name} />
-        <cspan color={item.subtitleColor || colorOnSurfaceVariant} fontSize={(item.subtitleFontSize || subtitleFontSize) * $fontScale} text={item.subtitle ? '\n' + item.subtitle : null} />
+        <cspan fontSize={titleFontSize * $fontScale} lineHeight={titleFontSize * $fontScale * 1.3} text={item.title || item.name} />
+        <cspan color={item.subtitleColor || colorOnSurfaceVariant} fontSize={(item.subtitleFontSize || secondaryFontSize) * $fontScale} text={item.subtitle ? '\n' + item.subtitle : null} />
     </label>
 
-    <label
-        col={1}
-        color={item.subtitleColor || ($designStyle === 'modern' ? colorOnSurfaceVariant : undefined)}
-        disableCss={true}
-        fontSize={(item.rightValueFontSize || subtitleFontSize) * $fontScale}
-        marginLeft={16}
-        text={typeof item.rightValue === 'function' ? item.rightValue() : item.rightValue}
-        textAlignment="right"
-        verticalAlignment="middle"
-        visibility={!!item.rightValue ? 'visible' : 'collapse'}
-        on:tap={(event) => dispatch('rightIconTap', event)} />
+    <!-- value after the main column: a chip in modern cards, like popover menus -->
+    {#if groupPosition}
+        <label
+            class="modernChip"
+            col={mainCol + 1}
+            marginLeft={16}
+            text={rightValue}
+            verticalAlignment="middle"
+            visibility={rightValue ? 'visible' : 'collapse'}
+            on:tap={(event) => dispatch('tap', event)} />
+    {:else}
+        <label
+            col={mainCol + 1}
+            color={item.subtitleColor || ($designStyle === 'modern' ? colorOnSurfaceVariant : undefined)}
+            disableCss={true}
+            fontSize={(item.rightValueFontSize || secondaryFontSize) * $fontScale}
+            marginLeft={16}
+            text={rightValue}
+            textAlignment="right"
+            verticalAlignment="middle"
+            visibility={rightValue ? 'visible' : 'collapse'}
+            on:tap={(event) => dispatch('rightIconTap', event)} />
+    {/if}
     <slot />
 </canvasview>
