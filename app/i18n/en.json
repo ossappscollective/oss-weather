@@ -41,6 +41,12 @@
   "appearance": "Appearance",
   "appearance_settings": "theme and other appearance settings",
   "aqi": "Air Quality Index",
+  "aqi_good": "good",
+  "aqi_fair": "fair",
+  "aqi_moderate": "moderate",
+  "aqi_poor": "poor",
+  "aqi_very_poor": "very poor",
+  "aqi_extremely_poor": "extremely poor",
   "artemisia": "mugwort",
   "authorize": "Authorize",
   "auto": "auto",
@@ -500,5 +506,6 @@
   "alert_upcoming": "upcoming",
   "marine_provider": "marine provider",
   "selected": "selected",
-  "air_quality": "air quality"
+  "air_quality": "air quality",
+  "sun_and_moon": "sun and moon"
 }

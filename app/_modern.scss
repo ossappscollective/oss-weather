@@ -255,6 +255,12 @@ $modernFontFamily: Inter !default;
         border-radius: 2;
         background-color: var(--colorModernHairlineStrong);
     }
+    // label / value rows inside a card
+    .modernKeyValue {
+        padding: 9 16;
+        border-top-width: 1;
+        border-color: var(--colorModernHairline);
+    }
 
     // segmented control (e.g. theme)
     .modernSegmented {

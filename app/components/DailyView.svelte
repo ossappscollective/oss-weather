@@ -50,6 +50,8 @@
 
     export let item: DailyData;
     export let animated: boolean = false;
+    // daily page header: full day name and date
+    export let fullDate = false;
     let canvasView;
     const dispatch = createEventDispatcher();
 
@@ -122,14 +124,14 @@
         textPaint.setTextSize(header.daySize);
         textPaint.setFontWeight(header.dayWeight);
         textPaint.setColor(colorOnSurface);
-        const dayText = formatDate(item.time, 'ddd', item.timezoneOffset);
+        const dayText = formatDate(item.time, fullDate ? 'dddd' : 'ddd', item.timezoneOffset);
         const baseline = centerY - 2 * $fontScale;
         canvas.drawText(dayText, left, baseline, textPaint);
         const dateLeft = left + textPaint.measureText(dayText) + 5 * $fontScale;
         textPaint.setFontWeight('normal');
         textPaint.setTextSize(header.dateSize);
         textPaint.setColor(colorOnSurfaceVariant);
-        const dateText = formatDate(item.time, dailyDateFormat, item.timezoneOffset);
+        const dateText = formatDate(item.time, fullDate ? 'D MMMM' : dailyDateFormat, item.timezoneOffset);
         canvas.drawText(dateText, dateLeft, baseline, textPaint);
 
         // small icons (and beaufort) after the date

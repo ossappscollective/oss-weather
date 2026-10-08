@@ -20,7 +20,12 @@
     import { onThemeChanged } from '~/helpers/theme';
     import { WeatherLocation } from '~/services/api';
     import { pickDate } from '~/utils/utils.common';
-    import { colors, fontScale, fonts, onFontScaleChanged } from '~/variables';
+    import { accentFontWeight, colors, designStyle, fontScale, fonts, onFontScaleChanged } from '~/variables';
+    import { styledDataIcon } from '~/utils/designStyle';
+    import { formatHoursMinutes } from '~/utils/duration';
+    import { getMoonIlluminationPercent } from '~/helpers/moon';
+    import { get } from 'svelte/store';
+    import { modernColors } from '~/helpers/modernTheme';
 
     const nightPaint = new Paint();
     const nightLiinePaint = new Paint();
@@ -195,9 +200,18 @@
     highlightPaint.setTextAlign(Align.LEFT);
     highlightPaint.setTextSize(10);
 
+    // modern: light neutral night shading and line, palette sun (amber) and moon (violet) curves
+    const MODERN_SUN_COLOR = '#EF9F27';
+    const MODERN_MOON_COLOR = '#7F77DD';
+    $: modern = $designStyle === 'modern';
     function updateTheme() {
-        nightPaint.color = new Color($colors.colorBackground).setAlpha(170);
-        nightLiinePaint.color = new Color($colors.colorOnSurface).setAlpha(150);
+        const modernStyle = $designStyle === 'modern';
+        // modern: below the horizon is mostly covered by the card color, leaving the sun arc above it
+        nightPaint.color = modernStyle ? new Color(get(modernColors).colorModernCard).setAlpha(215) : new Color($colors.colorBackground).setAlpha(170);
+        nightLiinePaint.color = new Color($colors.colorOnSurface).setAlpha(modernStyle ? 60 : 150);
+        if (modernStyle) {
+            highlightPaint.setColor($colors.colorOnSurfaceVariant);
+        }
     }
     updateTheme();
     onThemeChanged(() => {
@@ -209,6 +223,9 @@
             const leftAxis = chart.leftAxis;
             const xAxis = chart.xAxis;
             leftAxis.textColor = xAxis.textColor = highlightPaint.color = newColor;
+            if (modern) {
+                xAxis.textColor = highlightPaint.color = $colors.colorOnSurfaceVariant;
+            }
             const dataSets = chart.data?.dataSets;
             if (dataSets) {
                 dataSets.forEach((d) => {
@@ -242,6 +259,10 @@
             const xAxis = chart.xAxis;
 
             leftAxis.textColor = xAxis.textColor = highlightPaint.color = colorOnSurface;
+            if (modern) {
+                xAxis.textColor = $colors.colorOnSurfaceVariant;
+                xAxis.textSize = 11 * $fontScale;
+            }
             chart.setExtraOffsets(0, 0, 0, 0);
             chart.minOffset = 0;
             chart.clipDataToContent = false;
@@ -255,6 +276,10 @@
                     c.drawRect(0, height / 2, w, height, nightPaint);
                     c.drawLine(0, height / 2, w, height / 2, nightLiinePaint);
 
+                    // modern: no time cursor on other days (it would sit at midnight)
+                    if (modern && !isCurrentDay && h.x === 0) {
+                        return;
+                    }
                     const hours = Math.min(Math.floor(h.x / 6), 23);
                     const minutes = (h.x * 10) % 60;
                     selectedTime = startTime.set('h', hours).set('m', minutes);
@@ -287,7 +312,8 @@
             xAxis.valueFormatter = {
                 getAxisLabel(value: any, axis: AxisBase) {
                     const time = computeStartTime.add(value * 10, 'minutes').valueOf();
-                    return formatTime(time, undefined, timezoneOffset);
+                    // modern: hours only, like the hourly chart
+                    return formatTime(time, modern ? 'HH' : undefined, timezoneOffset);
                 }
             };
             // if (!limitLine) {
@@ -309,14 +335,17 @@
             set.fillFormatter = {
                 getFillLinePosition: (dataSet, dataProvider) => 0
             };
-            set.fillColor = set.color = '#ffdd55';
-            set.fillAlpha = 50;
+            set.fillColor = set.color = modern ? MODERN_SUN_COLOR : '#ffdd55';
+            set.fillAlpha = modern ? 35 : 50;
             set.drawFilledEnabled = true;
-            set.lineWidth = 3;
+            set.lineWidth = modern ? 2.5 : 3;
             sets.push(set);
             set = new LineDataSet(moonPoses, 'moon', undefined, 'altitude');
-            set.color = '#bbb';
-            set.lineWidth = 1;
+            set.color = modern ? MODERN_MOON_COLOR : '#bbb';
+            set.lineWidth = modern ? 1.5 : 1;
+            if (modern) {
+                set.enableDashedLine(4, 4, 0);
+            }
             sets.unshift(set);
 
             const lineData = new LineData(sets);
@@ -589,7 +618,7 @@
     }
 </script>
 
-<gesturerootview bind:this={gridLayout} columns="*,*" rows={`${selectableDate ? 50 : 0},200,50,250`} {...$$restProps}>
+<gesturerootview bind:this={gridLayout} columns="*,*" rows={`${selectableDate ? 50 : 0},200,${modern ? 'auto,auto' : '50,250'}`} {...$$restProps}>
     <mdbutton
         class="icon-btn"
         horizontalAlignment="left"
@@ -616,15 +645,50 @@
         visibility={selectableDate ? 'visible' : 'hidden'}
         on:tap={() => updateStartTime(startTime.add(1, 'd'))} />
     <linechart bind:this={chartView} colSpan={3} row={1} />
-    {#if sunTimes}
+    {#if sunTimes && modern}
+        <!-- sunrise, daylight (and what is left today), sunset and moon on one line, then the moon phase -->
+        <gridlayout colSpan={2} columns="auto,*,auto,auto" padding="8 16 4 16" row={2}>
+            <label class="modernTitle modernStrong" verticalAlignment="center">
+                <cspan color={MODERN_SUN_COLOR} fontFamily={$fonts.mdi} fontSize={18 * $fontScale} fontWeight="normal" text="mdi-weather-sunset-up" />
+                <cspan fontWeight={$accentFontWeight} text={' ' + formatTime(sunriseEnd, undefined, timezoneOffset)} />
+            </label>
+            <stacklayout col={1} verticalAlignment="center">
+                <label class="modernSubtitle" text={formatHoursMinutes(sunsetStart - sunriseEnd)} textAlignment="center" />
+                <label
+                    class="modernSubtitle modernAccent"
+                    text={lc('left') + ' ' + formatHoursMinutes(sunsetStart - Date.now())}
+                    textAlignment="center"
+                    visibility={isCurrentDay && Date.now() >= sunriseEnd && Date.now() < sunsetStart ? 'visible' : 'collapse'} />
+            </stacklayout>
+            <label class="modernTitle modernStrong" col={2} verticalAlignment="center">
+                <cspan color="#D85A30" fontFamily={$fonts.mdi} fontSize={18 * $fontScale} fontWeight="normal" text="mdi-weather-sunset-down" />
+                <cspan fontWeight={$accentFontWeight} text={' ' + formatTime(sunsetStart, undefined, timezoneOffset)} />
+            </label>
+            <label class="modernTitle modernStrong" col={3} marginLeft={14} verticalAlignment="center">
+                <cspan
+                    color={MODERN_MOON_COLOR}
+                    fontFamily={$fonts.wd}
+                    fontSize={18 * $fontScale}
+                    fontWeight="normal"
+                    text={styledDataIcon('modern', { fontFamily: 'wi', icon: moonIcon(moonPhase, location.coord) }).icon} />
+                <cspan fontWeight={$accentFontWeight} text={' ' + getMoonIlluminationPercent(startTime.toDate()) + '%'} />
+            </label>
+        </gridlayout>
+        <stacklayout colSpan={2} padding="4 0 10 0" row={3}>
+            <gridlayout class="modernKeyValue" columns="*,auto">
+                <label class="modernSubtitle" text={lc('moon_phase')} verticalAlignment="center" />
+                <label class="modernTitle modernStrong" col={1} text={getMoonPhaseName(moonPhase)} />
+            </gridlayout>
+        </stacklayout>
+    {:else if sunTimes}
         <canvaslabel bind:this={bottomLabel} colSpan={3} padding="0 10 0 10" row={2} on:draw={drawMoonPosition}>
             <cgroup color="#ffa500" fontSize={18 * $fontScale} verticalAlignment="middle">
                 <cspan fontFamily={$fonts.mdi} text="mdi-weather-sunset-up" />
-                <cspan text={' ' + formatTime(sunriseEnd, undefined, timezoneOffset)} />
+                <cspan fontWeight={$accentFontWeight} text={' ' + formatTime(sunriseEnd, undefined, timezoneOffset)} />
             </cgroup>
             <cgroup color="#ff7200" fontSize={18 * $fontScale} textAlignment="center" verticalAlignment="middle">
                 <cspan fontFamily={$fonts.mdi} text="mdi-weather-sunset-down" />
-                <cspan text={' ' + formatTime(sunsetStart, undefined, timezoneOffset)} />
+                <cspan fontWeight={$accentFontWeight} text={' ' + formatTime(sunsetStart, undefined, timezoneOffset)} />
             </cgroup>
             <cgroup fontSize={18 * $fontScale} textAlignment="right" verticalAlignment="middle">
                 <!-- <cspan text={moonAzimuth.exact + '(' + Math.round(illumination.fraction * 100) + '%) '} /> -->
@@ -632,7 +696,7 @@
             </cgroup>
         </canvaslabel>
     {/if}
-    <canvasview colSpan={2} padding={10} row={3} on:draw={onSubCanvasDraw}>
+    <canvasview colSpan={2} padding={10} row={3} visibility={modern ? 'collapse' : 'visible'} on:draw={onSubCanvasDraw}>
         <!-- <CompassView row={3} {location} updateWithSensor={false} date={startTime} /> -->
         <!-- <canvaslabel row={3} col={1} fontSize={13} padding={10} height={200}>
         <cgroup paddingTop={10}>

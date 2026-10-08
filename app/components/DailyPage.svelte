@@ -3,19 +3,25 @@
     import { textAttributedString } from '~/utils/ui/attributedString';
     import { Align, Canvas, CanvasView, LayoutAlignment, Paint, StaticLayout } from '@nativescript-community/ui-canvas';
     import { CombinedChart } from '@nativescript-community/ui-chart';
-    import { ApplicationSettings, Page, StackLayout } from '@nativescript/core';
+    import { ApplicationSettings, Color, Page, StackLayout } from '@nativescript/core';
     import dayjs, { Dayjs } from 'dayjs';
     import AstronomyView from '~/components/astronomy/AstronomyView.svelte';
     import WindyView, { computeWindyViewMinHeight } from '~/components/WindyView.svelte';
     import { SETTINGS_SHOW_CURRENT_DAY_DAILY, SHOW_CURRENT_DAY_DAILY } from '~/helpers/constants';
     import { formatDate, isSameDay, lc } from '~/helpers/locale';
-    import { POLLENS_POLLUTANTS_TITLES } from '~/services/airQualityData';
+    import { POLLENS_POLLUTANTS_TITLES, Pollutants, getPollutantIndex } from '~/services/airQualityData';
+    import { AQI_LEVEL_KEYS, AQI_THRESHOLDS, MODERN_LEVEL_COLORS, POLLEN_THRESHOLDS, levelIndex } from '~/utils/airQualityLevel';
+    import { mixColors } from '~/utils/modernThemeColors';
+    import { levelFraction } from '~/utils/levelFraction';
     import { WeatherLocation } from '~/services/api';
     import { iconService, onIconAnimationsChanged } from '~/services/icon';
     import type { DailyData, Hourly, Tide } from '~/services/providers/weather';
     import { WeatherProps, formatWeatherValue, getWeatherDataShortTitle, weatherDataService } from '~/services/weatherData';
-    import { colors, fontScale, hourlyViewData, hourlyViewMode, onFontScaleChanged, weatherDataLayout } from '~/variables';
+    import { accentFontWeight, colors, designStyle, fontScale, hourlyViewData, hourlyViewMode, onFontScaleChanged, weatherDataLayout } from '~/variables';
+    import { textFontFamily } from '~/utils/designStyle';
+    import DailyView from './DailyView.svelte';
     import CActionBar from './common/CActionBar.svelte';
+    import ModernCardTitle from './common/ModernCardTitle.svelte';
     import HourlyChartView from './HourlyChartView.svelte';
     import HourlyView from './HourlyView.svelte';
     import TidesChartView from './TidesChartView.svelte';
@@ -79,12 +85,50 @@
     let hourlyViewHeight = 250 * $fontScale;
     $: {
         hourlyViewHeight = 250 * $fontScale;
-        if ($hourlyViewMode === 'windy') {
+        if (shownHourlyMode === 'windy') {
             hourlyViewHeight = computeWindyViewMinHeight($hourlyViewData, $fontScale);
         }
     }
+    // modern card icons, in the data palette
+    const MODERN_SECTION_COLORS = { hourly: '#378ADD', airQuality: '#97C459', tides: '#0288D1', astronomy: '#EF9F27' };
+    // modern: the hourly card switches between the views without changing the setting
+    const HOURLY_MODES = ['classic', 'chart', 'windy'];
+    let pageHourlyMode: string = null;
+    $: shownHourlyMode = (modern && pageHourlyMode) || $hourlyViewMode;
+    // modern air quality and pollens: two columns of values with a level bar (pollutants with an index scale)
+    const INDEXED_POLLUTANTS: string[] = [Pollutants.O3, Pollutants.NO2, Pollutants.PM10, Pollutants.PM25, Pollutants.SO2, Pollutants.CO];
+    function isIndexedPollutant(key: string): key is Pollutants {
+        return INDEXED_POLLUTANTS.includes(key);
+    }
+    function levelValue(key: string, value: number, pollutants: boolean) {
+        if (!pollutants) {
+            return value;
+        }
+        return isIndexedPollutant(key) ? getPollutantIndex(key, value) : null;
+    }
+    function levelEntries(polls: Record<string, { value: number; unit: string; color?: string }>, pollutants: boolean) {
+        return Object.keys(polls)
+            .filter((key) => key !== 'interval')
+            .map((key) => {
+                const value = levelValue(key, polls[key].value, pollutants);
+                const level = levelIndex(value, pollutants ? AQI_THRESHOLDS : POLLEN_THRESHOLDS);
+                return {
+                    key,
+                    title: POLLENS_POLLUTANTS_TITLES[key] ?? key,
+                    value: polls[key].value + '',
+                    unit: polls[key].unit ?? '',
+                    color: level === null ? colorOnSurfaceVariant : MODERN_LEVEL_COLORS[level],
+                    fraction: levelFraction(value, 100)
+                };
+            });
+    }
+    // "Fair · 38" chip, tinted with the level color
+    $: aqiLevel = levelIndex(item.aqi, AQI_THRESHOLDS);
+    $: aqiColor = aqiLevel === null ? colorOnSurfaceVariant : MODERN_LEVEL_COLORS[aqiLevel];
     let animated = iconService.animated;
     $: ({ colorOnSurface, colorOnSurfaceVariant, colorOutline } = $colors);
+    // modern: the daily row header on top, then each section in a light card
+    $: modern = $designStyle === 'modern';
 
     /** Tides that fall within the current day (start of day → end of day) */
     $: dayTides = (() => {
@@ -236,7 +280,10 @@
         chart.rightAxis.drawAxisLine = false;
         chart.rightAxis.drawGridLines = false;
         chart.rightAxis.drawLabels = false;
-        chart.setExtraOffsets(0, 40, 0, 10);
+        // modern: the chart keeps its own room for the icons and labels
+        if (!modern) {
+            chart.setExtraOffsets(0, 40, 0, 10);
+        }
     }
 
     function drawPollOnCanvas(polls, title: string, canvas: Canvas) {
@@ -257,19 +304,27 @@
             canvas.drawText(POLLENS_POLLUTANTS_TITLES[k], dx + 20, dy + 11 * $fontScale, dataPaint);
             canvas.drawText(data.value + ' ' + data.unit, dx + 20, dy + 26 * $fontScale, subtitlesPaint);
         });
-        canvas.drawLine(0, h - 1, w, h - 1, subtitlesPaint);
+        drawSectionLine(canvas, w, h);
     }
 
     $: {
-        titlesPaint.textSize = 17 * $fontScale;
+        titlesPaint.textSize = (modern ? 15 : 17) * $fontScale;
+        titlesPaint.fontWeight = modern ? $accentFontWeight : 'bold';
         subtitlesPaint.textSize = 12 * $fontScale;
         dataPaint.textSize = 14 * $fontScale;
-        titlesPaint.textSize = 17 * $fontScale;
+        const fontFamily = textFontFamily($designStyle);
+        [titlesPaint, subtitlesPaint, dataPaint].forEach((paint) => paint.setFontFamily(fontFamily));
+    }
+    // the cards already separate the sections
+    function drawSectionLine(canvas: Canvas, w: number, h: number) {
+        if (!modern) {
+            canvas.drawLine(0, h - 1, w, h - 1, subtitlesPaint);
+        }
     }
     $: {
         dataPaint.color = colorOnSurface;
         titlesPaint.color = colorOnSurface;
-        subtitlesPaint.color = colorOutline;
+        subtitlesPaint.color = modern ? colorOnSurfaceVariant : colorOutline;
     }
     function drawLast24({ canvas }: { canvas: Canvas }) {
         const w = canvas.getWidth();
@@ -287,7 +342,7 @@
             canvas.drawText(data.value + '', w - dx, dy + 18, dataPaint);
             dataPaint.setTextAlign(Align.LEFT);
         });
-        canvas.drawLine(0, h - 1, w, h - 1, subtitlesPaint);
+        drawSectionLine(canvas, w, h);
     }
     function drawNext24({ canvas }: { canvas: Canvas }) {
         const w = canvas.getWidth();
@@ -309,7 +364,7 @@
             canvas.drawText(data.value + '', w - dx, dy + 18, dataPaint);
             dataPaint.setTextAlign(Align.LEFT);
         });
-        canvas.drawLine(0, h - 1, w, h - 1, subtitlesPaint);
+        drawSectionLine(canvas, w, h);
     }
     function drawPollutants({ canvas }: { canvas: Canvas }) {
         drawPollOnCanvas(item.pollutants, lc('pollutants'), canvas);
@@ -346,62 +401,156 @@
     <gridlayout class="pageContent" rows="auto,*">
         <scrollview row={1}>
             <stacklayout bind:this={stackHolder}>
-                <gridlayout columns="*,auto" height={topViewHeight * $fontScale} on:swipe={onSwipe}>
-                    <canvasview bind:this={topCanvasView} colSpan={2} paddingBottom={10} paddingLeft={10} paddingRight={10} on:draw={drawOnCanvas} />
-                    <WeatherIcon
-                        {animated}
-                        col={1}
-                        horizontalAlignment="right"
-                        iconData={[item.iconId, item.isDay]}
-                        marginBottom={12}
-                        size={weatherIconSize * (2 - $fontScale)}
-                        verticalAlignment="bottom" />
-                </gridlayout>
+                {#if modern}
+                    <gridlayout on:swipe={onSwipe}>
+                        <DailyView {animated} fullDate={true} {item} />
+                    </gridlayout>
+                {:else}
+                    <gridlayout columns="*,auto" height={topViewHeight * $fontScale} on:swipe={onSwipe}>
+                        <canvasview bind:this={topCanvasView} colSpan={2} paddingBottom={10} paddingLeft={10} paddingRight={10} on:draw={drawOnCanvas} />
+                        <WeatherIcon
+                            {animated}
+                            col={1}
+                            horizontalAlignment="right"
+                            iconData={[item.iconId, item.isDay]}
+                            marginBottom={12}
+                            size={weatherIconSize * (2 - $fontScale)}
+                            verticalAlignment="bottom" />
+                    </gridlayout>
+                {/if}
                 {#if item.hourly && item.hourly.length}
-                    {#if $hourlyViewMode === 'chart'}
-                        <HourlyChartView
-                            barWidth={1}
-                            borderBottomColor={colorOutline}
-                            borderBottomWidth={1}
-                            {dataToShow}
-                            fixedBarScale={false}
-                            height={hourlyViewHeight}
-                            hourly={item.hourly}
-                            {onChartConfigure}
-                            rightAxisSuggestedMaximum={8}
-                            row={1}
-                            showCurrentTimeLimitLine={false}
-                            startTime={isCurrentDay ? Date.now() : undefined}
-                            temperatureLineWidth={3}
-                            visibility={item.hourly.length > 0 ? 'visible' : 'collapsed'} />
-                    {:else if $hourlyViewMode === 'windy'}
-                        <WindyView {dataToShow} height={hourlyViewHeight} items={item.hourly} row={1} />
-                    {:else}
-                        <HourlyView height={hourlyViewHeight} items={item.hourly} row={1} />
+                    <gridlayout class={modern ? 'modernCard' : ''} rows="auto,auto">
+                        {#if modern}
+                            <!-- title and a view switch (classic list, chart, windy) for this page only -->
+                            <ModernCardTitle icon="mdi-clock-outline" iconColor={MODERN_SECTION_COLORS.hourly} title={lc('hourly')}>
+                                <gridlayout class="modernSegmented" col={2} columns="auto,auto,auto" verticalAlignment="center">
+                                    {#each HOURLY_MODES as mode, index}
+                                        <label
+                                            class={shownHourlyMode === mode ? 'modernSegment modernSegmentCompact modernSegmentSelected' : 'modernSegment modernSegmentCompact'}
+                                            col={index}
+                                            text={lc(mode + '_view')}
+                                            on:tap={() => (pageHourlyMode = mode)} />
+                                    {/each}
+                                </gridlayout>
+                            </ModernCardTitle>
+                        {/if}
+                        {#if shownHourlyMode === 'chart'}
+                            <HourlyChartView
+                                barWidth={1}
+                                borderBottomColor={colorOutline}
+                                borderBottomWidth={modern ? 0 : 1}
+                                {dataToShow}
+                                fixedBarScale={false}
+                                height={hourlyViewHeight}
+                                hourly={item.hourly}
+                                {onChartConfigure}
+                                rightAxisSuggestedMaximum={8}
+                                row={1}
+                                showCurrentTimeLimitLine={false}
+                                showDayLabels={false}
+                                startTime={isCurrentDay ? Date.now() : undefined}
+                                temperatureLineWidth={3}
+                                visibility={item.hourly.length > 0 ? 'visible' : 'collapsed'} />
+                        {:else if shownHourlyMode === 'windy'}
+                            <WindyView {dataToShow} height={hourlyViewHeight} items={item.hourly} row={1} />
+                        {:else}
+                            <HourlyView height={hourlyViewHeight} items={item.hourly} row={1} />
+                        {/if}
+                    </gridlayout>
+                {/if}
+                {#if modern}
+                    {#if last24Data.length > 0 || next24Data.length > 0}
+                        <stacklayout class="modernCard" paddingBottom={8}>
+                            {#each [{ title: lc('last_24_hours'), rows: last24Data, icon: 'mdi-history' }, { title: lc('next_24_hours'), rows: next24Data, icon: 'mdi-clock-outline' }] as section}
+                                {#if section.rows.length > 0}
+                                    <ModernCardTitle icon={section.icon} iconColor={MODERN_SECTION_COLORS.hourly} title={section.title} />
+                                    {#each section.rows as data}
+                                        <gridlayout class="modernKeyValue" columns="auto,*,auto">
+                                            <absolutelayout backgroundColor={data.iconColor || data.color} borderRadius={4} height={8} marginRight={10} verticalAlignment="center" width={8} />
+                                            <label class="modernSubtitle" col={1} text={getWeatherDataShortTitle(data.key)} verticalAlignment="center" />
+                                            <label class="modernTitle modernStrong" col={2} text={data.value + ''} verticalAlignment="center" />
+                                        </gridlayout>
+                                    {/each}
+                                {/if}
+                            {/each}
+                        </stacklayout>
+                    {/if}
+                    {#each [{ polls: item.pollutants, title: lc('air_quality'), pollutants: true, icon: 'mdi-leaf' }, { polls: item.pollens, title: lc('pollens'), pollutants: false, icon: 'mdi-flower' }] as levels}
+                        {#if levels.polls}
+                            <stacklayout class="modernCard" paddingBottom={10}>
+                                <ModernCardTitle icon={levels.icon} iconColor={MODERN_SECTION_COLORS.airQuality} title={levels.title}>
+                                    <label
+                                        class="modernChip modernStrong"
+                                        backgroundColor={new Color(aqiColor).setAlpha(40).hex}
+                                        col={2}
+                                        color={mixColors(aqiColor, colorOnSurface, 0.35)}
+                                        text={(aqiLevel === null ? '' : lc(AQI_LEVEL_KEYS[aqiLevel]) + ' · ') + item.aqi}
+                                        verticalAlignment="center"
+                                        visibility={levels.pollutants && Number.isFinite(item.aqi) ? 'visible' : 'collapse'} />
+                                </ModernCardTitle>
+                                <gridlayout columns="*,*" padding="2 10 0 16" rows={Array(Math.ceil(levelEntries(levels.polls, levels.pollutants).length / 2)).fill('auto').join(',')}>
+                                    {#each levelEntries(levels.polls, levels.pollutants) as entry, index}
+                                        <stacklayout col={index % 2} padding="6 6 6 0" row={Math.floor(index / 2)}>
+                                            <gridlayout columns="*,auto,auto">
+                                                <label class="modernSubtitle modernEllipsis" text={entry.title} verticalAlignment="bottom" />
+                                                <label class="modernTitle modernStrong" col={1} marginLeft={4} text={entry.value} verticalAlignment="bottom" />
+                                                <label class="modernSubtitle" col={2} marginLeft={3} text={entry.unit} verticalAlignment="bottom" />
+                                            </gridlayout>
+                                            <gridlayout class="modernLevelTrack" columns={`${Math.round(Math.max(entry.fraction, 0.02) * 1000)}*,${Math.round((1 - Math.max(entry.fraction, 0.02)) * 1000)}*`}>
+                                                <absolutelayout class="modernLevelFill" backgroundColor={entry.color} />
+                                            </gridlayout>
+                                        </stacklayout>
+                                    {/each}
+                                </gridlayout>
+                            </stacklayout>
+                        {/if}
+                    {/each}
+                {:else}
+                    {#if last24Data.length > 0 || next24Data.length > 0}
+                        <stacklayout>
+                            {#if last24Data.length > 0}
+                                <canvasview height={Math.ceil(last24Data.length * 30 + 45) * $fontScale} on:draw={drawLast24} />
+                            {/if}
+                            {#if next24Data.length > 0}
+                                <canvasview height={Math.ceil(next24Data.length * 30 + (last24Data.length > 0 ? 45 : 15)) * $fontScale} on:draw={drawNext24} />
+                            {/if}
+                        </stacklayout>
+                    {/if}
+
+                    {#if item.pollutants}
+                        <canvasview height={Math.ceil((Object.keys(item.pollutants).length / 2) * 40 + 55) * $fontScale} on:draw={drawPollutants} />
+                    {/if}
+
+                    {#if item.pollens}
+                        <canvasview height={Math.ceil((Object.keys(item.pollens).length / 2) * 40 + 55) * $fontScale} on:draw={drawPollens} />
                     {/if}
                 {/if}
-                {#if last24Data.length > 0}
-                    <canvasview height={Math.ceil(last24Data.length * 30 + 45) * $fontScale} on:draw={drawLast24} />
-                {/if}
-                {#if next24Data.length > 0}
-                    <canvasview height={Math.ceil(next24Data.length * 30 + (last24Data.length > 0 ? 45 : 15)) * $fontScale} on:draw={drawNext24} />
-                {/if}
-
-                {#if item.pollutants}
-                    <canvasview height={Math.ceil((Object.keys(item.pollutants).length / 2) * 40 + 55) * $fontScale} on:draw={drawPollutants} />
-                {/if}
-
-                {#if item.pollens}
-                    <canvasview height={Math.ceil((Object.keys(item.pollens).length / 2) * 40 + 55) * $fontScale} on:draw={drawPollens} />
-                {/if}
                 {#if dayTides.length > 0}
-                    <label color="#0288d1" fontSize={17} fontWeight="bold" padding={10} text={lc('tides')} />
-                    <TidesChartView {startTime} tides={dayTides} {timezoneOffset} />
+                    <stacklayout class={modern ? 'modernCard' : ''}>
+                        {#if modern}
+                            <ModernCardTitle icon="mdi-waves" iconColor={MODERN_SECTION_COLORS.tides} title={lc('tides')} />
+                        {:else}
+                            <label color="#0288d1" fontSize={17} fontWeight="bold" padding={10} text={lc('tides')} />
+                        {/if}
+                        <TidesChartView {startTime} tides={dayTides} {timezoneOffset} />
+                    </stacklayout>
                 {/if}
-                <label color="#ffa500" fontSize={17} fontWeight="bold" padding={10} text={lc('astronomy')} />
-                <AstronomyView {isCurrentDay} {location} selectableDate={false} startTime={isCurrentDay ? dayjs() : startTime} {timezoneOffset} />
+                <stacklayout class={modern ? 'modernCard' : ''}>
+                    {#if modern}
+                        <ModernCardTitle icon="mdi-theme-light-dark" iconColor={MODERN_SECTION_COLORS.astronomy} title={lc('sun_and_moon')} />
+                    {:else}
+                        <label color="#ffa500" fontSize={17} fontWeight="bold" padding={10} text={lc('astronomy')} />
+                    {/if}
+                    <AstronomyView {isCurrentDay} {location} selectableDate={false} startTime={isCurrentDay ? dayjs() : startTime} {timezoneOffset} />
+                </stacklayout>
             </stacklayout>
         </scrollview>
-        <CActionBar title={weatherLocation && weatherLocation.name} on:swipe={onSwipe} />
+        <CActionBar title={weatherLocation && weatherLocation.name} on:swipe={onSwipe}>
+            {#if modern}
+                <!-- previous / next day, like swiping the header -->
+                <mdbutton class="actionBarButton" isEnabled={itemIndex > minIndex} text="mdi-chevron-left" variant="text" on:tap={() => onSwipe({ direction: 1 })} />
+                <mdbutton class="actionBarButton" isEnabled={itemIndex < itemsCount - 1} text="mdi-chevron-right" variant="text" on:tap={() => onSwipe({ direction: 2 })} />
+            {/if}
+        </CActionBar>
     </gridlayout>
 </page>
