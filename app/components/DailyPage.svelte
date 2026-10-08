@@ -357,7 +357,7 @@
                         size={weatherIconSize * (2 - $fontScale)}
                         verticalAlignment="bottom" />
                 </gridlayout>
-                ${#if item.hourly && item.hourly.length}
+                {#if item.hourly && item.hourly.length}
                     {#if $hourlyViewMode === 'chart'}
                         <HourlyChartView
                             barWidth={1}
