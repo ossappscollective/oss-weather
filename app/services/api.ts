@@ -291,6 +291,9 @@ export function prepareItems(weatherLocation: WeatherLocation, weatherData: Weat
 
     const weatherDailyData = weatherData.daily.data;
     const firstDailyIndex = weatherDailyData.findIndex((d) => d.time >= startOfDay);
+    const shownDays = weatherDailyData.slice(firstDailyIndex);
+    const weekTemperatureMin = Math.min(...shownDays.map((d) => d.temperatureMin).filter(Number.isFinite));
+    const weekTemperatureMax = Math.max(...shownDays.map((d) => d.temperatureMax).filter(Number.isFinite));
 
     weatherDailyData.slice(firstDailyIndex).forEach((d, index) => {
         if (index === 0) {
@@ -393,6 +396,8 @@ export function prepareItems(weatherLocation: WeatherLocation, weatherData: Weat
                 newItems.push(
                     Object.assign(d, {
                         last24: lastdayData ? lastdayData : null,
+                        weekTemperatureMin,
+                        weekTemperatureMax,
                         timezone: weatherLocation.timezone,
                         timezoneOffset: weatherLocation.timezoneOffset,
                         // icon: iconService.getIcon(d.iconId, d.isDay),
@@ -403,6 +408,8 @@ export function prepareItems(weatherLocation: WeatherLocation, weatherData: Weat
         } else {
             newItems.push(
                 Object.assign(d, {
+                    weekTemperatureMin,
+                    weekTemperatureMax,
                     timezone: weatherLocation.timezone,
                     timezoneOffset: weatherLocation.timezoneOffset,
                     // icon: iconService.getIcon(d.iconId, d.isDay),

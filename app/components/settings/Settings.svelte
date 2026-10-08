@@ -21,15 +21,18 @@
     import CActionBar from '~/components/common/CActionBar.svelte';
     import ListItemAutoSize from '~/components/common/ListItemAutoSize.svelte';
     import {
+        ACCENT_FONT_WEIGHT,
         ALERT_OPTION_MAX_HEIGHT,
         ALWAYS_SHOW_PRECIP_PROB,
         ANIMATIONS_ENABLED,
         CHARTS_LANDSCAPE,
         CHARTS_PORTRAIT_FULLSCREEN,
+        DATA_INTENSITY,
         DEFAULT_DAILY_DATA_ALIGNMENT,
         DEFAULT_DAILY_DATE_FORMAT,
         DEFAULT_HOURLYMAIN_DATA,
         DEFAULT_HOURLY_ODD_COLORS,
+        DESIGN_STYLE,
         FEELS_LIKE_TEMPERATURE,
         HOURLY_VIEW_MODE,
         MAIN_CHART_NB_HOURS,
@@ -38,9 +41,12 @@
         NB_DAYS_FORECAST,
         NB_HOURS_FORECAST,
         NB_MINUTES_FORECAST,
+        SETTINGS_ACCENT_FONT_WEIGHT,
         SETTINGS_ALWAYS_SHOW_PRECIP_PROB,
         SETTINGS_DAILY_DATA_ALIGNMENT,
         SETTINGS_DAILY_DATE_FORMAT,
+        SETTINGS_DATA_INTENSITY,
+        SETTINGS_DESIGN_STYLE,
         SETTINGS_ENABLE_CRASH_REPORT,
         SETTINGS_FEELS_LIKE_TEMPERATURES,
         SETTINGS_HOURLY_MAIN_DATA,
@@ -56,11 +62,13 @@
         SETTINGS_PROVIDER_AQI,
         SETTINGS_SHOW_CURRENT_DAY_DAILY,
         SETTINGS_SHOW_DAILY_IN_CURRENTLY,
+        SETTINGS_SHOW_EMPTY_DATA,
         SETTINGS_SWIPE_ACTION_BAR_PROVIDER,
         SETTINGS_UNITS,
         SETTINGS_WEATHER_DATA_LAYOUT,
         SHOW_CURRENT_DAY_DAILY,
         SHOW_DAILY_IN_CURRENTLY,
+        SHOW_EMPTY_DATA,
         SWIPE_ACTION_BAR_PROVIDER,
         WEATHER_DATA_LAYOUT
     } from '~/helpers/constants';
@@ -181,9 +189,47 @@
                         title: lc('weather_data_layout'),
                         values: [
                             { value: 'default', title: lc('blocks') },
-                            { value: 'line', title: lc('lines') }
+                            { value: 'chips', title: lc('chips') },
+                            { value: 'grid', title: lc('grid') }
                         ],
                         rightValue: () => ApplicationSettings.getString(SETTINGS_WEATHER_DATA_LAYOUT, WEATHER_DATA_LAYOUT)
+                    },
+                    {
+                        id: 'setting',
+                        valueType: 'string',
+                        key: SETTINGS_DESIGN_STYLE,
+                        title: lc('design_style'),
+                        values: [
+                            { value: 'classic', title: lc('classic_view') },
+                            { value: 'modern', title: lc('modern') }
+                        ],
+                        rightValue: () => ApplicationSettings.getString(SETTINGS_DESIGN_STYLE, DESIGN_STYLE)
+                    },
+                    {
+                        id: 'setting',
+                        valueType: 'number',
+                        key: SETTINGS_ACCENT_FONT_WEIGHT,
+                        title: lc('accent_font_weight'),
+                        values: [
+                            { value: 500, title: lc('font_weight_medium') },
+                            { value: 600, title: lc('font_weight_semibold') },
+                            { value: 700, title: lc('font_weight_bold') }
+                        ],
+                        rightValue: () => ApplicationSettings.getNumber(SETTINGS_ACCENT_FONT_WEIGHT, ACCENT_FONT_WEIGHT) + ''
+                    },
+                    {
+                        type: 'switch',
+                        id: SETTINGS_SHOW_EMPTY_DATA,
+                        title: lc('show_empty_data'),
+                        description: lc('show_empty_data_desc'),
+                        value: ApplicationSettings.getBoolean(SETTINGS_SHOW_EMPTY_DATA, SHOW_EMPTY_DATA)
+                    },
+                    {
+                        type: 'switch',
+                        id: SETTINGS_DATA_INTENSITY,
+                        title: lc('data_intensity'),
+                        description: lc('data_intensity_desc'),
+                        value: ApplicationSettings.getBoolean(SETTINGS_DATA_INTENSITY, DATA_INTENSITY)
                     },
                     {
                         key: SETTINGS_DAILY_DATA_ALIGNMENT,

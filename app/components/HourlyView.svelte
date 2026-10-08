@@ -4,25 +4,32 @@
     import { Template } from '@nativescript-community/svelte-native/components';
     import type { NativeViewElementNode } from '@nativescript-community/svelte-native/dom';
     import HourlyItem from '~/components/HourlyItem.svelte';
+    import { formatDate } from '~/helpers/locale';
     import { isEInk, onThemeChanged } from '~/helpers/theme';
     import { iconService } from '~/services/icon';
-    import { colors, fontScale, onUnitsChanged } from '~/variables';
+    import { accentFontWeight, colors, designStyle, fontScale, onUnitsChanged } from '~/variables';
 
-    let { colorBackground, colorOutline } = $colors;
-    $: ({ colorBackground, colorOutline } = $colors);
+    let { colorBackground, colorOnSurface, colorOutline } = $colors;
+    $: ({ colorBackground, colorOnSurface, colorOutline } = $colors);
 
     export let items: any[];
     let collectionView: NativeViewElementNode<CollectionView>;
     let showLeftShadowOpacity = 0;
     let showRightShadowOpacity = 1;
+    // modern: a chip on the left names the day of the first visible hour, once scrolled
+    let firstVisibleIndex = 0;
+    $: columnWidth = 68 * $fontScale;
+    $: dayChipText = $designStyle === 'modern' && firstVisibleIndex > 0 && items?.[firstVisibleIndex] ? formatDate(items[firstVisibleIndex].time, 'ddd', items[firstVisibleIndex].timezoneOffset) : '';
 
     function onDataPopulated() {
         showLeftShadowOpacity = 0;
         showRightShadowOpacity = 1;
+        firstVisibleIndex = 0;
         collectionView?.nativeView?.scrollToIndex(0, false);
     }
 
     function onScrollEvent(event) {
+        firstVisibleIndex = Math.floor(event.scrollOffset / columnWidth);
         showLeftShadowOpacity = Math.min(event.scrollOffset, 60) / 60;
         showRightShadowOpacity = Math.min(event.scrollSize - event.scrollOffset, 60) / 60;
     }
@@ -78,4 +85,19 @@
         isUserInteractionEnabled={false}
         opacity={showRightShadowOpacity}
         width={40} />
+    {#if dayChipText}
+        <label
+            backgroundColor={new Color(colorOnSurface).setAlpha(220).hex}
+            borderRadius={10 * $fontScale}
+            color={colorBackground}
+            fontSize={11 * $fontScale}
+            fontWeight={$accentFontWeight}
+            horizontalAlignment="left"
+            isUserInteractionEnabled={false}
+            marginLeft={4}
+            marginTop={3 * $fontScale}
+            padding={`${2 * $fontScale} ${8 * $fontScale}`}
+            text={dayChipText}
+            verticalAlignment="top" />
+    {/if}
 </gridlayout>

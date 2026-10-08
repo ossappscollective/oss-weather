@@ -22,6 +22,10 @@ export const SETTINGS_FEELS_LIKE_TEMPERATURES = 'feels_like_temperatures';
 export const SETTINGS_SHOW_DAILY_IN_CURRENTLY = 'show_daily_in_currently';
 export const SETTINGS_SHOW_CURRENT_DAY_DAILY = 'show_current_day_daily';
 export const SETTINGS_WEATHER_DATA_LAYOUT = 'weather_data_layout';
+export const SETTINGS_DESIGN_STYLE = 'design_style';
+export const SETTINGS_ACCENT_FONT_WEIGHT = 'accent_font_weight';
+export const SETTINGS_SHOW_EMPTY_DATA = 'show_empty_data';
+export const SETTINGS_DATA_INTENSITY = 'data_intensity';
 export const SETTINGS_MIN_UV_INDEX = 'min_uv_index';
 export const SETTINGS_MAIN_CHART_NB_HOURS = 'main_chart_nb_hours';
 export const SETTINGS_HOURLY_ODD_COLORS = 'hourly_odd_colors';
@@ -54,6 +58,10 @@ export const DEFAULT_DAILY_DATE_FORMAT = 'DD/MM';
 export const DEFAULT_DAILY_DATA_ALIGNMENT = 'center';
 
 export const WEATHER_DATA_LAYOUT = 'default';
+export const DESIGN_STYLE = 'classic';
+export const ACCENT_FONT_WEIGHT = 700;
+export const SHOW_EMPTY_DATA = true;
+export const DATA_INTENSITY = false;
 
 export const MAX_NB_DAYS_FORECAST = 16;
 export const NB_DAYS_FORECAST = 7;

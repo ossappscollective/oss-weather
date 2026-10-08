@@ -467,5 +467,22 @@
   "librewxr_server": "LibreWXR server",
   "satellite": "satellite",
   "radar_satellite": "radar + satellite",
-  "forecast": "forecast"
+  "forecast": "forecast",
+  "chips": "chips",
+  "design_style": "weather data style (icons, colors, text sizes)",
+  "modern": "modern",
+  "grid": "aligned grid",
+  "precip_all_hour": "precipitation for the next hour",
+  "precip_starting_in": "precipitation starting in %1$s min",
+  "precip_stopping_in": "precipitation stopping in %1$s min",
+  "precip_intermittent": "intermittent precipitation within the hour",
+  "now": "now",
+  "accent_font_weight": "emphasis font weight (modern style)",
+  "font_weight_medium": "medium",
+  "font_weight_semibold": "semi bold",
+  "font_weight_bold": "bold",
+  "show_empty_data": "show missing values",
+  "show_empty_data_desc": "keep a faint placeholder for data with no value in the aligned grid and chips layouts",
+  "data_intensity": "show data intensity",
+  "data_intensity_desc": "tint the chips and grid cells of precipitation, cloud cover and UV index by their intensity"
 }

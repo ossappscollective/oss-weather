@@ -12,8 +12,10 @@ import { convertValueToUnit, formatValueToUnit, windBeaufortIcon, windIcon } fro
 import { UNITS, UNIT_FAMILIES } from '~/helpers/units';
 import type { CommonWeatherData, WeatherData } from '~/services/providers/weather';
 import { createGlobalEventListener, globalObservable } from '@shared/utils/svelte/ui';
+import { dataTint, modernPrecipColor, precipKind, styledDataIcon } from '~/utils/designStyle';
+import { getMoonIlluminationPercent } from '~/helpers/moon';
 import { getIndexedColor, tempColor } from '~/utils/utils';
-import { cloudyColor, fontScale, fonts, rainColor, scatteredCloudyColor, snowColor, sunnyColor, unitsSettings } from '~/variables';
+import { cloudyColor, designStyle, fontScale, fonts, rainColor, scatteredCloudyColor, snowColor, sunnyColor, unitsSettings } from '~/variables';
 import { colorForAqi } from './airQualityData';
 import { iconService } from './icon';
 import { prefs } from './preferences';
@@ -199,12 +201,19 @@ export const mdiPaint = new Paint();
 mdiPaint.setTextAlign(Align.CENTER);
 export const appPaint = new Paint();
 appPaint.setTextAlign(Align.CENTER);
+export const wdPaint = new Paint();
+wdPaint.setTextAlign(Align.CENTER);
+// same glyphs drawn lighter for the small icons
+const wdThinPaint = new Paint();
+wdThinPaint.setTextAlign(Align.CENTER);
 
 fonts.subscribe((data) => {
     if (data.wi?.length) {
         wiPaint.setFontFamily(data.wi);
         mdiPaint.setFontFamily(data.mdi);
         appPaint.setFontFamily(data.app);
+        wdPaint.setFontFamily(data.wd);
+        wdThinPaint.setFontFamily(data.wdThin);
     }
 });
 
@@ -221,6 +230,9 @@ const WEATHER_DATA_ICONS = {
     [WeatherProps.dewpoint]: { fontFamily: 'mdi', icon: 'mdi-thermometer-water' },
     [WeatherProps.apparentTemperature]: { fontFamily: 'mdi', icon: 'mdi-thermometer' },
     [WeatherProps.temperature]: { fontFamily: 'mdi', icon: 'mdi-thermometer' },
+    [WeatherProps.temperatureMin]: { fontFamily: 'mdi', icon: 'mdi-thermometer-low' },
+    [WeatherProps.temperatureMax]: { fontFamily: 'mdi', icon: 'mdi-thermometer-high' },
+    [WeatherProps.precipProbability]: { fontFamily: 'mdi', icon: 'mdi-umbrella-outline' },
     [WeatherProps.rainSnowLimit]: { fontFamily: 'wi', icon: 'app-rain-snow' },
     [WeatherProps.iso]: { fontFamily: 'mdi', icon: 'mdi-snowflake-thermometer' },
     [WeatherProps.cloudCover]: { fontFamily: 'wi', icon: 'wi-cloud' },
@@ -233,6 +245,7 @@ const WEATHER_DATA_ICONS = {
     [WeatherProps.precipAccumulation]: (item: CommonWeatherData) => ({ fontFamily: item.precipFontUseApp ? 'app' : 'wi', icon: item.precipIcon ?? 'wi-raindrop' }),
     [WeatherProps.rainPrecipitation]: { fontFamily: 'wi', icon: 'wi-raindrop' },
     [WeatherProps.snowfall]: { fontFamily: 'wi', icon: 'wi-snowflake-cold' },
+    [WeatherProps.snowDepth]: { fontFamily: 'mdi', icon: 'mdi-snowflake' },
     [WeatherProps.seaTemperature]: { fontFamily: 'mdi', icon: 'mdi-coolant-temperature' },
     [WeatherProps.waveHeight]: { fontFamily: 'mdi', icon: 'mdi-waves-arrow-up' },
     [WeatherProps.waveHeightMax]: { fontFamily: 'mdi', icon: 'mdi-waves-arrow-up' },
@@ -311,6 +324,34 @@ export function getWeatherDataShortTitle(key: string) {
 export function getWeatherDataColor(key: string) {
     return WEATHER_DATA_COLORS[key];
 }
+// data that can be absent on a given hour/day (below a threshold): they get a placeholder in grids
+const SLOT_PLACEHOLDER_PROPS = [
+    WeatherProps.precipAccumulation,
+    WeatherProps.rainPrecipitation,
+    WeatherProps.snowfall,
+    WeatherProps.cloudCover,
+    WeatherProps.uvIndex,
+    WeatherProps.windGust,
+    WeatherProps.windSpeed,
+    WeatherProps.aqi,
+    WeatherProps.apparentTemperature,
+    WeatherProps.waveHeight,
+    WeatherProps.swellHeight
+];
+
+function paintForFontFamily(fontFamily: string) {
+    switch (fontFamily) {
+        case 'app':
+            return appPaint;
+        case 'wi':
+            return wiPaint;
+        case 'wd':
+            return wdPaint;
+        default:
+            return mdiPaint;
+    }
+}
+
 const ICONS_SIZE_FACTOR = {
     [WeatherProps.sealevelPressure]: 0.9,
     [WeatherProps.windSpeed]: 0.8,
@@ -334,6 +375,12 @@ export interface CommonData {
     icon?: string;
     value?: string | number;
     subvalue?: string;
+    // placeholder for a data with no value, keeps grid columns aligned
+    missing?: boolean;
+    // precipitation probability (0-100), lets grids draw it as a bar instead of text
+    probability?: number;
+    // intensity tint of the chip/cell background (precipitation, cloud cover, UV)
+    tint?: { color: string; fraction: number };
     customDraw?(canvas: Canvas, fontScale: number, paint: Paint, c: CommonData, x: number, y: number, ...args);
 }
 export interface CommonDataOptions {
@@ -390,7 +437,7 @@ export class DataService extends Observable {
     getWeatherDataOptions(key: WeatherProps, item?: CommonWeatherData) {
         return {
             id: key,
-            ...getWeatherDataIcon(key, item),
+            ...styledDataIcon(get(designStyle), getWeatherDataIcon(key, item)),
             iconFactor: ICONS_SIZE_FACTOR[key] ?? 1
             // getData: this.getItemData
         };
@@ -463,6 +510,28 @@ export class DataService extends Observable {
         }
         return keys.map((k) => this.getItemData(k, item, type)).filter((d) => !!d);
     }
+    // a chart draws every value: give one even when below the thresholds that hide it elsewhere (gust, UV...)
+    getChartItemData(key: WeatherProps, item: CommonWeatherData, type?: 'daily' | 'hourly' | 'currently'): CommonData {
+        const data = this.getItemData(key, item, type);
+        if (data || item[key] === undefined || item[key] === null) {
+            return data;
+        }
+        const { fontFamily, icon, iconFactor } = this.getWeatherDataOptions(key, item);
+        return { key, icon, paint: paintForFontFamily(fontFamily), iconFontSize: 20 * get(fontScale) * iconFactor, value: formatWeatherValue(item, key) };
+    }
+    getIconsSlots({ filter = [], item, type }: { item: CommonWeatherData; filter?: WeatherProps[]; type?: 'daily' | 'hourly' | 'currently' }): CommonData[] {
+        return this.currentWeatherData
+            .filter((key) => filter.indexOf(key) === -1)
+            .map((key) => {
+                const data = this.getItemData(key, item, type);
+                if (data || SLOT_PLACEHOLDER_PROPS.indexOf(key) === -1) {
+                    return data;
+                }
+                const { fontFamily, icon, iconFactor } = this.getWeatherDataOptions(key, item);
+                return { key, icon, paint: paintForFontFamily(fontFamily), iconFontSize: 20 * get(fontScale) * iconFactor, missing: true };
+            })
+            .filter((data) => !!data);
+    }
     getSmallIconsData({
         addedAfter = [],
         addedBefore = [],
@@ -480,7 +549,10 @@ export class DataService extends Observable {
         if (filter.length) {
             keys = keys.filter((k) => filter.indexOf(k) === -1);
         }
-        return keys.map((k) => this.getItemData(k, item, type)).filter((d) => !!d);
+        return keys
+            .map((k) => this.getItemData(k, item, type))
+            .filter((d) => !!d)
+            .map((d) => (d.paint === wdPaint ? { ...d, paint: wdThinPaint } : d));
     }
 
     getItemData(key: WeatherProps, item: CommonWeatherData, type?: 'daily' | 'hourly' | 'currently', options?): CommonData {
@@ -493,21 +565,7 @@ export class DataService extends Observable {
             return null;
         }
         const { fontFamily, icon } = dataOptions;
-        let paint: Paint;
-        if (icon) {
-            switch (fontFamily) {
-                case 'app':
-                    paint = appPaint;
-                    break;
-                case 'wi':
-                    paint = wiPaint;
-                    break;
-
-                default:
-                    paint = mdiPaint;
-                    break;
-            }
-        }
+        const paint = icon ? paintForFontFamily(fontFamily) : undefined;
         const iconFontSize = 20 * get(fontScale) * dataOptions.iconFactor;
         switch (key) {
             case WeatherProps.apparentTemperature:
@@ -650,11 +708,13 @@ export class DataService extends Observable {
                     return {
                         key,
                         paint,
-                        color: item.precipColor,
+                        color: get(designStyle) === 'modern' ? modernPrecipColor(precipKind(item)) : item.precipColor,
                         iconFontSize,
-                        icon: item.precipIcon,
+                        icon,
+                        tint: dataTint(key, item),
                         value: formatWeatherValue(item, key, options),
-                        subvalue: item.precipProbability > 0 && formatWeatherValue(item, WeatherProps.precipProbability, options)
+                        subvalue: item.precipProbability > 0 && formatWeatherValue(item, WeatherProps.precipProbability, options),
+                        probability: item.precipProbability > 0 ? item.precipProbability : undefined
                     };
                 }
                 break;
@@ -667,8 +727,10 @@ export class DataService extends Observable {
                         iconColor: getWeatherDataColor(key),
                         iconFontSize,
                         icon,
+                        tint: dataTint(key, item),
                         value: formatWeatherValue(item, key, options),
-                        subvalue: item.precipProbability > 0 && formatWeatherValue(item, WeatherProps.precipProbability, options)
+                        subvalue: item.precipProbability > 0 && formatWeatherValue(item, WeatherProps.precipProbability, options),
+                        probability: item.precipProbability > 0 ? item.precipProbability : undefined
                     };
                 }
                 break;
@@ -681,6 +743,7 @@ export class DataService extends Observable {
                         color: item.cloudColor,
                         iconFontSize,
                         icon,
+                        tint: dataTint(key, item),
                         value: formatWeatherValue(item, key),
                         subvalue: item.cloudCeiling && formatWeatherValue(item, WeatherProps.cloudCeiling)
                     };
@@ -694,6 +757,7 @@ export class DataService extends Observable {
                         color: item.uvIndexColor,
                         iconFontSize,
                         icon,
+                        tint: dataTint(key, item),
                         value: convertWeatherValueToUnit(item, key)[0]
                         // subvalue: 'uv'
                     };
@@ -841,7 +905,8 @@ export class DataService extends Observable {
                     iconFontSize,
                     icon,
                     color: getWeatherDataColor(key),
-                    value: lc('moon')
+                    // modern: the lit percentage, the icon already shows the phase
+                    value: get(designStyle) === 'modern' ? `${getMoonIlluminationPercent(new Date(item.time))}%` : lc('moon')
                 };
             case WeatherProps.windBeaufort:
                 if (item.windBeaufortIcon) {

@@ -15,3 +15,10 @@ export function getMoonPhaseDegrees(date: Date) {
     const illumination = getMoonIllumination(date);
     return Math.round(illumination.phase * 360) % 360;
 }
+
+/**
+ * Lit part of the moon, in whole percents.
+ */
+export function getMoonIlluminationPercent(date: Date) {
+    return Math.round(getMoonIllumination(date).fraction * 100);
+}

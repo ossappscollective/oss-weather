@@ -2,16 +2,22 @@ import { ApplicationSettings, Color } from '@nativescript/core';
 import { createGlobalEventListener, globalObservable } from '@shared/utils/svelte/ui';
 import { get, writable } from 'svelte/store';
 import {
+    ACCENT_FONT_WEIGHT,
     ALWAYS_SHOW_PRECIP_PROB,
+    DATA_INTENSITY,
     DECIMAL_METRICS_TEMP,
     DEFAULT_DAILY_DATA_ALIGNMENT,
     DEFAULT_DAILY_DATE_FORMAT,
     DEFAULT_HOURLYMAIN_DATA,
     DEFAULT_METRIC_CM_TO_MM,
+    DESIGN_STYLE,
     HOURLY_VIEW_MODE,
+    SETTINGS_ACCENT_FONT_WEIGHT,
     SETTINGS_ALWAYS_SHOW_PRECIP_PROB,
     SETTINGS_DAILY_DATA_ALIGNMENT,
     SETTINGS_DAILY_DATE_FORMAT,
+    SETTINGS_DATA_INTENSITY,
+    SETTINGS_DESIGN_STYLE,
     SETTINGS_FEELS_LIKE_TEMPERATURES,
     SETTINGS_FONTSCALE,
     SETTINGS_HOURLY_MAIN_DATA,
@@ -20,13 +26,16 @@ import {
     SETTINGS_METRIC_CM_TO_MM,
     SETTINGS_METRIC_TEMP_DECIMAL,
     SETTINGS_SHOW_CURRENT_DAY_DAILY,
+    SETTINGS_SHOW_EMPTY_DATA,
     SETTINGS_UNITS,
     SETTINGS_WEATHER_DATA_LAYOUT,
+    SHOW_EMPTY_DATA,
     WEATHER_DATA_LAYOUT
 } from '~/helpers/constants';
 import { DEFAULT_IMPERIAL_UINTS, DEFAULT_METRIC_UINTS } from '~/helpers/units';
 import { prefs } from '~/services/preferences';
 import { WeatherProps } from '~/services/weatherData';
+import type { DesignStyle } from '~/utils/designStyle';
 
 export * from '@shared/variables';
 
@@ -76,14 +85,28 @@ export const nightColor = new Color('#845987');
 export const scatteredCloudyColor = new Color('#aaa');
 export const cloudyColor = new Color('#929292');
 export const rainColor = new Color('#4681C3');
-export const snowColor = new Color('#43b4e0');
+export const snowColor = new Color('#00CDE6');
 
-export let imperialUnits = ApplicationSettings.getBoolean(SETTINGS_IMPERIAL, false);
+    export let imperialUnits = ApplicationSettings.getBoolean(SETTINGS_IMPERIAL, false);
 export let metricDecimalTemp = ApplicationSettings.getBoolean(SETTINGS_METRIC_TEMP_DECIMAL, DECIMAL_METRICS_TEMP);
 export let unitCMToMM = ApplicationSettings.getBoolean(SETTINGS_METRIC_CM_TO_MM, DEFAULT_METRIC_CM_TO_MM);
 export const alwaysShowPrecipProb = writable(ApplicationSettings.getBoolean(SETTINGS_ALWAYS_SHOW_PRECIP_PROB, ALWAYS_SHOW_PRECIP_PROB));
 export const dailyDataAlignment = writable(ApplicationSettings.getString(SETTINGS_DAILY_DATA_ALIGNMENT, DEFAULT_DAILY_DATA_ALIGNMENT));
+// the "line" layout was replaced by the aligned grid
+if (ApplicationSettings.getString(SETTINGS_WEATHER_DATA_LAYOUT) === 'line') {
+    ApplicationSettings.setString(SETTINGS_WEATHER_DATA_LAYOUT, 'grid');
+}
 export const weatherDataLayout = writable(ApplicationSettings.getString(SETTINGS_WEATHER_DATA_LAYOUT, WEATHER_DATA_LAYOUT));
+function readDesignStyle(): DesignStyle {
+    return ApplicationSettings.getString(SETTINGS_DESIGN_STYLE, DESIGN_STYLE) === 'modern' ? 'modern' : 'classic';
+}
+export const designStyle = writable(readDesignStyle());
+// weight of values, titles and highlighted texts in the modern style
+// a string: Android only applies bold for '600'/'700', a numeric 700 renders regular
+export const accentFontWeight = writable(ApplicationSettings.getNumber(SETTINGS_ACCENT_FONT_WEIGHT, ACCENT_FONT_WEIGHT) + '');
+// grid and chips: keep a faint placeholder for data with no value
+export const showEmptyData = writable(ApplicationSettings.getBoolean(SETTINGS_SHOW_EMPTY_DATA, SHOW_EMPTY_DATA));
+export const dataIntensity = writable(ApplicationSettings.getBoolean(SETTINGS_DATA_INTENSITY, DATA_INTENSITY));
 export const imperial = writable(imperialUnits);
 export let dailyDateFormat = ApplicationSettings.getString(SETTINGS_DAILY_DATE_FORMAT, DEFAULT_DAILY_DATE_FORMAT);
 export const hourlyViewMode = writable(ApplicationSettings.getString(SETTINGS_HOURLY_VIEW_MODE, HOURLY_VIEW_MODE));
@@ -170,6 +193,18 @@ prefs.on('change', (event: EventData & { key: string }) => {
             DEV_LOG && console.log(`key:${SETTINGS_WEATHER_DATA_LAYOUT}`, weatherDataLayout);
             // we notify imperial to update ui
             globalObservable.notify({ eventName: SETTINGS_WEATHER_DATA_LAYOUT, data: weatherDataLayout });
+            break;
+        case SETTINGS_DESIGN_STYLE:
+            designStyle.set(readDesignStyle());
+            break;
+        case SETTINGS_ACCENT_FONT_WEIGHT:
+            accentFontWeight.set(ApplicationSettings.getNumber(SETTINGS_ACCENT_FONT_WEIGHT, ACCENT_FONT_WEIGHT) + '');
+            break;
+        case SETTINGS_SHOW_EMPTY_DATA:
+            showEmptyData.set(ApplicationSettings.getBoolean(SETTINGS_SHOW_EMPTY_DATA, SHOW_EMPTY_DATA));
+            break;
+        case SETTINGS_DATA_INTENSITY:
+            dataIntensity.set(ApplicationSettings.getBoolean(SETTINGS_DATA_INTENSITY, DATA_INTENSITY));
             break;
         case SETTINGS_HOURLY_VIEW_MODE:
             hourlyViewMode.set(ApplicationSettings.getString(SETTINGS_HOURLY_VIEW_MODE, HOURLY_VIEW_MODE));

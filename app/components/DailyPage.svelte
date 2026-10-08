@@ -135,82 +135,9 @@
 
         const padding = 10;
 
-        const lineHeight = 20 * $fontScale;
-        const lineWidth = 100 * $fontScale;
         const iconsTop = 55 * $fontScale - padding;
         // canvas.translate(26, 0);
         switch ($weatherDataLayout) {
-            case 'line': {
-                textPaint.setTextAlign(Align.LEFT);
-                textIconPaint.setTextAlign(Align.CENTER);
-                textIconPaint.color = colorOutline;
-                const nbLines = Math.ceil(centeredItemsToDraw.length / 2);
-                canvas.drawLine(lineWidth, iconsTop, lineWidth, iconsTop + lineHeight * nbLines, textIconPaint);
-                for (let index = 0; index < nbLines - 1; index++) {
-                    const y = iconsTop + lineHeight * (index + 1);
-                    canvas.drawLine(padding, y, padding + 2 * lineWidth, y, textIconPaint);
-                }
-                const iconDelta = 20 * $fontScale;
-                for (let index = 0; index < centeredItemsToDraw.length; index++) {
-                    const columnIndex = index % 2;
-                    const lineIndex = Math.floor(index / 2);
-                    const y = iconsTop + lineHeight * lineIndex;
-                    const c = centeredItemsToDraw[index];
-                    const paint = c.paint || textIconPaint;
-                    if (c.icon) {
-                        // paint.setColor(c.color || colorOnSurface);
-                        // canvas.drawText(c.icon, columnIndex === 0 ? w2 - 20 : w2 + 20, y + lineHeight + lineHeight / 2 - paint.textSize / 2, paint);
-                        const dataNString = createNativeAttributedString(
-                            {
-                                spans: [
-                                    {
-                                        fontSize: c.iconFontSize,
-                                        color: c.iconColor || c.color || colorOnSurface,
-                                        fontFamily: paint.fontFamily,
-                                        text: c.icon
-                                    }
-                                ]
-                            },
-                            null
-                        );
-                        canvas.save();
-                        const staticLayout = new StaticLayout(dataNString, textPaint, iconDelta, LayoutAlignment.ALIGN_CENTER, 1, 0, true);
-                        // canvas.translate(columnIndex === 0 ? w2 - lineWidth : w2 + lineWidth  - staticLayout.getWidth(), y + lineHeight / 2 - staticLayout.getHeight() / 2);
-                        canvas.translate(padding + (columnIndex === 0 ? 0 : lineWidth), y + lineHeight / 2 - staticLayout.getHeight() / 2);
-                        staticLayout.draw(canvas);
-                        canvas.restore();
-                    }
-                    const dataNString = createNativeAttributedString(
-                        {
-                            spans: [
-                                c.value
-                                    ? {
-                                          fontSize: 12 * $fontScale,
-                                          color: c.color || colorOnSurface,
-                                          text: c.value + ' '
-                                      }
-                                    : undefined,
-                                c.subvalue
-                                    ? {
-                                          fontSize: 9 * $fontScale,
-                                          color: c.color || colorOnSurface,
-                                          text: c.subvalue + ' '
-                                      }
-                                    : undefined
-                            ].filter((s) => !!s)
-                        },
-                        null
-                    );
-                    canvas.save();
-                    const staticLayout = new StaticLayout(dataNString, textPaint, lineWidth, LayoutAlignment.ALIGN_NORMAL, 1, 0, true);
-                    canvas.translate(padding + iconDelta + (columnIndex === 0 ? 5 : lineWidth + 5), y + lineHeight / 2 - staticLayout.getHeight() / 2);
-                    // const staticLayout = new StaticLayout(dataNString, textPaint, lineWidth, columnIndex === 0 ? LayoutAlignment.ALIGN_OPPOSITE : LayoutAlignment.ALIGN_NORMAL, 1, 0, true);
-                    // canvas.translate(columnIndex === 0 ? w2 - lineWidth - 5 : w2 + 5, y + lineHeight / 2 - staticLayout.getHeight() / 2);
-                    staticLayout.draw(canvas);
-                    canvas.restore();
-                }
-                break;
-            }
             default:
             case 'default': {
                 const iconsLeft = 26;

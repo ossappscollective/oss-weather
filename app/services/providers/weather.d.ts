@@ -139,6 +139,9 @@ export interface CommonWeatherData extends CommonAirQualityData {
 
 export interface DailyData extends CommonWeatherData {
     temperatureNight?: number;
+    // lowest/highest temperatures of the shown days, for the range bar
+    weekTemperatureMin?: number;
+    weekTemperatureMax?: number;
 
     sunriseTime?: number;
     sunsetTime?: number;

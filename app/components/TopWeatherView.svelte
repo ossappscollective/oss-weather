@@ -16,11 +16,30 @@
     import type { FavoriteLocation } from '~/helpers/favorites';
     import { isFavorite } from '~/helpers/favorites';
     import { formatDate, formatTime, l, lc } from '~/helpers/locale';
-    import { isEInk, onThemeChanged } from '~/helpers/theme';
+    import { isDarkTheme, isEInk, onThemeChanged } from '~/helpers/theme';
     import { prefs } from '~/services/preferences';
     import type { Currently, Hourly, MinutelyData } from '~/services/providers/weather';
-    import { WeatherProps, formatWeatherValue, weatherDataService } from '~/services/weatherData';
-    import { colors, fontScale, fonts, hourlyViewData, hourlyViewMode, rainColor, topViewHeight, weatherDataLayout } from '~/variables';
+    import { WeatherProps, formatWeatherValue, wdPaint, weatherDataService } from '~/services/weatherData';
+    import {
+        accentFontWeight,
+        colors,
+        dataIntensity,
+        designStyle,
+        fontScale,
+        fonts,
+        hourlyViewData,
+        hourlyViewMode,
+        rainColor,
+        showEmptyData,
+        topViewHeight,
+        weatherDataLayout,
+        windowSize
+    } from '~/variables';
+    import { cardBackgroundAlpha, dataTextStyle, headerTextStyle, precipKind, precipitationFill, styledDataIcon } from '~/utils/designStyle';
+    import { getMoonIlluminationPercent } from '~/helpers/moon';
+    import { drawChips, prepareChips } from '~/helpers/chips';
+    import { TOP_GRID_OPTIONS, drawCenteredValue, drawGrid, prepareGrid } from '~/helpers/dataGrid';
+    import { minutelyAxisLabel, minutelyAxisTicks, minutelyIntensity, minutelySummary } from '~/utils/minutelySummary';
     import HourlyChartView from './HourlyChartView.svelte';
     import WindyView from './WindyView.svelte';
     import { screenWidthDips } from '~/variables';
@@ -28,6 +47,21 @@
     const weatherIconSize = 110;
     const timeFactor = 1 / (1000 * 60 * 10);
     const PADDING_LEFT = 7;
+    const CHIPS_TOP = 46;
+    const MINUTELY_CHART_HEIGHT = 90;
+    const LIMIT_LABELS = [l('light'), l('medium'), l('heavy')];
+
+    // modern layout: hero, data block, minutely card (only with precipitation), sun line
+    const MODERN_PADDING = 16;
+    const MODERN_CARD_PADDING = 12;
+    const MODERN_CARD_RADIUS = 14;
+    const MODERN_HERO_HEIGHT = 124;
+    const MODERN_ICON_SIZE = 84;
+    const MODERN_MINUTELY_HEIGHT = 104;
+    const MODERN_MINUTELY_CHART_TOP = 28;
+    const MODERN_MINUTELY_CHART_HEIGHT = 52;
+    const MODERN_SUN_LINE_HEIGHT = 30;
+    const MODERN_GAP = 12;
     const einkBmpShader = isEInk ? new BitmapShader(ImageSource.fromFileSync('~/assets/images/pattern.png'), TileMode.REPEAT, TileMode.REPEAT) : null;
 
     const textIconPaint = new Paint();
@@ -73,7 +107,9 @@
     }
     $: updateDataToShow($hourlyViewData);
 
-    $: ({ colorOnSurface, colorOnSurfaceVariant, colorOutline } = $colors);
+    $: ({ colorOnSurface, colorOnSurfaceVariant, colorOutline, colorOutlineVariant } = $colors);
+    $: chipsTheme = { onSurface: colorOnSurface, onSurfaceVariant: colorOnSurfaceVariant };
+    $: header = headerTextStyle($designStyle, $fontScale, $accentFontWeight);
 
     // const arcPaint = new Paint();
     // arcPaint.style = Style.STROKE;
@@ -93,7 +129,6 @@
         intensity: number;
     }[];
 
-    let hasPrecip = false;
     let actualWeatherIconSize = 0;
     $: actualWeatherIconSize = (weatherIconSize * 0.9) / Math.sqrt($fontScale);
     $: minutelyChartWidth = Math.min(300, screenWidthDips - actualWeatherIconSize);
@@ -121,7 +156,6 @@
             }
             lastChartData = data;
             if (!data || data.length === 0) {
-                hasPrecip = false;
                 if (precipChartSet) {
                     precipChartSet.clear();
                 }
@@ -148,11 +182,15 @@
                 xAxis.drawGridLines = false;
                 // xAxis.setCenterAxisLabels(true);
                 xAxis.ensureLastLabel = true;
+                // keeps the first ("now") and last labels inside the chart instead of clipped on the edges
+                xAxis.avoidFirstLastClipping = true;
+                // the right axis is unused but reserves room for labels
+                chart.rightAxis.enabled = false;
                 // xAxis.setGranularity(10 * 60 * 1000)
                 // xAxis.setGranularityEnabled(true)
                 xAxis.drawMarkTicks = true;
                 xAxis.valueFormatter = {
-                    getAxisLabel: (value, axis) => dayjs(value / timeFactor + delta).diff(now / timeFactor + delta, 'm') + 'm'
+                    getAxisLabel: (value, axis) => minutelyAxisLabel(Math.round(value / timeFactor / 60000), value >= axis.axisMaximum, lc('now'))
                 };
                 xAxis.position = XAxisPosition.BOTTOM;
 
@@ -165,11 +203,7 @@
                 leftAxis.drawMarkTicks = false;
                 leftAxis.drawAxisLine = false;
                 // leftAxis.removeAllLimitLines();
-                [
-                    { limit: 1, label: l('light') },
-                    { limit: 2, label: l('medium') },
-                    { limit: 3, label: l('heavy') }
-                ].forEach((l) => {
+                LIMIT_LABELS.map((label, index) => ({ limit: index + 1, label })).forEach((l) => {
                     const limitLine = new LimitLine(l.limit, l.label.toUpperCase());
                     limitLine.lineWidth = 1;
                     limitLine.xOffset = 0;
@@ -181,12 +215,25 @@
                     leftAxis.addLimitLine(limitLine);
                 });
             }
-            const limitColor = new Color(colorOnSurface).setAlpha(100).hex;
-            leftAxis.limitLines.forEach((l) => {
-                l.textColor = limitColor;
-                l.lineColor = limitColor;
+            const modernStyle = $designStyle === 'modern';
+            // modern: faint solid level lines, the level name is in the card title instead
+            const limitColor = new Color(colorOnSurface).setAlpha(modernStyle ? 25 : 100).hex;
+            leftAxis.limitLines.forEach((limitLine, index) => {
+                limitLine.textColor = limitColor;
+                limitLine.lineColor = limitColor;
+                limitLine.label = modernStyle ? '' : LIMIT_LABELS[index].toUpperCase();
+                if (modernStyle) {
+                    limitLine.dashPathEffect = null;
+                } else {
+                    limitLine.enableDashedLine(2, 2, 0);
+                }
             });
-            xAxis.textColor = colorOnSurface;
+            chart.minOffset = modernStyle ? 0 : 15;
+            xAxis.textColor = modernStyle ? colorOnSurfaceVariant : colorOnSurface;
+            xAxis.drawMarkTicks = !modernStyle;
+            // modern: the card draws its own time labels under the chart
+            xAxis.drawLabels = !modernStyle;
+            xAxis.drawAxisLine = !modernStyle;
             xAxis.axisMinimum = 0;
 
             // we want exactly one label per 10 min
@@ -196,21 +243,20 @@
 
             let needsToSetData = false;
             let needsUpdate = false;
-            hasPrecip = data.some((d) => d.intensity > 0);
+            const chartHasPrecip = data.some((d) => d.intensity > 0);
 
             leftAxis.axisMinimum = 0;
             leftAxis.axisMaximum = 4;
-            leftAxis.drawLimitLines = hasPrecip;
-            if (hasPrecip) {
-                const color = isEInk ? '#7f7f7f' : item.hourly?.[0]?.precipColor || rainColor.hex;
+            leftAxis.drawLimitLines = chartHasPrecip;
+            if (chartHasPrecip) {
+                const firstHour = item.hourly?.[0];
+                const color = isEInk ? '#7f7f7f' : precipitationFill($designStyle, precipKind(firstHour ?? {}), firstHour?.precipColor || rainColor.hex, 100).color;
                 if (!precipChartSet) {
                     needsToSetData = true;
                     precipChartSet = new LineDataSet(data, 'intensity', 'time', 'intensity');
                     precipChartSet.axisDependency = AxisDependency.LEFT;
-                    precipChartSet.lineWidth = 1;
                     // precipChartSet.drawCircles=(true);
                     precipChartSet.drawFilledEnabled = true;
-                    precipChartSet.fillAlpha = 150;
                     precipChartSet.mode = Mode.CUBIC_BEZIER;
                     precipChartSet.cubicIntensity = 0.4;
                     if (einkBmpShader) {
@@ -223,6 +269,8 @@
 
                 precipChartSet.setColor(color);
                 precipChartSet.fillColor = color;
+                precipChartSet.lineWidth = modernStyle ? 1.5 : 1;
+                precipChartSet.fillAlpha = modernStyle ? 90 : 150;
             } else if (precipChartSet && precipChartSet.entryCount > 0) {
                 precipChartSet.clear();
                 needsToSetData = true;
@@ -259,9 +307,36 @@
             }
         }
     }
+    $: modern = $designStyle === 'modern';
+    // .modernCard vertical margins (app/_modern.scss)
+    const MODERN_HOURLY_CARD_MARGINS = 10;
+    // modern shows feels like in the hero and the moon in the sun line, not in the data block
+    $: topDataFilter = modern ? [WeatherProps.windBeaufort, WeatherProps.moon, WeatherProps.apparentTemperature] : [WeatherProps.windBeaufort];
+    $: topIconsData = weatherDataService.getIconsData({ item, filter: topDataFilter, type: 'currently' });
+    $: blockWidth = modern ? $windowSize.width - 2 * MODERN_PADDING : $windowSize.width - weatherIconSize * (2 - $fontScale) - 20;
+    $: gridPadding = modern ? MODERN_CARD_PADDING * $fontScale : 0;
+    // chips and grid wrap: the top part grows to fit them, the hourly part keeps its height
+    // with "show missing values", grid and chips keep a placeholder for data with no value
+    $: blockItems = $showEmptyData ? weatherDataService.getIconsSlots({ item, filter: topDataFilter, type: 'currently' }) : topIconsData;
+    $: chips = $weatherDataLayout === 'chips' ? prepareChips(blockItems, blockWidth, $designStyle, chipsTheme, $fontScale) : null;
+    $: grid = $weatherDataLayout === 'grid' ? prepareGrid(blockItems, blockWidth - 2 * gridPadding, TOP_GRID_OPTIONS, $fontScale) : null;
+    $: blockHeight = chips?.height ?? (grid ? grid.height + 2 * gridPadding : undefined);
+    $: chipsExtraHeight =
+        blockHeight !== undefined ? Math.max(0, CHIPS_TOP * $fontScale + blockHeight + (hasPrecip ? 6 + MINUTELY_CHART_HEIGHT + 45 * $fontScale : 34 * $fontScale) - $topViewHeight) : 0;
+
+    $: modernDataHeight = blockHeight ?? (topIconsData.length ? 60 * $fontScale : 0);
+    $: modernDataTop = MODERN_HERO_HEIGHT * $fontScale;
+    $: modernMinutelyTop = modernDataTop + modernDataHeight + (modernDataHeight ? MODERN_GAP * $fontScale : 0);
+    $: modernSunTop = modernMinutelyTop + (hasPrecip ? (MODERN_MINUTELY_HEIGHT + MODERN_GAP / 2) * $fontScale : 0);
+    $: topRowHeight = modern ? modernSunTop + MODERN_SUN_LINE_HEIGHT * $fontScale : $topViewHeight + chipsExtraHeight;
+    // derived from the data, not from the chart, so the height is right on the first layout
+    $: upcomingMinutely = (item.minutely ?? []).filter((entry) => entry.time >= (fakeNow || Date.now()));
+    $: minutely = minutelySummary(upcomingMinutely, fakeNow || Date.now());
+    $: hasPrecip = minutely.kind !== 'none';
     $: hasPrecip && canvasView?.nativeView.invalidate();
-    $: item && canvasView?.nativeView.invalidate();
-    $: if (lineChart) {
+    $: item && $designStyle && $accentFontWeight && canvasView?.nativeView.invalidate();
+    $: $dataIntensity !== undefined && canvasView?.nativeView.invalidate();
+    $: if (lineChart && $designStyle) {
         updateLineChart(item);
     }
 
@@ -272,7 +347,7 @@
     onThemeChanged(() => {
         const chart = lineChart?.nativeView;
         if (chart) {
-            chart.xAxis.textColor = colorOnSurface;
+            chart.xAxis.textColor = $designStyle === 'modern' ? colorOnSurfaceVariant : colorOnSurface;
             chart.invalidate();
             const limitColor = new Color(colorOnSurface).setAlpha(0.5).hex;
             chart.leftAxis.limitLines.forEach((l) => {
@@ -296,9 +371,172 @@
         canvasView?.nativeView.invalidate();
     }
     fontScale.subscribe(redraw);
+    function minutelySummaryText() {
+        switch (minutely.kind) {
+            case 'all':
+                return lc('precip_all_hour');
+            case 'starting':
+                return lc('precip_starting_in', minutely.minutes);
+            case 'stopping':
+                return lc('precip_stopping_in', minutely.minutes);
+            case 'intermittent':
+                return lc('precip_intermittent');
+            default:
+                return '';
+        }
+    }
+
+    function drawModernCard(canvas: Canvas, left: number, top: number, right: number, bottom: number) {
+        const radius = MODERN_CARD_RADIUS * $fontScale;
+        textIconPaint.setColor(colorOnSurface);
+        textIconPaint.setAlpha(cardBackgroundAlpha(isDarkTheme()));
+        canvas.drawRoundRect(left, top, right, bottom, radius, radius, textIconPaint);
+    }
+
+    function drawModern(canvas: Canvas, w: number, h: number) {
+        const left = MODERN_PADDING;
+        const right = w - MODERN_PADDING;
+
+        // hero: temperature, condition, feels like + high/low; the weather icon sits top right
+        textPaint.setTextAlign(Align.LEFT);
+        textPaint.setColor(colorOnSurface);
+        if (item.temperature !== undefined && item.temperature !== null) {
+            textPaint.setTextSize(64 * $fontScale);
+            textPaint.setFontWeight(300);
+            canvas.drawText(formatWeatherValue(item, WeatherProps.temperature), left, 62 * $fontScale, textPaint);
+            textPaint.setFontWeight('normal');
+        }
+        if (item.description?.length) {
+            textPaint.setTextSize(16 * $fontScale);
+            canvas.drawText(item.description, left, 88 * $fontScale, textPaint);
+        }
+        const feelsLike =
+            weatherDataService.isDataEnabled(WeatherProps.apparentTemperature) && item.apparentTemperature !== undefined && item.apparentTemperature !== null
+                ? `${lc('feels_like')} ${formatWeatherValue(item, WeatherProps.apparentTemperature)} · `
+                : '';
+        const temperaturesLayout = new StaticLayout(
+            createNativeAttributedString({
+                spans: [
+                    { fontSize: 13 * $fontScale, color: colorOnSurfaceVariant, text: feelsLike },
+                    { fontSize: header.maxTempSize * 0.8, fontWeight: header.maxTempWeight, color: colorOnSurface, text: formatWeatherValue(item, WeatherProps.temperatureMax) },
+                    { fontSize: 13 * $fontScale, color: colorOnSurfaceVariant, text: ' / ' + formatWeatherValue(item, WeatherProps.temperatureMin) }
+                ]
+            }),
+            textPaint,
+            right - left,
+            LayoutAlignment.ALIGN_NORMAL,
+            1,
+            0,
+            false
+        );
+        canvas.save();
+        canvas.translate(left, 96 * $fontScale);
+        temperaturesLayout.draw(canvas);
+        canvas.restore();
+        textPaint.setTextAlign(Align.RIGHT);
+        textPaint.setTextSize(12 * $fontScale);
+        textPaint.setColor(colorOnSurfaceVariant);
+        canvas.drawText(formatDate(item.time, 'dddd', item.timezoneOffset), right, (8 + MODERN_ICON_SIZE + 14) * $fontScale, textPaint);
+
+        // data block
+        switch ($weatherDataLayout) {
+            case 'chips':
+                if (chips) {
+                    drawChips(canvas, chips, left, modernDataTop, $designStyle, chipsTheme, $fontScale);
+                }
+                break;
+            case 'grid':
+                if (grid) {
+                    drawModernCard(canvas, left, modernDataTop, right, modernDataTop + blockHeight);
+                    drawGrid(canvas, grid, left + gridPadding, modernDataTop + gridPadding, $designStyle, chipsTheme, $fontScale);
+                }
+                break;
+            default:
+                canvas.save();
+                drawData(canvas, w, w / 2, modernDataTop, right);
+                canvas.restore();
+                break;
+        }
+
+        // minutely card: the chart itself is a native view placed over it
+        if (hasPrecip) {
+            drawModernCard(canvas, left, modernMinutelyTop, right, modernMinutelyTop + MODERN_MINUTELY_HEIGHT * $fontScale);
+            const titleBaseline = modernMinutelyTop + 20 * $fontScale;
+            textPaint.setTextAlign(Align.LEFT);
+            textPaint.setTextSize(13 * $fontScale);
+            textPaint.setFontWeight($accentFontWeight);
+            textPaint.setColor(colorOnSurface);
+            canvas.drawText(minutelySummaryText(), left + MODERN_CARD_PADDING * $fontScale, titleBaseline, textPaint);
+            textPaint.setFontWeight('normal');
+            const now = fakeNow || Date.now();
+            const totalMinutes = upcomingMinutely.length ? Math.round((upcomingMinutely[upcomingMinutely.length - 1].time - now) / 60000) : 0;
+            const chartLeft = left + MODERN_CARD_PADDING * $fontScale;
+            const chartWidth = right - left - 2 * MODERN_CARD_PADDING * $fontScale;
+            const ticksBaseline = modernMinutelyTop + (MODERN_MINUTELY_CHART_TOP + MODERN_MINUTELY_CHART_HEIGHT + 13) * $fontScale;
+            textPaint.setTextSize(11 * $fontScale);
+            textPaint.setColor(colorOnSurfaceVariant);
+            const ticks = minutelyAxisTicks(totalMinutes);
+            ticks.forEach((tick, index) => {
+                textPaint.setTextAlign(tick.align === 'left' ? Align.LEFT : tick.align === 'right' ? Align.RIGHT : Align.CENTER);
+                canvas.drawText(minutelyAxisLabel(tick.minutes, index === ticks.length - 1, lc('now')), chartLeft + tick.fraction * chartWidth, ticksBaseline, textPaint);
+            });
+            const intensity = minutelyIntensity(upcomingMinutely);
+            if (intensity) {
+                textPaint.setTextAlign(Align.RIGHT);
+                textPaint.setTextSize(12 * $fontScale);
+                textPaint.setColor(colorOnSurfaceVariant);
+                canvas.drawText(l(intensity), right - MODERN_CARD_PADDING * $fontScale, titleBaseline, textPaint);
+            }
+        }
+
+        // sun line: sunrise, sunset, small icons, last update
+        const sunBaseline = modernSunTop + 19 * $fontScale;
+        let x = left;
+        // shared icon paints: each keeps its own font, so measuring and drawing use the right one
+        const sunLineItem = (icon: string, iconPaint: Paint, color: string, text: string) => {
+            iconPaint.setTextAlign(Align.LEFT);
+            iconPaint.setTextSize(16 * $fontScale);
+            iconPaint.setColor(color);
+            canvas.drawText(icon, x, sunBaseline + 1, iconPaint);
+            x += iconPaint.measureText(icon) + 4 * $fontScale;
+            textPaint.setTextAlign(Align.LEFT);
+            textPaint.setTextSize(13 * $fontScale);
+            textPaint.setColor(colorOnSurface);
+            canvas.drawText(text, x, sunBaseline, textPaint);
+            x += textPaint.measureText(text) + 14 * $fontScale;
+        };
+        sunLineItem('wd-sunrise', wdPaint, '#EF9F27', formatTime(item.sunriseTime, undefined, item.timezoneOffset));
+        sunLineItem('wd-sunset', wdPaint, '#D85A30', formatTime(item.sunsetTime, undefined, item.timezoneOffset));
+        if (weatherDataService.isDataEnabled(WeatherProps.moon) && item.moonIcon) {
+            // modern moon glyph; the lit percentage is shorter than the phase name and the icon already shows the phase
+            sunLineItem(styledDataIcon('modern', { fontFamily: 'wi', icon: item.moonIcon }).icon, wdPaint, '#7F77DD', `${getMoonIlluminationPercent(new Date(item.time))}%`);
+        }
+        for (const c of weatherDataService.getSmallIconsData({ item, type: 'currently', filter: [WeatherProps.moon] })) {
+            const paint = c.paint || textIconPaint;
+            paint.setTextAlign(Align.LEFT);
+            paint.setTextSize(c.iconFontSize * 0.75);
+            paint.setColor(c.color || colorOnSurfaceVariant);
+            if (c.customDraw) {
+                x += c.customDraw(canvas, $fontScale, paint, c, x, sunBaseline - 12 * $fontScale, false);
+            } else if (c.icon) {
+                canvas.drawText(c.icon, x, sunBaseline + 1, paint);
+                x += paint.measureText(c.icon) + 8 * $fontScale;
+            }
+        }
+        textPaint.setTextAlign(Align.RIGHT);
+        textPaint.setTextSize(12 * $fontScale);
+        textPaint.setColor(colorOnSurfaceVariant);
+        canvas.drawText(`${lc('last_updated')} ${formatLastUpdate(item.lastUpdate)}`, right, sunBaseline, textPaint);
+        // no separator: the hourly section under it is a card
+    }
+
     function drawOnCanvas({ canvas }: { canvas: Canvas }) {
         const w = canvas.getWidth();
         const h = canvas.getHeight();
+        if (modern) {
+            drawModern(canvas, w, h);
+            return;
+        }
         const w2 = Utils.layout.toDeviceIndependentPixels(lineChart.nativeElement.getMeasuredWidth()) / 2;
         // canvas.translate(26, 0);
 
@@ -311,12 +549,13 @@
         const nString = createNativeAttributedString({
             spans: [
                 {
-                    fontSize: 17 * $fontScale,
+                    fontSize: header.minTempSize,
                     color: colorOnSurfaceVariant,
                     text: formatWeatherValue(item, WeatherProps.temperatureMin)
                 },
                 {
-                    fontSize: 20 * $fontScale,
+                    fontSize: header.maxTempSize,
+                    fontWeight: header.maxTempWeight,
                     color: colorOnSurface,
                     text: ' ' + formatWeatherValue(item, WeatherProps.temperatureMax)
                 }
@@ -331,14 +570,15 @@
         canvas.save();
         canvas.translate(10, h - 8 - 14 * $fontScale);
         textPaint.textSize = 14 * $fontScale;
+        const modernStyle = $designStyle === 'modern';
         staticLayout = new StaticLayout(
             createNativeAttributedString({
                 spans: [
                     {
                         color: '#ffa500',
-                        fontFamily: $fonts.wi,
+                        fontFamily: modernStyle ? $fonts.wd : $fonts.wi,
                         fontSize: 14 * $fontScale,
-                        text: 'wi-sunrise '
+                        text: modernStyle ? 'wd-sunrise ' : 'wi-sunrise '
                     },
                     {
                         text: formatTime(item.sunriseTime, undefined, item.timezoneOffset)
@@ -346,8 +586,8 @@
                     {
                         color: '#ff7200',
                         fontSize: 14 * $fontScale,
-                        fontFamily: $fonts.wi,
-                        text: '  wi-sunset '
+                        fontFamily: modernStyle ? $fonts.wd : $fonts.wi,
+                        text: modernStyle ? '  wd-sunset ' : '  wi-sunset '
                     },
                     {
                         text: formatTime(item.sunsetTime, undefined, item.timezoneOffset)
@@ -410,92 +650,33 @@
                 iconRight += 24 * $fontScale;
             }
         }
-        const centeredItemsToDraw = weatherDataService.getIconsData({ item, filter: [WeatherProps.windBeaufort], type: 'currently' });
         canvas.clipRect(0, 0, w - weatherIconSize * (2 - $fontScale), h);
+        drawData(canvas, w, w2, hasPrecip ? 45 * $fontScale : $topViewHeight / 2 - 20 * $fontScale, w - weatherIconSize * (2 - $fontScale));
+    }
+
+    function drawData(canvas: Canvas, w: number, w2: number, iconsTop: number, clipRight: number) {
+        const centeredItemsToDraw = topIconsData;
+        canvas.clipRect(0, 0, clipRight, canvas.getHeight());
         switch ($weatherDataLayout) {
-            case 'line': {
-                textPaint.setTextAlign(Align.LEFT);
-                textIconPaint.setTextAlign(Align.CENTER);
-                textIconPaint.color = colorOutline;
-                const iconsTop = hasPrecip ? 45 * $fontScale : $topViewHeight / 2 - 20 * $fontScale;
-                const lineHeight = 20 * $fontScale;
-                const lineWidth = 100 * $fontScale;
-                const nbLines = Math.ceil(centeredItemsToDraw.length / 2);
-                canvas.drawLine(w2, iconsTop, w2, iconsTop + lineHeight * nbLines, textIconPaint);
-                for (let index = 0; index < nbLines - 1; index++) {
-                    const y = iconsTop + lineHeight * (index + 1);
-                    canvas.drawLine(w2 - lineWidth, y, w2 + lineWidth, y, textIconPaint);
-                }
-                const iconDelta = 20 * $fontScale;
-                for (let index = 0; index < centeredItemsToDraw.length; index++) {
-                    const columnIndex = index % 2;
-                    const lineIndex = Math.floor(index / 2);
-                    const y = iconsTop + lineHeight * lineIndex;
-                    const c = centeredItemsToDraw[index];
-                    const paint = c.paint || textIconPaint;
-                    if (c.icon) {
-                        // paint.setColor(c.color || colorOnSurface);
-                        // canvas.drawText(c.icon, columnIndex === 0 ? w2 - 20 : w2 + 20, y + lineHeight + lineHeight / 2 - paint.textSize / 2, paint);
-                        const dataNString = createNativeAttributedString(
-                            {
-                                spans: [
-                                    {
-                                        fontSize: c.iconFontSize,
-                                        color: c.iconColor || c.color || colorOnSurface,
-                                        fontFamily: paint.fontFamily,
-                                        text: c.icon
-                                    }
-                                ]
-                            },
-                            null
-                        );
-                        canvas.save();
-                        const staticLayout = new StaticLayout(dataNString, textPaint, iconDelta, LayoutAlignment.ALIGN_CENTER, 1, 0, true);
-                        // canvas.translate(columnIndex === 0 ? w2 - lineWidth : w2 + lineWidth  - staticLayout.getWidth(), y + lineHeight / 2 - staticLayout.getHeight() / 2);
-                        canvas.translate(columnIndex === 0 ? w2 - lineWidth : w2 + 2, y + lineHeight / 2 - staticLayout.getHeight() / 2);
-                        staticLayout.draw(canvas);
-                        canvas.restore();
-                    }
-                    const dataNString = createNativeAttributedString(
-                        {
-                            spans: [
-                                c.value
-                                    ? {
-                                          fontSize: 12 * $fontScale,
-                                          color: c.color || colorOnSurface,
-                                          text: c.value + ' '
-                                      }
-                                    : undefined,
-                                c.subvalue
-                                    ? {
-                                          fontSize: 9 * $fontScale,
-                                          color: c.color || colorOnSurface,
-                                          text: c.subvalue + ' '
-                                      }
-                                    : undefined
-                            ].filter((s) => !!s)
-                        },
-                        null
-                    );
-                    canvas.save();
-                    const staticLayout = new StaticLayout(dataNString, textPaint, lineWidth, LayoutAlignment.ALIGN_NORMAL, 1, 0, true);
-                    canvas.translate(iconDelta + (columnIndex === 0 ? w2 - lineWidth + 5 : w2 + 5), y + lineHeight / 2 - staticLayout.getHeight() / 2);
-                    // const staticLayout = new StaticLayout(dataNString, textPaint, lineWidth, columnIndex === 0 ? LayoutAlignment.ALIGN_OPPOSITE : LayoutAlignment.ALIGN_NORMAL, 1, 0, true);
-                    // canvas.translate(columnIndex === 0 ? w2 - lineWidth - 5 : w2 + 5, y + lineHeight / 2 - staticLayout.getHeight() / 2);
-                    staticLayout.draw(canvas);
-                    canvas.restore();
+            case 'chips':
+                if (chips) {
+                    drawChips(canvas, chips, 10, CHIPS_TOP * $fontScale, $designStyle, chipsTheme, $fontScale);
                 }
                 break;
-            }
+            case 'grid':
+                if (grid) {
+                    drawGrid(canvas, grid, 10, CHIPS_TOP * $fontScale, $designStyle, chipsTheme, $fontScale);
+                }
+                break;
             default:
             case 'default': {
-                const iconsTop = hasPrecip ? 45 * $fontScale : $topViewHeight / 2 - 20 * $fontScale;
                 const iconsLeft = 26;
                 centeredItemsToDraw.forEach((c, index) => {
                     const x = index * 45 * $fontScale + iconsLeft;
+                    const textStyle = dataTextStyle($designStyle, c, { onSurface: colorOnSurface, onSurfaceVariant: colorOnSurfaceVariant }, $fontScale);
                     const paint = c.paint || textIconPaint;
                     paint.textSize = c.iconFontSize;
-                    paint.setColor(c.iconColor || c.color || colorOnSurface);
+                    paint.setColor(textStyle.iconColor);
                     paint.setTextAlign(Align.CENTER);
                     // if (c.customDraw) {
                     //     c.customDraw(canvas, $fontScale, textIconPaint, c, x, iconsTop + 20, 40);
@@ -504,13 +685,17 @@
                         canvas.drawText(c.icon, x, iconsTop + 20, paint);
                     }
                     if (c.value) {
-                        textIconPaint.textSize = 12 * $fontScale;
-                        textIconPaint.setColor(c.color || colorOnSurface);
-                        canvas.drawText(c.value + '', x, iconsTop + 20 + 19 * $fontScale, textIconPaint);
+                        textIconPaint.textSize = textStyle.valueFontSize;
+                        textIconPaint.setColor(textStyle.valueColor);
+                        if (modern) {
+                            drawCenteredValue(canvas, textIconPaint, c.value, x, iconsTop + 20 + 19 * $fontScale, $fontScale);
+                        } else {
+                            canvas.drawText(c.value + '', x, iconsTop + 20 + 19 * $fontScale, textIconPaint);
+                        }
                     }
                     if (c.subvalue) {
-                        textIconPaint.textSize = 9 * $fontScale;
-                        textIconPaint.setColor(c.color || colorOnSurface);
+                        textIconPaint.textSize = textStyle.subvalueFontSize;
+                        textIconPaint.setColor(textStyle.subvalueColor);
                         canvas.drawText(c.subvalue + '', x, iconsTop + 20 + 30 * $fontScale, textIconPaint);
                     }
                     // }
@@ -527,7 +712,8 @@
         chart.rightAxis.drawAxisLine = false;
         chart.rightAxis.drawGridLines = false;
         chart.rightAxis.drawLabels = false;
-        chart.setExtraOffsets(0, 40, 0, 10);
+        // modern: less room under the hour labels
+        chart.setExtraOffsets(0, 40, 0, $designStyle === 'modern' ? 2 : 10);
     }
 
     let hourlyChartNbHours = ApplicationSettings.getNumber(SETTINGS_MAIN_CHART_NB_HOURS, MAIN_CHART_NB_HOURS);
@@ -536,7 +722,8 @@
     });
 </script>
 
-<gridlayout columns="*,auto" {height} rows={`${$topViewHeight},*`}>
+<!-- modern: the hourly section is a card (its margins are added to the height) -->
+<gridlayout columns="*,auto" height={height - $topViewHeight + topRowHeight + (modern ? MODERN_HOURLY_CARD_MARGINS : 0)} rows={`${topRowHeight},*`}>
     <canvasview bind:this={canvasView} id="topweather" colSpan={2} paddingBottom={10} paddingLeft={10} paddingRight={10} on:draw={drawOnCanvas}>
         <!-- <cgroup fontSize={14 * $fontScale} verticalAlignment="bottom">
             <cspan color="#ffa500" fontFamily={$fonts.wi} text="wi-sunrise " />
@@ -560,7 +747,15 @@
         horizontalAlignment="left"
     /> -->
     <!-- the gridlayout is there to ensure a max width for the chart -->
-    <gridlayout height={90} horizontalAlignment="left" marginBottom={45 * $fontScale} verticalAlignment="bottom" width={minutelyChartWidth}>
+    <gridlayout
+        colSpan={modern ? 2 : 1}
+        height={modern ? MODERN_MINUTELY_CHART_HEIGHT * $fontScale : MINUTELY_CHART_HEIGHT}
+        horizontalAlignment="left"
+        marginBottom={modern ? 0 : 45 * $fontScale}
+        marginLeft={modern ? MODERN_PADDING + MODERN_CARD_PADDING * $fontScale : 0}
+        marginTop={modern ? modernMinutelyTop + MODERN_MINUTELY_CHART_TOP * $fontScale : 0}
+        verticalAlignment={modern ? 'top' : 'bottom'}
+        width={modern ? $windowSize.width - 2 * (MODERN_PADDING + MODERN_CARD_PADDING * $fontScale) : minutelyChartWidth}>
         <linechart bind:this={lineChart} visibility={hasPrecip ? 'visible' : 'hidden'} />
     </gridlayout>
     <WeatherIcon
@@ -568,27 +763,29 @@
         col={1}
         horizontalAlignment="right"
         iconData={[item.iconId, item.isDay]}
-        marginBottom={$fontScale > 1 ? 17 * $fontScale * $fontScale : 17 * $fontScale}
-        size={actualWeatherIconSize}
-        verticalAlignment="middle"
+        marginBottom={modern ? 0 : $fontScale > 1 ? 17 * $fontScale * $fontScale : 17 * $fontScale}
+        marginRight={modern ? MODERN_PADDING : 0}
+        marginTop={modern ? 8 * $fontScale : 0}
+        size={modern ? MODERN_ICON_SIZE * $fontScale : actualWeatherIconSize}
+        verticalAlignment={modern ? 'top' : 'middle'}
         on:tap />
+    <gridlayout class={modern ? 'modernCard' : ''} colSpan={2} row={1}>
     {#if $hourlyViewMode === 'chart'}
         <HourlyChartView
             barWidth={1}
             borderBottomColor={colorOutline}
-            borderBottomWidth={1}
-            colSpan={2}
+            borderBottomWidth={modern ? 0 : 1}
             {dataToShow}
             fixedBarScale={false}
             hourly={item.hourly.slice(0, hourlyChartNbHours)}
             {onChartConfigure}
             rightAxisSuggestedMaximum={8}
-            row={1}
             showCurrentTimeLimitLine={false}
             temperatureLineWidth={3} />
     {:else if $hourlyViewMode === 'windy'}
-        <WindyView colSpan={2} {dataToShow} items={item.hourly} row={1} />
+        <WindyView {dataToShow} items={item.hourly} />
     {:else}
-        <HourlyView colSpan={2} items={item.hourly} row={1} />
+        <HourlyView items={item.hourly} />
     {/if}
+    </gridlayout>
 </gridlayout>
