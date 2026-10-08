@@ -52,7 +52,7 @@
     } from '~/helpers/favorites';
     import { getLocationName } from '~/helpers/formatter';
     import { formatTime, getEndOfDay, getStartOfDay, l, lc, lu, onLanguageChanged, sl, slc } from '~/helpers/locale';
-    import { onThemeChanged } from '~/helpers/theme';
+    import { isDarkTheme, onThemeChanged } from '~/helpers/theme';
     import { NetworkConnectionStateEvent, NetworkConnectionStateEventData, WeatherLocation, geocodeAddress, networkService, prepareItems } from '~/services/api';
     import { gadgetbridgeService } from '~/services/gadgetbridge';
     import { onIconPackChanged } from '~/services/icon';
@@ -83,7 +83,8 @@
     import { parseUrlQueryParameters } from '~/utils/http';
     import { hideLoading, selectValue, showLoading, showPopoverMenu, showToast, tryCatchFunction } from '~/utils/ui';
     import { isBRABounds } from '~/utils/utils.common';
-    import { actionBarHeight, colors, fontScale, fonts, onFontScaleChanged, onSettingsChanged, windowInset } from '~/variables';
+    import { accentFontWeight, actionBarHeight, colors, designStyle, fontScale, fonts, onFontScaleChanged, onSettingsChanged, windowInset } from '~/variables';
+    import { cardBackgroundAlpha } from '~/utils/designStyle';
     import IconButton from './common/IconButton.svelte';
     import { WeatherProvider } from '~/services/providers/weatherprovider';
     import { isLibreWXRSource } from '~/services/providers/librewxr';
@@ -97,6 +98,10 @@
 <script lang="ts">
     let { colorBackground, colorError, colorOnBackground, colorOnError, colorOnSurface, colorOnSurfaceVariant, colorOutlineVariant, colorPrimary, colorSurface } = $colors;
     $: ({ colorBackground, colorError, colorOnBackground, colorOnError, colorOnSurface, colorOnSurfaceVariant, colorOutlineVariant, colorPrimary, colorSurface } = $colors);
+    $: modern = $designStyle === 'modern';
+    // modern: light tint of the text color for the selected favorite and the tiles
+    $: tintColor = new Color(colorOnBackground).setAlpha(cardBackgroundAlpha(isDarkTheme())).hex;
+    $: tileColor = new Color(colorOnBackground).setAlpha(2 * cardBackgroundAlpha(isDarkTheme())).hex;
 
     let loading = false;
     let weatherLocation: FavoriteLocation = JSON.parse(ApplicationSettings.getString(SETTINGS_WEATHER_LOCATION, DEFAULT_LOCATION || 'null'));
@@ -1200,6 +1205,10 @@
         }
         return data.join(', ') + '\n' + `${item.coord.lat.toFixed(3)},${item.coord.lon.toFixed(3)}`;
     }
+    // modern: the region only, the coordinates are not useful at a glance
+    function getFavoriteRegion(item: FavoriteLocation) {
+        return [item.sys.state, item.sys.country].filter((text) => !!text).join(', ');
+    }
 
     function onItemReordered(e) {
         (e.view as ContentView).content.opacity = 1;
@@ -1237,6 +1246,38 @@
                     row="1"
                     text={$slc('powered_by', l(`provider.${provider}`))}
                     verticalAlignment="bottom" />
+            {:else if modern}
+                <stackLayout horizontalAlignment="center" paddingLeft={28} paddingRight={28} row={1} verticalAlignment="middle">
+                    <label
+                        backgroundColor={tintColor}
+                        borderRadius={36 * $fontScale}
+                        color="#EF9F27"
+                        fontFamily={$fonts.mdi}
+                        fontSize={34 * $fontScale}
+                        height={72 * $fontScale}
+                        horizontalAlignment="center"
+                        marginBottom={18}
+                        text="mdi-weather-sunny"
+                        textAlignment="center"
+                        verticalTextAlignment="center"
+                        width={72 * $fontScale} />
+                    <label fontSize={18 * $fontScale} fontWeight={$accentFontWeight} text={lc('choose_location')} textAlignment="center" />
+                    <label color={colorOnSurfaceVariant} fontSize={14 * $fontScale} margin="6 0 22 0" text={$sl('no_location_desc')} textAlignment="center" textWrap={true} />
+                    {#if gpsAvailable}
+                        <mdbutton borderRadius={22 * $fontScale} height={44 * $fontScale} margin="4 0 4 0" textTransform="none" on:tap={getLocationAndWeather}>
+                            <cspan fontFamily={$fonts.mdi} fontSize={18 * $fontScale} text="mdi-crosshairs-gps" verticalAlignment="middle" />
+                            <cspan text={'  ' + $slc('my_location')} verticalAlignment="middle" />
+                        </mdbutton>
+                    {/if}
+                    <mdbutton borderRadius={22 * $fontScale} height={44 * $fontScale} margin="4 0 4 0" textTransform="none" variant="outline" on:tap={() => searchCity()}>
+                        <cspan fontFamily={$fonts.mdi} fontSize={18 * $fontScale} text="mdi-magnify" verticalAlignment="middle" />
+                        <cspan text={'  ' + $slc('search_location')} verticalAlignment="middle" />
+                    </mdbutton>
+                    <mdbutton borderRadius={22 * $fontScale} height={44 * $fontScale} margin="4 0 4 0" textTransform="none" variant="text" on:tap={selectLocationOnMap}>
+                        <cspan fontFamily={$fonts.mdi} fontSize={18 * $fontScale} text="mdi-map-plus" verticalAlignment="middle" />
+                        <cspan text={'  ' + $slc('select_location_map')} verticalAlignment="middle" />
+                    </mdbutton>
+                </stackLayout>
             {:else}
                 <stackLayout id="hodler" horizontalAlignment="center" paddingLeft={20} paddingRight={20} row={1} verticalAlignment="middle">
                     <label id="test" ios:iosAccessibilityAdjustsFontSize={false} fontSize={16 * $fontScale} marginBottom={20} text={$sl('no_location_desc')} textAlignment="center" textWrap={true} />
@@ -1283,8 +1324,12 @@
             </CActionBar>
             <progress backgroundColor="transparent" busy={loading} indeterminate={true} row={1} verticalAlignment="top" />
         </gridlayout>
-        <gridlayout prop:leftDrawer class="drawer" rows="auto,*" width="300" android:marginTop={$windowInset.top}>
-            <label class="actionBarTitle" margin="20 20 20 20" text={$slc('favorites')} />
+        <gridlayout prop:leftDrawer class="drawer" rows="auto,*,auto" width="300" android:marginTop={$windowInset.top}>
+            {#if modern}
+                <label fontSize={18 * $fontScale} fontWeight={$accentFontWeight} margin="18 18 10 18" text={$slc('favorites')} />
+            {:else}
+                <label class="actionBarTitle" margin="20 20 20 20" text={$slc('favorites')} />
+            {/if}
             <collectionview
                 bind:this={favoriteCollectionView}
                 id="favorite"
@@ -1296,33 +1341,102 @@
                 on:itemReorderStarting={onItemReorderStarting}
                 on:itemReordered={onItemReordered}>
                 <Template let:item>
-                    <gridlayout
-                        borderBottomColor={colorOutlineVariant}
-                        borderBottomWidth={1}
-                        borderRightColor={colorPrimary}
-                        borderRightWidth={isCurrentLocation(item, weatherLocation) ? 6 : 0}
-                        columns="*,auto"
-                        padding={10}
-                        rippleColor={colorOnSurface}
-                        on:tap={() => saveLocation(item)}>
-                        <stacklayout marginRight={30}>
-                            <label color={colorOnSurface} disableCss={true} fontSize={17 * $fontScale} fontWeight="bold" lineBreak="end" maxLines={2} text={getLocationName(item)} textWrap={true} />
-                            <label color={colorOnSurfaceVariant} disableCss={true} fontSize={14 * $fontScale} text={getFavoriteSubtitle(item)} textWrap={true} />
-                        </stacklayout>
-                        <label
-                            col={1}
-                            color={colorOnSurfaceVariant}
-                            disableCss={true}
-                            fontSize={14 * $fontScale}
-                            paddingTop={3 * $fontScale}
-                            text={formatTime(Date.now(), 'LT', item.timezoneOffset)}
-                            textWrap={true}
-                            verticalAlignment="top"
-                            visibility={item.timezone ? 'visible' : 'hidden'} />
-                        <IconButton col={1} gray={true} horizontalAlignment="right" size={40} text="mdi-dots-vertical" verticalAlignment="bottom" on:tap={(event) => showFavMenu(item, event)} />
-                    </gridlayout>
+                    {#if modern}
+                        <!-- the selected one on a tint, a tile with a pin, region instead of coordinates -->
+                        <gridlayout
+                            backgroundColor={isCurrentLocation(item, weatherLocation) ? tintColor : undefined}
+                            borderRadius={12}
+                            columns="auto,*,auto,auto"
+                            margin="1 8 1 8"
+                            padding="10 4 10 10"
+                            rippleColor={colorOnSurface}
+                            on:tap={() => saveLocation(item)}>
+                            <label
+                                backgroundColor={tileColor}
+                                borderRadius={16 * $fontScale}
+                                color={isCurrentLocation(item, weatherLocation) ? '#EF9F27' : '#888780'}
+                                fontFamily={$fonts.mdi}
+                                fontSize={17 * $fontScale}
+                                height={32 * $fontScale}
+                                text="mdi-map-marker"
+                                textAlignment="center"
+                                verticalAlignment="center"
+                                verticalTextAlignment="center"
+                                width={32 * $fontScale} />
+                            <stacklayout col={1} marginLeft={12} verticalAlignment="center">
+                                <label
+                                    color={colorOnSurface}
+                                    disableCss={true}
+                                    fontSize={15 * $fontScale}
+                                    fontWeight={$accentFontWeight}
+                                    lineBreak="end"
+                                    maxLines={2}
+                                    text={getLocationName(item)}
+                                    textWrap={true} />
+                                <label color={colorOnSurfaceVariant} disableCss={true} fontSize={12 * $fontScale} lineBreak="end" maxLines={1} text={getFavoriteRegion(item)} />
+                            </stacklayout>
+                            <label
+                                col={2}
+                                color={colorOnSurfaceVariant}
+                                disableCss={true}
+                                fontSize={13 * $fontScale}
+                                marginLeft={8}
+                                text={formatTime(Date.now(), 'LT', item.timezoneOffset)}
+                                verticalAlignment="center"
+                                visibility={item.timezone ? 'visible' : 'collapse'} />
+                            <IconButton col={3} gray={true} size={36} text="mdi-dots-vertical" verticalAlignment="center" on:tap={(event) => showFavMenu(item, event)} />
+                        </gridlayout>
+                    {:else}
+                        <gridlayout
+                            borderBottomColor={colorOutlineVariant}
+                            borderBottomWidth={1}
+                            borderRightColor={colorPrimary}
+                            borderRightWidth={isCurrentLocation(item, weatherLocation) ? 6 : 0}
+                            columns="*,auto"
+                            padding={10}
+                            rippleColor={colorOnSurface}
+                            on:tap={() => saveLocation(item)}>
+                            <stacklayout marginRight={30}>
+                                <label
+                                    color={colorOnSurface}
+                                    disableCss={true}
+                                    fontSize={17 * $fontScale}
+                                    fontWeight="bold"
+                                    lineBreak="end"
+                                    maxLines={2}
+                                    text={getLocationName(item)}
+                                    textWrap={true} />
+                                <label color={colorOnSurfaceVariant} disableCss={true} fontSize={14 * $fontScale} text={getFavoriteSubtitle(item)} textWrap={true} />
+                            </stacklayout>
+                            <label
+                                col={1}
+                                color={colorOnSurfaceVariant}
+                                disableCss={true}
+                                fontSize={14 * $fontScale}
+                                paddingTop={3 * $fontScale}
+                                text={formatTime(Date.now(), 'LT', item.timezoneOffset)}
+                                textWrap={true}
+                                verticalAlignment="top"
+                                visibility={item.timezone ? 'visible' : 'hidden'} />
+                            <IconButton col={1} gray={true} horizontalAlignment="right" size={40} text="mdi-dots-vertical" verticalAlignment="bottom" on:tap={(event) => showFavMenu(item, event)} />
+                        </gridlayout>
+                    {/if}
                 </Template>
             </collectionview>
+            {#if modern}
+                <mdbutton
+                    borderRadius={21 * $fontScale}
+                    height={42 * $fontScale}
+                    margin="8 18 12 18"
+                    android:marginBottom={12 + $windowInset.bottom}
+                    row={2}
+                    textTransform="none"
+                    variant="outline"
+                    on:tap={() => searchCity()}>
+                    <cspan fontFamily={$fonts.mdi} fontSize={18 * $fontScale} text="mdi-plus" verticalAlignment="middle" />
+                    <cspan text={'  ' + lc('add_location')} verticalAlignment="middle" />
+                </mdbutton>
+            {/if}
         </gridlayout>
     </drawer>
 </page>
