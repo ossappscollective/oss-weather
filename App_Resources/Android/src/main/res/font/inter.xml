@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Inter variable font: one entry per weight on the wght axis, so Android picks real weights
+     instead of faking bold (font-family res/inter in the modern style) -->
+<font-family xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <font android:font="@font/inter_variable" android:fontStyle="normal" android:fontWeight="300" android:fontVariationSettings="'wght' 300"
+        app:font="@font/inter_variable" app:fontStyle="normal" app:fontWeight="300" app:fontVariationSettings="'wght' 300" />
+    <font android:font="@font/inter_variable" android:fontStyle="normal" android:fontWeight="400" android:fontVariationSettings="'wght' 400"
+        app:font="@font/inter_variable" app:fontStyle="normal" app:fontWeight="400" app:fontVariationSettings="'wght' 400" />
+    <font android:font="@font/inter_variable" android:fontStyle="normal" android:fontWeight="500" android:fontVariationSettings="'wght' 500"
+        app:font="@font/inter_variable" app:fontStyle="normal" app:fontWeight="500" app:fontVariationSettings="'wght' 500" />
+    <font android:font="@font/inter_variable" android:fontStyle="normal" android:fontWeight="600" android:fontVariationSettings="'wght' 600"
+        app:font="@font/inter_variable" app:fontStyle="normal" app:fontWeight="600" app:fontVariationSettings="'wght' 600" />
+    <font android:font="@font/inter_variable" android:fontStyle="normal" android:fontWeight="700" android:fontVariationSettings="'wght' 700"
+        app:font="@font/inter_variable" app:fontStyle="normal" app:fontWeight="700" app:fontVariationSettings="'wght' 700" />
+</font-family>

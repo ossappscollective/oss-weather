@@ -1,0 +1,389 @@
+// Modern design style. Rules only apply under the ns-modern root class (helpers/designStyleClass.ts)
+// and use the --colorModern* and --modernText* (font sizes with the font scale) variables
+// (helpers/modernTheme.ts) so they can be customized from css, e.g. for the e-ink color theme (.ns-eink)
+// at the end of this file.
+// Android: res/font/inter.xml family, one entry per weight on the wght axis (real bold, see textFontFamily)
+$modernFontFamily: Inter !default;
+.ns-modern {
+    font-family: $modernFontFamily;
+
+    page,
+    frame,
+    .drawer {
+        background-color: var(--colorModernBackground);
+    }
+    // collectionview rows are set up as root views: they do not inherit the root font
+    collectionview > * {
+        font-family: $modernFontFamily;
+    }
+
+    // action bars
+    .actionBar {
+        background-color: var(--colorModernBackground);
+    }
+    .actionBarTitle {
+        font-size: var(--modernTextActionBar);
+        font-weight: var(--accentFontWeight);
+    }
+    .actionBarButton {
+        font-size: 22;
+    }
+
+    // section captions above cards
+    .sectionHeader,
+    .modernCaption {
+        color: var(--colorOnSurfaceVariant);
+        font-size: var(--modernTextSmall);
+        font-weight: normal;
+        padding: 16 30 6 30;
+    }
+
+    // controls
+    checkbox {
+        fill-color: var(--colorModernAccent);
+    }
+    slider {
+        color: var(--colorModernAccent);
+        background-color: var(--colorModernHairlineStrong);
+    }
+
+    mdtextfield {
+        stroke-color: var(--colorModernAccent);
+        stroke-inactive-color: var(--colorModernHairlineStrong);
+        floating-color: var(--colorModernAccent);
+        font-size: var(--modernTextBody);
+    }
+
+    // prompt dialogs (utils/ui/dialogs.ts): the field lines up with the title
+    &.ns-modal > mdtextfield {
+        margin: 4 20 0 20;
+    }
+
+    // shared building blocks
+    .modernCard {
+        background-color: var(--colorModernCard);
+        border-radius: 14;
+        margin: 5 14;
+    }
+    .modernCardTitle {
+        font-size: var(--modernTextBody);
+        font-weight: var(--accentFontWeight);
+        padding: 14 16 4 16;
+    }
+    // ModernCardTitle.svelte: icon, title and a right part
+    .modernCardHeader {
+        padding: 12 14 8 16;
+    }
+    .modernCardHeader .modernCardTitle {
+        padding: 0;
+    }
+    .modernTile {
+        width: 38;
+        height: 38;
+        border-radius: 11;
+        background-color: var(--colorModernTile);
+        font-family: $mdiFontFamily;
+        font-size: 20;
+        text-align: center;
+    }
+    .modernTitle {
+        font-size: var(--modernTextBody);
+    }
+    .modernStrong {
+        font-weight: var(--accentFontWeight);
+    }
+    .modernSubtitle,
+    .modernValue {
+        color: var(--colorOnSurfaceVariant);
+        font-size: var(--modernTextSmall);
+    }
+    .modernChip {
+        background-color: var(--colorModernCard);
+        border-radius: 15;
+        font-size: var(--modernTextSmall);
+        font-weight: normal;
+        padding: 5 12;
+    }
+    .modernChipSelected {
+        background-color: var(--colorModernTile);
+        font-weight: var(--accentFontWeight);
+    }
+    // rows grouped in a card: give each row modernGroupRow plus its position class
+    .modernGroupRow {
+        background-color: var(--colorModernCard);
+        margin-left: 14;
+        margin-right: 14;
+        border-color: var(--colorModernHairline);
+        border-bottom-width: 1;
+    }
+    .modernGroupFirst,
+    .modernGroupSingle {
+        border-top-left-radius: 14;
+        border-top-right-radius: 14;
+        margin-top: 5;
+    }
+    .modernGroupLast,
+    .modernGroupSingle {
+        border-bottom-width: 0;
+        border-bottom-left-radius: 14;
+        border-bottom-right-radius: 14;
+        margin-bottom: 5;
+    }
+    // value chips on a card row stand out with the tile tint
+    .modernCard .modernChip,
+    .modernGroupRow .modernChip {
+        background-color: var(--colorModernTile);
+    }
+    // highlighted row inside a card (e.g. the selected favorite)
+    .modernGroupRowSelected {
+        background-color: var(--colorModernBackground);
+    }
+    .modernTileRound {
+        border-radius: 19;
+    }
+    .modernEllipsis {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+    .modernAccent {
+        color: var(--colorModernAccent);
+    }
+    // popover menu rows (OptionSelect isMenu)
+    .modernMenuRow {
+        padding: 0 14;
+        border-top-width: 1;
+        border-color: var(--colorModernHairline);
+    }
+    .modernMenuFirst {
+        border-top-width: 0;
+    }
+    .modernMenuGroupStart {
+        border-color: var(--colorModernHairlineStrong);
+    }
+    .modernMenuIcon {
+        font-family: $mdiFontFamily;
+        font-size: 20;
+        width: 34;
+        color: var(--colorOnSurface);
+    }
+    // single choice dialog rows (OptionSelect modernChoice)
+    .modernChoiceRow {
+        padding: 16 20;
+    }
+    .modernChoiceIcon {
+        color: var(--colorOnSurfaceVariant);
+    }
+    .modernChoiceIconSelected {
+        color: var(--colorModernAccent);
+    }
+    .modernSecondary {
+        color: var(--colorOnSurfaceVariant);
+    }
+    .modernSearchField {
+        height: 48;
+        border-radius: 24;
+        border-width: 1.5;
+        border-color: var(--colorModernAccent);
+        background-color: var(--colorModernBackground);
+    }
+    .modernSearchInput {
+        background-color: transparent;
+        font-size: var(--modernTextBody);
+        padding: 0 8;
+    }
+    .modernMenuIconText {
+        font-size: 15;
+    }
+    .modernMenuTitle {
+        font-size: var(--modernTextBody);
+        color: var(--colorOnSurface);
+    }
+    .modernHairline {
+        background-color: var(--colorModernHairline);
+        height: 1;
+    }
+    // floating card popovers (hourly details)
+    .modernPopover {
+        background-color: var(--colorModernSurface);
+        border-width: 1;
+        border-color: var(--colorModernHairlineStrong);
+        border-radius: 14;
+        padding: 12;
+    }
+    // floating controls over the weather map
+    .modernMapButton {
+        width: 44;
+        height: 44;
+        margin-bottom: 8;
+        padding: 0;
+        border-radius: 22;
+        font-family: $mdiFontFamily;
+        font-size: 20;
+        color: var(--colorOnSurface);
+        background-color: var(--colorModernSurface);
+        border-width: 1;
+        border-color: var(--colorModernHairlineStrong);
+        ripple-color: var(--colorOnSurface);
+        elevation: 0;
+        dynamic-elevation-offset: 0;
+    }
+    .modernMapChip {
+        background-color: var(--colorModernSurface);
+        border-width: 1;
+        border-color: var(--colorModernHairlineStrong);
+    }
+    // bottom sheets
+    .modernSheet {
+        background-color: var(--colorModernSurface);
+        border-top-left-radius: 20;
+        border-top-right-radius: 20;
+    }
+    .modernSheetHandle {
+        width: 36;
+        height: 4;
+        border-radius: 2;
+        background-color: var(--colorModernHairlineStrong);
+    }
+
+    // segmented control (e.g. theme)
+    .modernSegmented {
+        background-color: var(--colorModernBackground);
+        border-radius: 10;
+        padding: 3;
+    }
+    // explicit unselected values: a rule that stops matching does not reset what it set
+    .modernSegment {
+        font-size: var(--modernTextSmall);
+        color: var(--colorOnSurfaceVariant);
+        background-color: var(--colorModernBackground);
+        font-weight: normal;
+        text-align: center;
+        padding: 7 0;
+        border-radius: 8;
+    }
+    .modernSegmentSelected {
+        background-color: var(--colorModernTile);
+        color: var(--colorOnSurface);
+        font-weight: var(--accentFontWeight);
+    }
+
+    // segmented control directly on the page (not in a card)
+    .modernSegmentedOnPage,
+    .modernSegmentedOnPage .modernSegment {
+        background-color: var(--colorModernCard);
+    }
+    .modernSegmentedOnPage .modernSegmentSelected {
+        background-color: var(--colorModernTile);
+    }
+    .modernSegmentCompact {
+        padding: 5 12;
+    }
+    // level bars (daily air quality and pollens)
+    .modernLevelTrack {
+        height: 4;
+        border-radius: 2;
+        margin-top: 5;
+        background-color: var(--colorModernTile);
+    }
+    .modernLevelFill {
+        border-radius: 2;
+    }
+
+    // empty states
+    .modernEmptyIcon {
+        width: 76;
+        height: 76;
+        border-radius: 38;
+        background-color: var(--colorModernCard);
+        color: #ef9f27;
+        font-family: $mdiFontFamily;
+        font-size: 36;
+        text-align: center;
+        margin-bottom: 18;
+    }
+    .modernEmptyTitle {
+        font-size: var(--modernTextLarge);
+        font-weight: var(--accentFontWeight);
+        text-align: center;
+    }
+    .modernEmptyText {
+        color: var(--colorOnSurfaceVariant);
+        font-size: var(--modernTextBody);
+        text-align: center;
+        margin: 6 0 22 0;
+    }
+    .modernButton {
+        border-radius: 23;
+        height: 46;
+        font-size: var(--modernTextBody);
+        font-weight: 500;
+        text-transform: none;
+        background-color: var(--colorModernAccent);
+        color: var(--colorModernOnAccent);
+        ripple-color: var(--colorModernOnAccent);
+        elevation: 0;
+        dynamic-elevation-offset: 0;
+    }
+    .modernButtonOutline {
+        border-radius: 23;
+        height: 46;
+        font-size: var(--modernTextBody);
+        font-weight: 500;
+        text-transform: none;
+        background-color: transparent;
+        border-width: 1;
+        border-color: var(--colorModernHairlineStrong);
+        color: var(--colorOnSurface);
+        ripple-color: var(--colorOnSurface);
+        elevation: 0;
+        dynamic-elevation-offset: 0;
+    }
+    .modernButtonText {
+        border-radius: 23;
+        height: 46;
+        font-size: var(--modernTextBody);
+        font-weight: 500;
+        text-transform: none;
+        background-color: transparent;
+        color: var(--colorOnSurface);
+        ripple-color: var(--colorOnSurface);
+        elevation: 0;
+        dynamic-elevation-offset: 0;
+    }
+}
+
+// e-ink: no tints, black lines
+.ns-modern.ns-eink {
+    .modernCard,
+    .modernChip,
+    .modernGroupRow .modernChip {
+        background-color: transparent;
+        border-width: 1;
+        border-color: var(--colorOnSurface);
+    }
+    .modernTile,
+    .modernGroupRowSelected {
+        background-color: transparent;
+    }
+    .modernGroupRow {
+        background-color: transparent;
+        border-color: var(--colorOnSurface);
+        border-left-width: 1;
+        border-right-width: 1;
+    }
+    .modernGroupFirst,
+    .modernGroupSingle {
+        border-top-width: 1;
+    }
+    .modernGroupLast,
+    .modernGroupSingle {
+        border-bottom-width: 1;
+    }
+    .modernMenuRow,
+    .modernKeyValue {
+        border-color: var(--colorOnSurface);
+    }
+    .modernHairline {
+        background-color: var(--colorOnSurface);
+    }
+}

@@ -10,7 +10,7 @@
     import { colorForAqi } from '~/services/airQualityData';
     import { generateGradient, windSpeedColor } from '~/utils/utils.common';
     import { colors, fontScale, nightColor, rainColor } from '~/variables';
-    import { createNativeAttributedString } from '@nativescript-community/text';
+    import { textAttributedString } from '~/utils/ui/attributedString';
     import { ICON_ROW_SCALE, getRowUnits } from '~/components/WindyView.svelte';
     import { Color } from '@nativescript/core';
 
@@ -142,7 +142,7 @@
                 canvas.save();
                 canvas.translate(0, 0);
                 new StaticLayout(
-                    createNativeAttributedString({
+                    textAttributedString({
                         spans: [
                             {
                                 text: hour,

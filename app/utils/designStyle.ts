@@ -265,7 +265,11 @@ export function tintAlpha(fraction: number, darkTheme: boolean) {
     return Math.round(base + fraction * ((darkTheme ? 110 : 80) - base));
 }
 
-// family of the texts (css root class and canvas paints): the bundled Inter variable font in modern
-export function textFontFamily(style: DesignStyle): string | undefined {
-    return style === 'modern' ? 'Inter' : undefined;
+// family of the texts (canvas paints, dialogs): the bundled Inter variable font in modern. Android uses
+// the res/font/inter.xml family (one entry per weight on the wght axis) to get real weights
+export function textFontFamily(style: DesignStyle, android = __ANDROID__): string | undefined {
+    if (style !== 'modern') {
+        return undefined;
+    }
+    return android ? 'res/inter' : 'Inter';
 }

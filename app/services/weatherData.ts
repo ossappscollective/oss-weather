@@ -1,5 +1,5 @@
 import { lc, lt } from '@nativescript-community/l';
-import { createNativeAttributedString } from '@nativescript-community/text';
+import { textAttributedString } from '~/utils/ui/attributedString';
 import { Align, Canvas, Cap, LayoutAlignment, Paint, StaticLayout, Style } from '@nativescript-community/ui-canvas';
 import { HorizontalPosition, VerticalPosition } from '@nativescript-community/ui-popover';
 import { PopoverOptions, showPopover } from '@nativescript-community/ui-popover/svelte';
@@ -783,7 +783,7 @@ export class DataService extends Observable {
                             }
                             const staticLayout = new StaticLayout(
                                 withIcon
-                                    ? createNativeAttributedString(
+                                    ? textAttributedString(
                                           {
                                               spans: [
                                                   {
@@ -798,8 +798,7 @@ export class DataService extends Observable {
                                                       verticalAlignment: 'center'
                                                   }
                                               ]
-                                          },
-                                          null
+                                          }
                                       )
                                     : `${data.value} ${data.subvalue}`,
                                 textPaint,

@@ -46,10 +46,6 @@
 // .forecastfont {
 //     font-family: $forecastfont-fontFamily;
 // }
-// modern design style text font (fonts/Inter.ttf), inherited from the root views
-.ns-modern {
-    font-family: Inter;
-}
 .app {
     font-family: $appFontFamily;
 }
@@ -212,3 +208,4 @@ page,
     border-radius: 10;
 
 }
+@import './modern';

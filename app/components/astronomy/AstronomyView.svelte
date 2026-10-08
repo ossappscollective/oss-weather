@@ -1,7 +1,7 @@
 <script context="module" lang="ts">
     import { Color, GridLayout } from '@akylas/nativescript';
     import type { NativeViewElementNode } from '@nativescript-community/svelte-native/dom';
-    import { createNativeAttributedString } from '@nativescript-community/text';
+    import { textAttributedString } from '~/utils/ui/attributedString';
     import { Align, Canvas, DashPathEffect, LayoutAlignment, Paint, StaticLayout, Style } from '@nativescript-community/ui-canvas';
     import { CanvasLabel } from '@nativescript-community/ui-canvaslabel/canvaslabel.common';
     import { LineChart } from '@nativescript-community/ui-chart';
@@ -471,7 +471,7 @@
         subCanvasTextPaint.textSize = 13 * $fontScale;
         subCanvasTextPaint.color = colorOnSurface;
         function drawOnSubCanvas(spans, paddingTop, leftPadding = padding, alignment = LayoutAlignment.ALIGN_NORMAL) {
-            const nString = createNativeAttributedString({
+            const nString = textAttributedString({
                 spans
             });
             const staticLayout = new StaticLayout(nString, subCanvasTextPaint, w, alignment, 1, 0, true);

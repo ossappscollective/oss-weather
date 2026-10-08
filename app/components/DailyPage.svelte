@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
     import { NativeViewElementNode } from '@nativescript-community/svelte-native/dom';
-    import { createNativeAttributedString } from '@nativescript-community/text';
+    import { textAttributedString } from '~/utils/ui/attributedString';
     import { Align, Canvas, CanvasView, LayoutAlignment, Paint, StaticLayout } from '@nativescript-community/ui-canvas';
     import { CombinedChart } from '@nativescript-community/ui-chart';
     import { ApplicationSettings, Page, StackLayout } from '@nativescript/core';
@@ -171,7 +171,7 @@
         //     textPaint.textSize = 36 * $fontScale;
         //     canvas.drawText(formatWeatherValue(item, 'temperature'), 10, 36 * $fontScale, textPaint);
         // }
-        const nString = createNativeAttributedString({
+        const nString = textAttributedString({
             spans: [
                 {
                     fontSize: 17 * $fontScale,
@@ -190,7 +190,7 @@
         staticLayout.draw(canvas);
         canvas.translate(-10, 0);
         new StaticLayout(
-            createNativeAttributedString({
+            textAttributedString({
                 spans: [
                     {
                         text: formatDate(item.time, 'dddd', item.timezoneOffset) + '\n',

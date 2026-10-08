@@ -6,11 +6,14 @@
     import HourlyItem from '~/components/HourlyItem.svelte';
     import { formatDate } from '~/helpers/locale';
     import { isEInk, onThemeChanged } from '~/helpers/theme';
+    import { modernColors } from '~/helpers/modernTheme';
     import { iconService } from '~/services/icon';
     import { accentFontWeight, colors, designStyle, fontScale, onUnitsChanged } from '~/variables';
 
     let { colorBackground, colorOnSurface, colorOutline } = $colors;
     $: ({ colorBackground, colorOnSurface, colorOutline } = $colors);
+    // modern: the hourly views sit in cards, the edges fade into the card color
+    $: edgeColor = $designStyle === 'modern' ? $modernColors.colorModernCard : colorBackground;
 
     export let items: any[];
     let collectionView: NativeViewElementNode<CollectionView>;
@@ -72,14 +75,14 @@
         </Template>
     </collectionview>
     <absolutelayout
-        background={`linear-gradient(to right, ${colorBackground}, ${new Color(colorBackground).setAlpha(0)})`}
+        background={`linear-gradient(to right, ${edgeColor}, ${new Color(edgeColor).setAlpha(0)})`}
         height="100%"
         horizontalAlignment="left"
         isUserInteractionEnabled={false}
         opacity={showLeftShadowOpacity}
         width={40} />
     <absolutelayout
-        background={`linear-gradient(to right, ${new Color(colorBackground).setAlpha(0)}, ${colorBackground})`}
+        background={`linear-gradient(to right, ${new Color(edgeColor).setAlpha(0)}, ${edgeColor})`}
         height="100%"
         horizontalAlignment="right"
         isUserInteractionEnabled={false}

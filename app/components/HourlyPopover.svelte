@@ -1,6 +1,6 @@
 <script lang="ts">
     import { Color } from '@akylas/nativescript';
-    import { createNativeAttributedString } from '@nativescript-community/text';
+    import { textAttributedString } from '~/utils/ui/attributedString';
     import { Align, Canvas, CanvasView, Cap, DashPathEffect, LayoutAlignment, Paint, StaticLayout, Style } from '@nativescript-community/ui-canvas';
     import { closePopover } from '@nativescript-community/ui-popover/svelte';
     import { formatTime } from '~/helpers/locale';
@@ -125,7 +125,7 @@
             paint.textSize = c.iconFontSize * 0.8;
             canvas.drawText(c.icon || ' ', 10, dy + rowHeight - (__IOS__ ? 5 : 2) * $fontScale, paint);
 
-            const nativeText = createNativeAttributedString({
+            const nativeText = textAttributedString({
                 spans: [
                     c.value !== undefined
                         ? {

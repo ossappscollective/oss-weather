@@ -199,7 +199,11 @@ describe('cardBackgroundAlpha', () => {
 
 describe('textFontFamily', () => {
     it('uses Inter for the modern style and the system font for classic', () => {
-        expect(textFontFamily('modern')).toBe('Inter');
-        expect(textFontFamily('classic')).toBeUndefined();
+        expect(textFontFamily('modern', false)).toBe('Inter');
+        expect(textFontFamily('classic', false)).toBeUndefined();
+    });
+    it('uses the Inter font resource family on Android, for real weights', () => {
+        expect(textFontFamily('modern', true)).toBe('res/inter');
+        expect(textFontFamily('classic', true)).toBeUndefined();
     });
 });

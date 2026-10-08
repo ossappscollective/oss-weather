@@ -1,5 +1,5 @@
 <script context="module" lang="ts">
-    import { createNativeAttributedString } from '@nativescript-community/text';
+    import { textAttributedString } from '~/utils/ui/attributedString';
     import { Align, Canvas, LayoutAlignment, Paint, StaticLayout } from '@nativescript-community/ui-canvas';
     import { tempColor } from '~/utils/utils.common';
     import WeatherIcon from '~/components/WeatherIcon.svelte';
@@ -227,7 +227,7 @@
         // textPaint.setTextSize(header.dateSize);
         // canvas.drawText(formatDate(item.time, dailyDateFormat, item.timezoneOffset), dateLeft, header.dateInline ? dayBaseline : 46 * $fontScale, textPaint);
 
-        let nString = createNativeAttributedString(
+        let nString = textAttributedString(
             {
                 spans: [
                     {
@@ -243,8 +243,7 @@
                         text: ' ' + formatDate(item.time, dailyDateFormat, item.timezoneOffset)
                     }
                 ]
-            },
-            null
+            }
         );
         canvas.save();
         const dayBaseline = (header.dateInline ? 26 : 26) * $fontScale;
@@ -255,7 +254,7 @@
 
         textPaint.setColor(colorOnSurface);
 
-        nString = createNativeAttributedString(
+        nString = textAttributedString(
             {
                 spans: [
                     {
@@ -271,8 +270,7 @@
                         text: '' + formatWeatherValue(item, WeatherProps.temperatureMax)
                     }
                 ]
-            },
-            null
+            }
         );
         canvas.save();
         staticLayout = new StaticLayout(nString, textPaint, w - 10, LayoutAlignment.ALIGN_OPPOSITE, 1, 0, true);
