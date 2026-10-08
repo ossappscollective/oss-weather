@@ -14,7 +14,7 @@
     import ListItemAutoSize from '~/components/common/ListItemAutoSize.svelte';
     import SettingsSlider from '~/components/settings/SettingsSlider.svelte';
     import { lc } from '~/helpers/locale';
-    import { colors, fontScale, fonts } from '~/variables';
+    import { accentFontWeight, colors, designStyle, fontScale, fonts } from '~/variables';
     import { Canvas, CanvasView } from '@nativescript-community/ui-canvas';
 
     export interface IListItem {
@@ -86,6 +86,10 @@
 
     // technique for only specific properties to get updated on store change
     $: ({ colorOnSurface, colorOutline } = $colors);
+    // modern: regular row titles separated by hairlines, the title in the accent weight
+    $: modern = $designStyle === 'modern';
+    $: rowFontWeight = modern ? 'normal' : fontWeight;
+    $: rowBorders = modern || showBorders;
 
     function updateFiltered(filter) {
         if (filter) {
@@ -224,10 +228,14 @@
 <gesturerootview columns={containerColumns} rows="auto">
     <gridlayout {backgroundColor} {borderRadius} columns={`${width}`} {height} rows="auto,auto,*" {...$$restProps}>
         {#if title}
-            <label class="actionBarTitle" fontWeight="bold" margin="10 10 0 10" text={title} />
+            {#if modern}
+                <label fontSize={18 * $fontScale} fontWeight={$accentFontWeight} margin="16 18 6 18" text={title} />
+            {:else}
+                <label class="actionBarTitle" fontWeight="bold" margin="10 10 0 10" text={title} />
+            {/if}
         {/if}
         {#if showFilter}
-            <gridlayout borderColor={colorOutline} margin="10 10 0 10" row={1}>
+            <gridlayout borderColor={colorOutline} margin={modern ? '6 14 4 14' : '10 10 0 10'} row={1}>
                 <textfield
                     autocapitalizationType="none"
                     backgroundColor="transparent"
@@ -271,11 +279,11 @@
                     {borderRadius}
                     columns="auto,*,auto"
                     {fontSize}
-                    {fontWeight}
+                    fontWeight={rowFontWeight}
                     iconFontSize={item.iconFontSize || iconFontSize}
                     {item}
                     mainCol={1}
-                    showBottomLine={showBorders}
+                    showBottomLine={rowBorders}
                     {subtitleProps}
                     {titleHolderProps}
                     {titleProps}
@@ -297,11 +305,11 @@
                     {borderRadius}
                     columns="auto,*,auto"
                     {fontSize}
-                    {fontWeight}
+                    fontWeight={rowFontWeight}
                     iconFontSize={item.iconFontSize || iconFontSize}
                     {item}
                     mainCol={1}
-                    showBottomLine={showBorders}
+                    showBottomLine={rowBorders}
                     {subtitleProps}
                     {titleHolderProps}
                     {titleProps}
@@ -317,10 +325,10 @@
                     {borderRadius}
                     columns="*,auto"
                     {fontSize}
-                    {fontWeight}
+                    fontWeight={rowFontWeight}
                     iconFontSize={item.iconFontSize || iconFontSize}
                     {item}
-                    showBottomLine={showBorders}
+                    showBottomLine={rowBorders}
                     {subtitleProps}
                     {titleHolderProps}
                     {titleProps}
@@ -336,10 +344,10 @@
                     {borderRadius}
                     columns="auto,*"
                     {fontSize}
-                    {fontWeight}
+                    fontWeight={rowFontWeight}
                     {item}
                     mainCol={1}
-                    showBottomLine={showBorders}
+                    showBottomLine={rowBorders}
                     {subtitleProps}
                     {titleHolderProps}
                     {titleProps}
@@ -363,11 +371,11 @@
                     {borderRadius}
                     columns="auto,*"
                     {fontSize}
-                    {fontWeight}
+                    fontWeight={rowFontWeight}
                     iconFontSize={item.iconFontSize || iconFontSize}
                     {item}
                     mainCol={1}
-                    showBottomLine={showBorders}
+                    showBottomLine={rowBorders}
                     {subtitleProps}
                     title={item.name}
                     {titleHolderProps}
@@ -384,11 +392,11 @@
                     {borderRadius}
                     columns="auto,*,auto"
                     {fontSize}
-                    {fontWeight}
+                    fontWeight={rowFontWeight}
                     iconFontSize={item.iconFontSize || iconFontSize}
                     {item}
                     mainCol={1}
-                    showBottomLine={showBorders}
+                    showBottomLine={rowBorders}
                     {subtitleProps}
                     title={item.name}
                     {titleHolderProps}
@@ -414,10 +422,10 @@
                     this={component}
                     {borderRadius}
                     {fontSize}
-                    {fontWeight}
+                    fontWeight={rowFontWeight}
                     iconFontSize={item.iconFontSize || iconFontSize}
                     {item}
-                    showBottomLine={showBorders}
+                    showBottomLine={rowBorders}
                     {subtitleProps}
                     {titleHolderProps}
                     {titleProps}

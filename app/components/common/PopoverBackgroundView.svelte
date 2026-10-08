@@ -1,5 +1,5 @@
 <script context="module" lang="ts">
-    import { colors } from '~/variables';
+    import { colors, designStyle } from '~/variables';
 </script>
 
 <script lang="ts">
@@ -10,7 +10,7 @@
 </script>
 
 <gesturerootview columns="auto" rows="auto">
-    <gridlayout {backgroundColor} borderRadius={10} elevation={4} margin={4} padding="0 10 0 10" {...$$restProps}>
+    <gridlayout {backgroundColor} borderRadius={$designStyle === 'modern' ? 16 : 10} elevation={4} margin={4} padding={$designStyle === 'modern' ? '4 14 4 14' : '0 10 0 10'} {...$$restProps}>
         <slot />
     </gridlayout>
 </gesturerootview>

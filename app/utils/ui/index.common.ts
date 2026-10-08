@@ -11,7 +11,7 @@ import { get } from 'svelte/store';
 import type OptionSelect__SvelteComponent_ from '~/components/common/OptionSelect.svelte';
 import { ALERT_OPTION_MAX_HEIGHT } from '~/helpers/constants';
 import { l, lc } from '~/helpers/locale';
-import { colors, fontScale, screenWidthDips } from '~/variables';
+import { colors, designStyle, fontScale, screenWidthDips } from '~/variables';
 
 export * from '@shared/utils/ui';
 
@@ -59,7 +59,9 @@ export async function showPopoverMenu<T = any>({
 }: { options; anchor; onClose?; onCheckBox?; onLongPress?; props?; closeOnClose?; onChange? } & Partial<PopoverOptions>) {
     const { colorSurfaceContainer } = get(colors);
     const OptionSelect = (await import('~/components/common/OptionSelect.svelte')).default;
-    const rowHeight = (props?.rowHeight ?? 58) * get(fontScale);
+    // modern: rounder, a bit wider, denser rows
+    const modern = get(designStyle) === 'modern';
+    const rowHeight = (props?.rowHeight ?? (modern ? 50 : 58)) * get(fontScale);
     const result: T = await showPopover({
         backgroundColor: colorSurfaceContainer,
         view: OptionSelect,
@@ -67,7 +69,7 @@ export async function showPopoverMenu<T = any>({
         horizPos: horizPos ?? HorizontalPosition.ALIGN_LEFT,
         vertPos: vertPos ?? VerticalPosition.CENTER,
         props: {
-            borderRadius: 10,
+            borderRadius: modern ? 14 : 10,
             elevation: __IOS__ ? 0 : 3,
             margin: 4,
             fontWeight: 500,
@@ -75,7 +77,7 @@ export async function showPopoverMenu<T = any>({
             containerColumns: 'auto',
             rowHeight: !!props?.autoSizeListItem ? null : rowHeight,
             height: props.height !== 'auto' && props?.autoSizeListItem !== true ? Math.min(rowHeight * options.length, props?.maxHeight || 400) : undefined,
-            width: 200 * get(fontScale),
+            width: (modern ? 220 : 200) * get(fontScale),
             options,
             onLongPress,
             onCheckBox,

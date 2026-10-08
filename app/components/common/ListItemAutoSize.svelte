@@ -1,7 +1,7 @@
 <script context="module" lang="ts">
     import { Canvas, CanvasView, Paint } from '@nativescript-community/ui-canvas';
     import { conditionalEvent, createEventDispatcher } from '@shared/utils/svelte/ui';
-    import { colors, fontScale } from '~/variables';
+    import { colors, designStyle, fontScale } from '~/variables';
     import type { IListItem } from './OptionSelect.svelte';
     const linePaint = new Paint();
     linePaint.strokeWidth = 1;
@@ -106,7 +106,7 @@
 
     <label
         col={1}
-        color={item.subtitleColor}
+        color={item.subtitleColor || ($designStyle === 'modern' ? colorOnSurfaceVariant : undefined)}
         disableCss={true}
         fontSize={(item.rightValueFontSize || subtitleFontSize) * $fontScale}
         marginLeft={16}
