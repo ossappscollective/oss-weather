@@ -8,7 +8,8 @@
     import { onThemeChanged } from '~/helpers/theme';
     import { iconService } from '~/services/icon';
     import type { CommonWeatherData, WeatherData } from '~/services/providers/weather';
-    import { colors, fontScale } from '~/variables';
+    import { colors, designStyle, fontScale } from '~/variables';
+    import ModernCardTitle from '~/components/common/ModernCardTitle.svelte';
 
     const paint = new Paint();
     paint.setTextSize(13);
@@ -67,9 +68,11 @@
             iconCache = null;
         }
     });
+    // modern: a wider model name column (names on one line next to their color dot)
+    $: nameColumn = $designStyle === 'modern' ? 116 : 90;
     $: {
         columns = Math.max(...(item.forecast === 'daily' ? item.weatherData.map((w) => w.weatherData.daily.data.length) : item.weatherData.map((w) => w.weatherData.hourly.length)));
-        width = columns * COLUMN_WIDTH + 90;
+        width = columns * COLUMN_WIDTH + nameColumn;
     }
     $: height = item.weatherData.length * (COLUMN_HEIGHT + 6) + 30;
 
@@ -103,9 +106,12 @@
             dx + COLUMN_WIDTH / 2 + ICON_SIZE / 2 - 2 * padding,
             dy + COLUMN_HEIGHT / 2 + ICON_SIZE / 2 - 2 * padding
         );
-        paint.color = d.color;
-        paint.setAlpha(150);
-        canvas.drawRect(dx, dy, dx + COLUMN_WIDTH, dy + COLUMN_HEIGHT, paint);
+        // modern: icons only, like a table
+        if ($designStyle !== 'modern') {
+            paint.color = d.color;
+            paint.setAlpha(150);
+            canvas.drawRect(dx, dy, dx + COLUMN_WIDTH, dy + COLUMN_HEIGHT, paint);
+        }
         canvas.drawBitmap(icon, srcRect, dstRect, null);
     }
     function onDraw({ canvas }: { canvas: Canvas }) {
@@ -117,14 +123,23 @@
         // const startOfDayTimeStamp = startOfDay.valueOf();
         paint.setTextAlign(Align.LEFT);
         item.weatherData.forEach((data) => {
-            let dx = 90;
+            let dx = nameColumn;
             paint.setAlpha(255);
             paint.color = data.model.color;
-            canvas.drawRect(0, dy, 6, dy + COLUMN_HEIGHT, paint);
+            // modern: a color dot and the model name in the secondary color
+            const modern = $designStyle === 'modern';
+            const nameLeft = modern ? 22 : 8;
+            paint.setTextSize(modern ? 12 : 13);
+            if (modern) {
+                canvas.drawCircle(12, dy + COLUMN_HEIGHT / 2, 4, paint);
+                paint.color = colorOnSurfaceVariant;
+            } else {
+                canvas.drawRect(0, dy, 6, dy + COLUMN_HEIGHT, paint);
+            }
             const name = data.model.name.replace(': ', '\n');
-            const staticLayout = new StaticLayout(name, paint, dx - 8, LayoutAlignment.ALIGN_NORMAL, 1, 0, true);
+            const staticLayout = new StaticLayout(name, paint, dx - nameLeft, LayoutAlignment.ALIGN_NORMAL, 1, 0, true);
             canvas.save();
-            canvas.translate(8, dy + COLUMN_HEIGHT / 2 - staticLayout.getHeight() / 2);
+            canvas.translate(nameLeft, dy + COLUMN_HEIGHT / 2 - staticLayout.getHeight() / 2);
             staticLayout.draw(canvas);
             canvas.restore();
             let lastTimestamp;
@@ -162,12 +177,12 @@
             const w = canvas.getWidth();
             const h = canvas.getHeight();
             const dy = h - 5;
-            let dx = 90;
+            let dx = nameColumn;
             const now = getLocalTime(undefined, weatherLocation.timezoneOffset);
             const startOfHour = now.startOf('h');
             const startOfDay = getStartOfDay(now, weatherLocation.timezoneOffset);
             paint.setTextAlign(Align.CENTER);
-            paint.setColor(colorOnSurface);
+            paint.setColor($designStyle === 'modern' ? colorOnSurfaceVariant : colorOnSurface);
             if (item.forecast === 'hourly') {
                 for (let index = 0; index < columns; index++) {
                     const date = startOfHour.add(index + 1, 'h');
@@ -191,7 +206,11 @@
 </script>
 
 <gridlayout rows="auto,auto,*" {...$$restProps}>
-    <label class="sectionHeader" paddingTop={10} text={`${item.id} (${lc(item.forecast)})`} />
+    {#if $designStyle === 'modern'}
+        <ModernCardTitle icon="mdi-weather-partly-cloudy" iconColor="#888780" title={lc('conditions_by_model')} />
+    {:else}
+        <label class="sectionHeader" paddingTop={10} text={`${item.id} (${lc(item.forecast)})`} />
+    {/if}
     <scrollview bind:this={headerScrollView} height={30} isUserInteractionEnabled={false} orientation="horizontal" row={1} scrollBarIndicatorVisible={false}>
         <canvasview height="100%" horizontalAlignment="left" {width} on:draw={onDrawHeader} />
     </scrollview>

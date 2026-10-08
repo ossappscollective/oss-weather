@@ -10,15 +10,21 @@
     import { Template } from '@nativescript-community/svelte-native/components';
     import type { NativeElementNode, NativeViewElementNode } from '@nativescript-community/svelte-native/dom';
     import CActionBar from '~/components/common/CActionBar.svelte';
-    import { CHARTS_LANDSCAPE } from '~/helpers/constants';
+    import { ALERT_OPTION_MAX_HEIGHT, CHARTS_LANDSCAPE } from '~/helpers/constants';
     import { FavoriteLocation } from '~/helpers/favorites';
     import { l, lc, slc } from '~/helpers/locale';
     import { isDarkTheme, onThemeChanged } from '~/helpers/theme';
     import { NetworkConnectionStateEvent, NetworkConnectionStateEventData, networkService } from '~/services/api';
     import type { ProviderType } from '~/services/providers/weather';
     import { getProviderForType, getWeather, providers } from '~/services/providers/weatherproviderfactory';
-    import { AVAILABLE_COMPARE_WEATHER_DATA, WeatherProps, getWeatherDataIcon, getWeatherDataTitle } from '~/services/weatherData';
-    import { actionBarButtonHeight, windowInset } from '~/variables';
+    import { AVAILABLE_COMPARE_WEATHER_DATA, WeatherProps, convertWeatherValueToUnit, getWeatherDataIcon, getWeatherDataTitle } from '~/services/weatherData';
+    import { accentFontWeight, actionBarButtonHeight, colors, designStyle, fontScale, fonts, screenWidthDips, windowInset } from '~/variables';
+    import ModernCardTitle from '~/components/common/ModernCardTitle.svelte';
+    import { modernDataColor, styledDataIcon } from '~/utils/designStyle';
+    import { modelSpread } from '~/utils/modelSpread';
+    import { modernColors } from '~/helpers/modernTheme';
+    import { showAlertOptionSelect, showPopoverMenu } from '~/utils/ui';
+    import { VerticalPosition } from '@nativescript-community/ui-popover';
     import ListItemAutoSize from '../common/ListItemAutoSize.svelte';
     import CompareLineChart from './CompareLineChart.svelte';
     import CompareWeatherIcons from './CompareWeatherIcons.svelte';
@@ -112,6 +118,37 @@
     const models: string[] = JSON.parse(ApplicationSettings.getString('compare_models', '["meteofrance", "openweathermap", "openmeteo:best_match"]')).filter(
         (d) => modelsList.findIndex((m) => m.id === d) !== -1
     );
+    // modern: chips for the compared data, its forecast and the models (copy: the array is mutated)
+    $: modern = $designStyle === 'modern';
+    $: ({ colorOnSurfaceVariant } = $colors);
+    let modelChips = models.slice();
+    $: dataIcon = styledDataIcon($designStyle, getWeatherDataIcon(dataToCompare.id)) ?? { fontFamily: 'mdi', icon: '' };
+    function modelOf(modelId: string) {
+        return modelsList.find((model) => model.id === modelId);
+    }
+    function setForecast(forecast: string) {
+        const item = possibleDatas.find((data) => data.id === dataToCompare.id);
+        if (item && forecast !== dataToCompare.forecast) {
+            onDataCheckBox(forecast, item, { value: true });
+        }
+    }
+    // modern "spread now" card: temperature of each model at the current hour
+    function spreadNow(weatherData: { weatherData: { hourly?: any[] } }[]) {
+        const now = Date.now();
+        let unit = '';
+        const values = weatherData.map(({ weatherData }) => {
+            const entry = weatherData?.hourly?.find((hour) => hour.time + 3600 * 1000 > now);
+            if (!entry) {
+                return undefined;
+            }
+            const [value, valueUnit] = convertWeatherValueToUnit(entry, WeatherProps.temperature);
+            unit = valueUnit;
+            return value;
+        });
+        const spread = modelSpread(values);
+        return spread ? { ...spread, unit } : null;
+    }
+    $: spread = modern && currentItem ? spreadNow(currentItem.weatherData) : null;
     let page: NativeViewElementNode<Page>;
     // let pullRefresh: NativeViewElementNode<PullToRefresh>;
     let networkConnected = networkService.connected;
@@ -241,6 +278,7 @@
             models.splice(index, 1);
         }
         ApplicationSettings.setString('compare_models', JSON.stringify(models));
+        modelChips = models.slice();
     }
     async function onDataCheckBox(forecast: string, item, event) {
         const value = event.value;
@@ -267,6 +305,78 @@
             refreshData();
         } else {
             event.object.checked = true;
+        }
+    }
+
+    // modern: a menu of the data to compare (the forecast is picked on the page) and a models dialog, instead of the drawers
+    async function selectData(event) {
+        try {
+            await showPopoverMenu({
+                anchor: event.object,
+                vertPos: VerticalPosition.BELOW,
+                options: possibleDatas.map((data) => {
+                    const icon = styledDataIcon($designStyle, data);
+                    const selected = data.id === dataToCompare.id;
+                    return {
+                        ...data,
+                        type: undefined,
+                        // a blank icon keeps the titles aligned for data without an icon
+                        icon: icon?.icon || ' ',
+                        iconFontFamily: $fonts[icon?.fontFamily],
+                        iconColor: modernDataColor(data.id),
+                        color: selected ? $modernColors.colorModernAccent : undefined
+                    };
+                }),
+                props: { maxHeight: ALERT_OPTION_MAX_HEIGHT, width: 280 * $fontScale },
+                onClose: (option) => {
+                    const data = option && possibleDatas.find((possibleData) => possibleData.id === option.id);
+                    if (data && data.id !== dataToCompare.id) {
+                        onDataCheckBox(dataToCompare.forecast, data, { value: true });
+                    }
+                }
+            });
+        } catch (error) {
+            showError(error);
+        }
+    }
+    // modern: the model chips are the chart legend, a tap shows / hides the model
+    let lineChart: CompareLineChart;
+    let chartFullscreen = false;
+    let hiddenModels: string[] = [];
+    $: hiddenModels = currentItem?.hidden.slice() ?? [];
+    function toggleModel(modelId: string) {
+        if (!lineChart) {
+            selectModels();
+            return;
+        }
+        lineChart.toggleModel(modelId);
+        hiddenModels = currentItem.hidden.slice();
+    }
+    async function selectModels() {
+        try {
+            const previousModels = models.join();
+            await showAlertOptionSelect(
+                {
+                    height: Math.min(modelsList.length * 56 * $fontScale, ALERT_OPTION_MAX_HEIGHT),
+                    autoSizeListItem: true,
+                    options: modelsList.map((model) => ({
+                        id: model.id,
+                        type: 'checkbox',
+                        value: isModelSelected(model),
+                        icon: 'mdi-circle',
+                        iconColor: model.color,
+                        title: model.subtitle || model.name,
+                        subtitle: model.subtitle ? model.name : null
+                    })),
+                    onCheckBox: (option, value) => onModelCheckBox(modelOf(option.id), { value })
+                },
+                { title: lc('models'), okButtonText: lc('close') }
+            );
+            if (models.join() !== previousModels) {
+                refreshData();
+            }
+        } catch (error) {
+            showError(error);
         }
     }
 
@@ -306,20 +416,106 @@
         android:paddingBottom={$windowInset.bottom}
         on:close={onDrawerClose}
         on:start={onDrawerStart}>
-        <gridlayout rows="auto,*" prop:mainContent>
+        <gridlayout rows={modern ? 'auto,auto,*' : 'auto,*'} prop:mainContent>
+            {#if modern}
+                <!-- data menu, hourly / daily, the models with their colors (chart legend), then the models dialog -->
+                <wraplayout padding="2 11 6 11" row={1}>
+                    <label class="modernChip modernChipSelected" margin={3} verticalAlignment="center" on:tap={selectData}>
+                        <cspan color={modernDataColor(dataToCompare.id)} fontFamily={$fonts[dataIcon.fontFamily]} fontSize={16 * $fontScale} fontWeight="normal" text={dataIcon.icon} />
+                        <cspan text={' ' + getWeatherDataTitle(dataToCompare.id) + ' '} />
+                        <cspan fontFamily={$fonts.mdi} fontSize={16 * $fontScale} fontWeight="normal" text="mdi-chevron-down" />
+                    </label>
+                    <gridlayout class="modernSegmented modernSegmentedOnPage" columns="auto,auto" margin={3}>
+                        {#each ['hourly', 'daily'] as forecast, index}
+                            <label
+                                class={dataToCompare.forecast === forecast ? 'modernSegment modernSegmentCompact modernSegmentSelected' : 'modernSegment modernSegmentCompact'}
+                                col={index}
+                                text={lc(forecast)}
+                                on:tap={() => setForecast(forecast)} />
+                        {/each}
+                    </gridlayout>
+                    {#each modelChips as modelId (modelId)}
+                        <label
+                            class="modernChip"
+                            borderColor={modelOf(modelId)?.color}
+                            borderWidth={1}
+                            margin={3}
+                            opacity={hiddenModels.indexOf(modelId) === -1 ? 1 : 0.45}
+                            verticalAlignment="center"
+                            on:tap={() => toggleModel(modelId)}>
+                            <cspan color={modelOf(modelId)?.color} fontFamily={$fonts.mdi} fontSize={10 * $fontScale} text="mdi-circle" />
+                            <cspan text={' ' + (modelOf(modelId)?.subtitle || modelOf(modelId)?.name || modelId)} />
+                        </label>
+                    {/each}
+                    <label class="modernChip" margin={3} verticalAlignment="center" on:tap={selectModels}>
+                        <cspan fontFamily={$fonts.mdi} fontSize={16 * $fontScale} fontWeight="normal" text="mdi-plus" />
+                        <cspan text={' ' + lc('models')} />
+                    </label>
+                </wraplayout>
+            {/if}
             {#if !networkConnected}
-                <label horizontalAlignment="center" row={1} text={l('no_network').toUpperCase()} verticalAlignment="middle" />
+                <label horizontalAlignment="center" row={modern ? 2 : 1} text={l('no_network').toUpperCase()} verticalAlignment="middle" />
+            {:else if currentItem && modern && chartFullscreen && currentItem.chartType !== 'weathericons'}
+                <gridlayout class="modernCard" marginBottom={10} row={2}>
+                    <CompareLineChart bind:this={lineChart} fullscreen item={currentItem} onFullscreen={() => (chartFullscreen = false)} {screenOrientation} {weatherLocation} />
+                </gridlayout>
+            {:else if currentItem && modern}
+                <!-- the chart, conditions by model, then the spread between models now -->
+                <scrollview row={2}>
+                    <stacklayout android:paddingBottom={$windowInset.bottom}>
+                        {#if currentItem.chartType === 'weathericons'}
+                            <gridlayout class="modernCard">
+                                <CompareWeatherIcons height={currentItem.weatherData.length * 56 + 90} item={currentItem} {screenOrientation} {weatherLocation} />
+                            </gridlayout>
+                        {:else}
+                            <gridlayout class="modernCard">
+                                <CompareLineChart
+                                    bind:this={lineChart}
+                                    height={screenWidthDips + 56}
+                                    item={currentItem}
+                                    onFullscreen={() => (chartFullscreen = true)}
+                                    {screenOrientation}
+                                    {weatherLocation} />
+                            </gridlayout>
+                            <gridlayout class="modernCard">
+                                <CompareWeatherIcons
+                                    height={currentItem.weatherData.length * 56 + 90}
+                                    item={{ ...currentItem, id: WeatherProps.iconId, chartType: 'weathericons' }}
+                                    {screenOrientation}
+                                    {weatherLocation} />
+                            </gridlayout>
+                        {/if}
+                        {#if spread}
+                            <stacklayout class="modernCard" paddingBottom={12}>
+                                <ModernCardTitle icon="mdi-thermometer" iconColor={modernDataColor(WeatherProps.temperature)} title={lc('spread_now')} />
+                                <gridlayout columns="*,auto" padding="0 16">
+                                    <label class="modernSubtitle" text={lc('spread_models', spread.min + spread.unit, spread.max + spread.unit, spread.count)} verticalAlignment="center" />
+                                    <label class="modernChip modernStrong" col={1} text={lc('spread_value', spread.spread + spread.unit)} verticalAlignment="center" />
+                                </gridlayout>
+                            </stacklayout>
+                        {/if}
+                    </stacklayout>
+                </scrollview>
             {:else if currentItem}
                 <CompareLineChart item={currentItem} row={1} {screenOrientation} visibility={currentItem?.chartType === 'weathericons' ? 'hidden' : 'visible'} {weatherLocation} />
                 <CompareWeatherIcons item={currentItem} row={1} {screenOrientation} visibility={currentItem?.chartType === 'weathericons' ? 'visible' : 'hidden'} {weatherLocation} />
             {:else}
-                <mdbutton horizontalAlignment="center" row={1} text={lc('select_data')} variant="text" verticalAlignment="middle" on:tap={toggleRightDrawer} />
+                <mdbutton horizontalAlignment="center" row={modern ? 2 : 1} text={lc('select_data')} variant="text" verticalAlignment="middle" on:tap={modern ? selectData : toggleRightDrawer} />
             {/if}
-            <CActionBar showMenuIcon title={weatherLocation && weatherLocation.name}>
-                <activityIndicator busy={loading} height={$actionBarButtonHeight} verticalAlignment="middle" visibility={loading ? 'visible' : 'collapse'} width={$actionBarButtonHeight} />
-                <mdbutton class="actionBarButton" text="mdi-layers-triple" variant="text" verticalAlignment="middle" on:tap={toggleLeftDrawer} />
-                <mdbutton class="actionBarButton" text="mdi-sun-thermometer-outline" variant="text" verticalAlignment="middle" on:tap={toggleRightDrawer} />
-            </CActionBar>
+            {#if modern}
+                <CActionBar showMenuIcon titleProps={{ visibility: 'visible' }}>
+                    <span slot="subtitle" fontWeight={$accentFontWeight} text={lc('compare_models')} />
+                    <span slot="subtitle2" color={colorOnSurfaceVariant} fontSize={12 * $fontScale} fontWeight="normal" text={'\n' + (weatherLocation?.name ?? '')} />
+                    <activityIndicator busy={loading} height={$actionBarButtonHeight} verticalAlignment="middle" visibility={loading ? 'visible' : 'collapse'} width={$actionBarButtonHeight} />
+                    <mdbutton class="actionBarButton" text="mdi-refresh" variant="text" verticalAlignment="middle" on:tap={refreshData} />
+                </CActionBar>
+            {:else}
+                <CActionBar showMenuIcon title={weatherLocation && weatherLocation.name}>
+                    <activityIndicator busy={loading} height={$actionBarButtonHeight} verticalAlignment="middle" visibility={loading ? 'visible' : 'collapse'} width={$actionBarButtonHeight} />
+                    <mdbutton class="actionBarButton" text="mdi-layers-triple" variant="text" verticalAlignment="middle" on:tap={toggleLeftDrawer} />
+                    <mdbutton class="actionBarButton" text="mdi-sun-thermometer-outline" variant="text" verticalAlignment="middle" on:tap={toggleRightDrawer} />
+                </CActionBar>
+            {/if}
         </gridlayout>
         <gridlayout prop:leftDrawer class="drawer" rows="auto,*,auto" width="300">
             <label class="actionBarTitle" margin="20 20 20 20" text={$slc('models')} />

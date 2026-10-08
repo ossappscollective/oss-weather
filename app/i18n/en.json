@@ -84,6 +84,10 @@
   },
   "comments": "comments",
   "compare_models": "compare models",
+  "conditions_by_model": "conditions by model",
+  "spread_now": "spread now",
+  "spread_models": "%1$s to %2$s across %3$s models",
+  "spread_value": "%1$s spread",
   "custom_tile_server": "custom tile server",
   "custom_tile_server_description": "you can use your own tile server for map data",
   "custom_units": "custom units",
@@ -163,6 +167,7 @@
   "heavy_snow_shower": "Heavy snow shower",
   "here": "here",
   "hourly": "Hourly",
+  "days_count": "%s days",
   "hourly_settings": "settings related to the hourly section",
   "icon_pack": "icon pack",
   "icons": "icons",
@@ -507,5 +512,6 @@
   "marine_provider": "marine provider",
   "selected": "selected",
   "air_quality": "air quality",
-  "sun_and_moon": "sun and moon"
+  "sun_and_moon": "sun and moon",
+  "all": "all"
 }

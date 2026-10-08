@@ -1002,6 +1002,14 @@
     $: if (visibleHours && maxDatalength && chartView?.nativeView) {
         chartView.nativeView.setScale(zoomScale(), 1);
     }
+    // modern chart page reset button: back to the asked visible hours after a pinch or a pan
+    export function resetVisibleHours() {
+        const chart = chartView?.nativeView;
+        if (chart && maxDatalength) {
+            chart.resetZoom();
+            chart.setScale(zoomScale(), 1);
+        }
+    }
     // landscape shows the whole range, unless a number of visible hours is asked
     function zoomsInOrientation() {
         return !!visibleHours || (!screenOrientation && Application.orientation() !== 'landscape');

@@ -6,15 +6,19 @@
     import { getCanvas } from '~/helpers/sveltehelpers';
     import { isDarkTheme, isEInk } from '~/helpers/theme';
     import type { Hourly } from '~/services/providers/weather';
-    import { WeatherProps, appPaint, convertWeatherValueToUnit, formatWeatherValue, showHourlyPopover } from '~/services/weatherData';
+    import { WeatherProps, appPaint, convertWeatherValueToUnit, formatWeatherValue, showHourlyPopover, wdPaint } from '~/services/weatherData';
     import { colorForAqi } from '~/services/airQualityData';
     import { generateGradient, windSpeedColor } from '~/utils/utils.common';
-    import { colors, fontScale, nightColor, rainColor } from '~/variables';
+    import { accentFontWeight, colors, designStyle, fontScale, nightColor, rainColor } from '~/variables';
+    import { modernDataColor, modernPrecipColor, precipKind, styledDataIcon, windSpeedColor as modernWindSpeedColor } from '~/utils/designStyle';
     import { textAttributedString } from '~/utils/ui/attributedString';
     import { ICON_ROW_SCALE, getRowUnits } from '~/components/WindyView.svelte';
     import { Color } from '@nativescript/core';
 
     const nightBackColor = nightColor.setAlpha(15).hex;
+    // modern: neutral night shading and softer data bands, like the hourly chart
+    const MODERN_NIGHT_ALPHA = 12;
+    const MODERN_BAND_ALPHA = 110;
 
     const textPaint = new Paint();
     const bgPaint = new Paint();
@@ -43,6 +47,7 @@
 
 <script lang="ts">
     $: ({ colorOnSurface, colorOnSurfaceVariant } = $colors);
+    $: modern = $designStyle === 'modern';
 
     export let item: WindyItemData;
     export let dataToShow: WeatherProps[];
@@ -124,13 +129,13 @@
             const iconRowHeight = rowHeight * ICON_ROW_SCALE;
 
             if (!isEInk && !item.isDay) {
-                canvas.drawColor(nightBackColor);
+                canvas.drawColor(modern ? new Color(colorOnSurface).setAlpha(MODERN_NIGHT_ALPHA).hex : nightBackColor);
             }
 
             const endDay = getLocalTime(undefined, item.timezoneOffset).endOf('d').valueOf();
 
             // --- Hour row ---
-            textPaint.setFontWeight('bold');
+            textPaint.setFontWeight(modern ? $accentFontWeight : 'bold');
             textPaint.setColor(colorOnSurface);
             textPaint.setTextSize(12 * $fontScale);
             textPaint.setTextAlign(Align.LEFT);
@@ -166,7 +171,8 @@
                 textPaint.setTextAlign(Align.CENTER);
                 canvas.drawText(hour, w2, 12 * $fontScale, textPaint);
             }
-            if (item.time > endDay) {
+            // modern: the day name only where a day starts
+            if (item.time > endDay && (!modern || item.index === 0 || getLocalTime(item.time, item.timezoneOffset).hour() === 0)) {
                 textPaint.setTextAlign(Align.CENTER);
                 textPaint.setTextSize(9 * $fontScale);
                 textPaint.setFontWeight('normal');
@@ -183,10 +189,10 @@
                     if (!isEInk) {
                         const gradient = new LinearGradient(-w / 2, 0, w + w / 2, 0, [colors[0], colors[1], colors[1], colors[2]], [0, 0.46, 0.54, 1], TileMode.CLAMP);
                         bgPaint.setShader(gradient);
-                        // bgPaint.setAlpha(160);
+                        bgPaint.setAlpha(modern ? MODERN_BAND_ALPHA : 255);
                         canvas.drawRect(-w / 2, rowTop, w + w / 2, rowTop + rh, bgPaint);
                         bgPaint.setShader(null);
-                        // bgPaint.setAlpha(255);
+                        bgPaint.setAlpha(255);
                     }
                 }
                 switch (prop) {
@@ -207,7 +213,7 @@
                             if (!isEInk) {
                                 pathPaint.setShader(gradient.gradient);
                             }
-                            pathPaint.setAlpha(80);
+                            pathPaint.setAlpha(modern ? 45 : 80);
                             drawCurve(canvas, item.curveTempPoints, curveH, curveAreaTop);
                             canvas.drawPath(curvePath, pathPaint);
                             pathPaint.setShader(null);
@@ -218,8 +224,10 @@
                         textPaint.setTextAlign(Align.CENTER);
                         textPaint.setColor(colorOnSurface);
                         textPaint.setTextSize(13 * $fontScale);
+                        textPaint.setFontWeight(modern ? $accentFontWeight : 'normal');
                         const data = convertWeatherValueToUnit(item, prop, { forceUnit: true });
                         canvas.drawText(data[0] + '', w2, rowMid, textPaint);
+                        textPaint.setFontWeight('normal');
                         break;
                     }
 
@@ -236,7 +244,11 @@
                         if (item.curvePrecipPoints) {
                             canvas.save();
                             canvas.clipRect(-1, rowTop, w + 2, rowTop + rh);
-                            fillPaint.setColor(new Color(item.precipColor ?? rainColor.hex)[isDarkTheme() ? 'darken' : 'lighten'](10));
+                            if (modern) {
+                                fillPaint.setColor(new Color(modernPrecipColor(precipKind(item))).setAlpha(90));
+                            } else {
+                                fillPaint.setColor(new Color(item.precipColor ?? rainColor.hex)[isDarkTheme() ? 'darken' : 'lighten'](10));
+                            }
                             // fillPaint.setAlpha(100)
                             drawCurve(canvas, item.curvePrecipPoints, rh, rowTop);
                             canvas.drawPath(curvePath, fillPaint);
@@ -303,7 +315,12 @@
 
                     case WeatherProps.windBearing: {
                         const icon = item.windIcon;
-                        if (icon) {
+                        if (icon && modern) {
+                            // Tabler arrow from the data icon font, colored by speed (like the hourly chart)
+                            wdPaint.setTextSize(14 * $fontScale);
+                            wdPaint.setColor(isEInk ? colorOnSurfaceVariant : modernWindSpeedColor(item.windSpeed, modernDataColor(WeatherProps.windBearing) ?? colorOnSurfaceVariant));
+                            canvas.drawText(styledDataIcon('modern', { fontFamily: 'app', icon }).icon, w2, rowMid + 3 * $fontScale, wdPaint);
+                        } else if (icon) {
                             appPaint.setColor(colorOnSurfaceVariant);
                             appPaint.setTextSize(14 * $fontScale);
                             // icons do not seem to be really centered

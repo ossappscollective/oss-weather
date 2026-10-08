@@ -7,10 +7,12 @@
     import type { WindyItemData } from '~/components/WindyItem.svelte';
     import WindyItem from '~/components/WindyItem.svelte';
     import { isEInk, onThemeChanged } from '~/helpers/theme';
+    import { modernColors } from '~/helpers/modernTheme';
     import { iconService } from '~/services/icon';
     import type { Hourly } from '~/services/providers/weather';
-    import { WeatherProps, appPaint, getWeatherDataIcon, mdiPaint, wiPaint } from '~/services/weatherData';
-    import { colors, fontScale, onUnitsChanged } from '~/variables';
+    import { WeatherProps, appPaint, getWeatherDataIcon, mdiPaint, wdPaint, wiPaint } from '~/services/weatherData';
+    import { colors, designStyle, fontScale, onUnitsChanged } from '~/variables';
+    import { modernDataColor, styledDataIcon } from '~/utils/designStyle';
     const HEADER_WIDTH = 40;
     export const ICON_ROW_SCALE = 2;
 
@@ -48,6 +50,8 @@
 
     let { colorBackground, colorOnSurface, colorOnSurfaceVariant, colorOutline } = $colors;
     $: ({ colorBackground, colorOnSurface, colorOnSurfaceVariant, colorOutline } = $colors);
+    // modern: the hourly views sit in cards, the edges fade into the card color
+    $: edgeColor = $designStyle === 'modern' ? $modernColors.colorModernCard : colorBackground;
 
     // Prepare enriched items for WindyItem
     $: windyItems = prepareItems(items, actionDataToShow);
@@ -150,11 +154,15 @@
         let y = rowHeight;
         for (const prop of actionDataToShow) {
             const rh = prop === WeatherProps.iconId ? rowHeight * ICON_ROW_SCALE : rowHeight;
-            const rowMid = y + rh * 0.5 + 5 * fs;
-            const { fontFamily, icon } = getWeatherDataIcon(prop);
+            const rowMid = y + rh * 0.5 + 3.5 * fs;
+            // modern: data font icons in their palette color
+            const { fontFamily, icon } = styledDataIcon(get(designStyle), getWeatherDataIcon(prop));
             if (icon && prop !== WeatherProps.iconId) {
                 let paint: Paint;
                 switch (fontFamily) {
+                    case 'wd':
+                        paint = wdPaint;
+                        break;
                     case 'app':
                         paint = appPaint;
                         break;
@@ -167,7 +175,7 @@
                         break;
                 }
                 paint.setTextSize(12 * fs);
-                paint.setColor(colorOnSurface);
+                paint.setColor((fontFamily === 'wd' && modernDataColor(prop)) || colorOnSurface);
                 canvas.drawText(icon, w / 2, rowMid, paint); // wi-thermometer
             } else {
                 // headerTextPaint.setTextSize(9 * fs);
@@ -203,14 +211,14 @@
         </Template>
     </collectionview>
     <!-- <absolutelayout
-            background={`linear-gradient(to right, ${colorBackground}, ${new Color(colorBackground).setAlpha(0)})`}
+            background={`linear-gradient(to right, ${edgeColor}, ${new Color(edgeColor).setAlpha(0)})`}
             height="100%"
             horizontalAlignment="left"
             isUserInteractionEnabled={false}
             opacity={showLeftShadowOpacity}
             width={40} />
         <absolutelayout
-            background={`linear-gradient(to right, ${new Color(colorBackground).setAlpha(0)}, ${colorBackground})`}
+            background={`linear-gradient(to right, ${new Color(edgeColor).setAlpha(0)}, ${edgeColor})`}
             height="100%"
             horizontalAlignment="right"
             isUserInteractionEnabled={false}
