@@ -2,70 +2,51 @@
     import { titlecase } from '@nativescript-community/l';
     import { Template } from '@nativescript-community/svelte-native/components';
     import { Color, Screen } from '@nativescript/core';
-    import { formatDate, l } from '~/helpers/locale';
-    import { isDarkTheme } from '~/helpers/theme';
+    import { formatDate, l, lc } from '~/helpers/locale';
     import type { Alert } from '~/services//providers/weather';
-    import { cardBackgroundAlpha } from '~/utils/designStyle';
-    import { accentFontWeight, colors, designStyle, fontScale, fonts, windowInset } from '~/variables';
+    import { colors, designStyle, windowInset } from '~/variables';
+    import { alertStatus } from '~/utils/alertStatus';
 
     export let alerts: Alert[];
     // the sheet opens at its `peekHeight`; a full height content lets it expand up to the top while scrolling
     $: sheetHeight = Screen.mainScreen.heightDIPs - $windowInset.top;
-    $: ({ colorOnSurface, colorOnSurfaceVariant, colorOutlineVariant, colorPrimary, colorSurface } = $colors);
+    $: ({ colorOnSurfaceVariant, colorOutlineVariant, colorSurface } = $colors);
     $: modern = $designStyle === 'modern';
-    // modern: cards and tiles are a light tint of the text color
-    $: cardColor = new Color(colorOnSurface).setAlpha(cardBackgroundAlpha(isDarkTheme())).hex;
-    $: tileColor = new Color(colorOnSurface).setAlpha(2 * cardBackgroundAlpha(isDarkTheme())).hex;
+    const now = Date.now();
 </script>
 
-<gesturerootview rows="auto,auto">
+<!-- modern: styled from app/_modern.scss (modernSheet, modernCard, modernTile...) -->
+<gesturerootview class={modern ? 'modernSheet' : ''} rows="auto,auto">
     {#if modern}
-        <!-- drag handle and title -->
         <stacklayout padding="8 18 4 18">
-            <absolutelayout backgroundColor={colorOutlineVariant} borderRadius={2} height={4} horizontalAlignment="center" width={36} />
-            <label fontSize={16 * $fontScale} fontWeight={$accentFontWeight} marginTop={10} text={titlecase(l('alerts'))} />
+            <absolutelayout class="modernSheetHandle" horizontalAlignment="center" />
+            <label class="modernCardTitle" padding="10 0 0 0" text={alerts.length > 1 ? alerts.length + ' ' + l('alerts') : titlecase(l('alerts'))} />
         </stacklayout>
     {/if}
     <collectionview id="scrollView" height={sheetHeight} iosIgnoreSafeArea={true} items={alerts} row={1}>
         <Template let:item>
             {#if modern}
-                <gridlayout backgroundColor={cardColor} borderRadius={14} columns="auto,*" margin="5 12 5 12" padding="12 14 12 14" rows="auto,auto,auto">
-                    <label
-                        backgroundColor={tileColor}
-                        borderRadius={16 * $fontScale}
-                        color={item.color || '#EF9F27'}
-                        fontFamily={$fonts.mdi}
-                        fontSize={17 * $fontScale}
-                        height={32 * $fontScale}
-                        text="mdi-alert"
-                        textAlignment="center"
-                        verticalAlignment="top"
-                        verticalTextAlignment="center"
-                        width={32 * $fontScale} />
+                <gridlayout class="modernCard" columns="auto,*" padding="12 14" rows="auto,auto,auto">
+                    <label class="modernTile modernTileRound" color={item.color || '#EF9F27'} text="mdi-alert" verticalAlignment="top" verticalTextAlignment="center" />
                     <stacklayout col={1} marginLeft={12} verticalAlignment="center">
-                        <label fontSize={15 * $fontScale} fontWeight={$accentFontWeight} text={item.event} textWrap={true} visibility={item.event ? 'visible' : 'collapse'} />
-                        <label color={colorOnSurfaceVariant} fontSize={12 * $fontScale} text={item.sender_name} visibility={item.sender_name ? 'visible' : 'collapse'} />
+                        <label class="modernTitle modernStrong" text={item.event} textWrap={true} visibility={item.event ? 'visible' : 'collapse'} />
+                        <label class="modernSubtitle" text={item.sender_name} visibility={item.sender_name ? 'visible' : 'collapse'} />
                     </stacklayout>
-                    <label
-                        backgroundColor={tileColor}
-                        borderRadius={12 * $fontScale}
-                        colSpan={2}
-                        fontSize={12 * $fontScale}
-                        horizontalAlignment="left"
-                        marginTop={10}
-                        padding="3 10 3 10"
-                        row={1}
-                        text="{titlecase(l('expires'))}: {formatDate(item.end, 'dddd LT', item.timezoneOffset)}" />
-                    <label
-                        colSpan={2}
-                        color={colorOnSurfaceVariant}
-                        fontSize={13 * $fontScale}
-                        lineHeight={18 * $fontScale}
-                        marginTop={8}
-                        row={2}
-                        text={item.description}
-                        textWrap={true}
-                        visibility={item.description?.length ? 'visible' : 'collapse'} />
+                    <!-- end time, then active (tinted with the alert color) or upcoming -->
+                    <stacklayout colSpan={2} marginTop={10} orientation="horizontal" row={1}>
+                        <label class="modernChip" text="{titlecase(l('expires'))}: {formatDate(item.end, 'dddd LT', item.timezoneOffset)}" />
+                        {#if alertStatus(item, now) === 'active'}
+                            <label
+                                class="modernChip modernStrong"
+                                backgroundColor={new Color(item.color || '#E24B4A').setAlpha(40).hex}
+                                color={item.color || '#E24B4A'}
+                                marginLeft={6}
+                                text={lc('alert_active')} />
+                        {:else}
+                            <label class="modernChip" marginLeft={6} text={lc('alert_upcoming')} />
+                        {/if}
+                    </stacklayout>
+                    <label class="modernSubtitle" colSpan={2} marginTop={8} row={2} text={item.description} textWrap={true} visibility={item.description?.length ? 'visible' : 'collapse'} />
                 </gridlayout>
             {:else}
                 <gridlayout>

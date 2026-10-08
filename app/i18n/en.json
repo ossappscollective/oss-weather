@@ -295,6 +295,7 @@
   "remove": "remove",
   "remove_favorite": "remove favorite",
   "rename": "rename",
+  "rename_helper": "Shown in the title and favorites",
   "reset": "Reset",
   "restart": "restart",
   "restart_app": "restart the app",
@@ -494,5 +495,10 @@
   "main_chart_visible_hours_desc": "chart zoom, scroll to see the other hours",
   "add_location": "add a location",
   "choose_location": "choose a location",
-  "alerts": "weather alerts"
+  "alerts": "weather alerts",
+  "alert_active": "active",
+  "alert_upcoming": "upcoming",
+  "marine_provider": "marine provider",
+  "selected": "selected",
+  "air_quality": "air quality"
 }
