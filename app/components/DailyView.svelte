@@ -9,7 +9,7 @@
     import { createEventDispatcher } from '@shared/utils/svelte/ui';
     import { accentFontWeight, colors, dailyDataAlignment, dailyDateFormat, dataIntensity, designStyle, fontScale, showEmptyData, weatherDataLayout, windowSize } from '~/variables';
     import { isDarkTheme, isEInk } from '~/helpers/theme';
-    import { cardBackgroundAlpha, dataTextStyle, headerTextStyle } from '~/utils/designStyle';
+    import { cardBackgroundAlpha, dataTextStyle, headerTextStyle, textFontFamily } from '~/utils/designStyle';
     import { drawChips, prepareChips } from '~/helpers/chips';
     import { chipsAlignment } from '~/utils/chipsLayout';
     import { rangeBarSpan } from '~/utils/dataGrid';
@@ -74,6 +74,11 @@
     $: $dataIntensity !== undefined && redraw();
 
     $: header = headerTextStyle($designStyle, $fontScale, $accentFontWeight);
+    $: {
+        const fontFamily = textFontFamily($designStyle);
+        textPaint.setFontFamily(fontFamily);
+        textIconSubPaint.setFontFamily(fontFamily);
+    }
     $: modern = $designStyle === 'modern';
     // with the date inline next to the day, the left column is free and chips go under the header
     // modern: only the grid sits in a card, chips already have their own background

@@ -10,6 +10,7 @@ import {
     precipitationFill,
     splitTimePeriod,
     styledDataIcon,
+    textFontFamily,
     tintAlpha,
     windSpeedColor
 } from './designStyle';
@@ -193,5 +194,12 @@ describe('cardBackgroundAlpha', () => {
     it('is lighter on light themes than on dark ones', () => {
         expect(cardBackgroundAlpha(false)).toBe(6);
         expect(cardBackgroundAlpha(true)).toBe(14);
+    });
+});
+
+describe('textFontFamily', () => {
+    it('uses Inter for the modern style and the system font for classic', () => {
+        expect(textFontFamily('modern')).toBe('Inter');
+        expect(textFontFamily('classic')).toBeUndefined();
     });
 });

@@ -22,7 +22,7 @@
     import { isEInk, onThemeChanged } from '~/helpers/theme';
     import type { CommonWeatherData, DailyData, Hourly } from '~/services/providers/weather';
     import { accentFontWeight, cloudyColor, colors, dailyDateFormat, designStyle, fontScale, rainColor, screenWidthDips, snowColor } from '~/variables';
-    import { modernDataColor, modernLineStyle, modernPrecipColor, precipKind, precipitationFill, styledDataIcon, windSpeedColor } from '~/utils/designStyle';
+    import { modernDataColor, modernLineStyle, modernPrecipColor, precipKind, precipitationFill, styledDataIcon, textFontFamily, windSpeedColor } from '~/utils/designStyle';
 
     import { AxisDependency } from '@nativescript-community/ui-chart/components/YAxis';
     import { BarData } from '@nativescript-community/ui-chart/data/BarData';
@@ -449,6 +449,9 @@
                 timeRange = (sourceData[sourceData.length - 1].time - sourceData[0].time) / (3600 * 1000);
 
                 const modern = $designStyle === 'modern';
+                const fontFamily = textFontFamily($designStyle);
+                xAxis.typeface = xAxis.typeface.withFontFamily(fontFamily);
+                [dayLabelPaint, selectionTextPaint, highlightPaint].forEach((textPaint) => textPaint.setFontFamily(fontFamily));
                 // modern: tighter x labels and a light axis line
                 // labels are drawn from their baseline: the offset must cover their height
                 xAxis.yOffset = modern ? 3 + xAxis.textSize : 12;
@@ -763,6 +766,7 @@
                                     set.drawValuesEnabled = true;
                                     set.valueTextColor = colorOnSurface;
                                     set.valueTextSize = modern ? 12 : 10;
+                                    set.valueTypeface = xAxis.typeface;
                                     // set.valueFormatter = {
                                     //     getFormattedValue(value: number, entry?: CommonWeatherData) {
                                     //         return Math.round(value) + toImperialUnit(UNITS.Celcius);

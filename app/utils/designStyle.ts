@@ -264,3 +264,8 @@ export function tintAlpha(fraction: number, darkTheme: boolean) {
     const base = cardBackgroundAlpha(darkTheme);
     return Math.round(base + fraction * ((darkTheme ? 110 : 80) - base));
 }
+
+// family of the texts (css root class and canvas paints): the bundled Inter variable font in modern
+export function textFontFamily(style: DesignStyle): string | undefined {
+    return style === 'modern' ? 'Inter' : undefined;
+}

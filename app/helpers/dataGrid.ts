@@ -3,9 +3,9 @@ import type { Color } from '@nativescript/core';
 import type { CommonData } from '~/services/weatherData';
 import { centeredBaseline, gridColumnCount, layoutGrid } from '~/utils/dataGrid';
 import { get } from 'svelte/store';
-import { DesignStyle, dataTextStyle, tintAlpha } from '~/utils/designStyle';
+import { DesignStyle, dataTextStyle, textFontFamily, tintAlpha } from '~/utils/designStyle';
 import { isDarkTheme } from '~/helpers/theme';
-import { accentFontWeight, dataIntensity } from '~/variables';
+import { accentFontWeight, dataIntensity, designStyle } from '~/variables';
 import { splitValueUnit } from '~/utils/valueUnit';
 
 const ICON_SCALE = 1;
@@ -21,6 +21,7 @@ const PROBABILITY_TRACK_ALPHA = 40;
 
 const textPaint = new Paint();
 textPaint.setTextAlign(Align.LEFT);
+designStyle.subscribe((style) => textPaint.setFontFamily(textFontFamily(style)));
 const barPaint = new Paint();
 const tintPaint = new Paint();
 

@@ -21,6 +21,7 @@ import { startSentry } from '@shared/utils/sentry';
 import WeatherPage from '~/components/WeatherPage.svelte';
 import { lc } from '~/helpers/locale';
 import { start as startThemeHelper } from '~/helpers/theme';
+import { start as startDesignStyleClass } from '~/helpers/designStyleClass';
 
 import { networkService } from './services/api';
 import { navigate } from '@shared/utils/svelte/ui';
@@ -90,6 +91,7 @@ try {
 
     Application.on(Application.launchEvent, async () => {
         startThemeHelper();
+        startDesignStyleClass();
         startWindowHelper({ refreshMenuTitle: lc('refresh') });
     });
     Application.on(Application.exitEvent, async () => {

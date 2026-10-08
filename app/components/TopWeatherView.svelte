@@ -35,7 +35,7 @@
         weatherDataLayout,
         windowSize
     } from '~/variables';
-    import { cardBackgroundAlpha, dataTextStyle, headerTextStyle, precipKind, precipitationFill, styledDataIcon } from '~/utils/designStyle';
+    import { cardBackgroundAlpha, dataTextStyle, headerTextStyle, precipKind, precipitationFill, styledDataIcon, textFontFamily } from '~/utils/designStyle';
     import { getMoonIlluminationPercent } from '~/helpers/moon';
     import { drawChips, prepareChips } from '~/helpers/chips';
     import { TOP_GRID_OPTIONS, drawCenteredValue, drawGrid, prepareGrid } from '~/helpers/dataGrid';
@@ -110,6 +110,11 @@
     $: ({ colorOnSurface, colorOnSurfaceVariant, colorOutline, colorOutlineVariant } = $colors);
     $: chipsTheme = { onSurface: colorOnSurface, onSurfaceVariant: colorOnSurfaceVariant };
     $: header = headerTextStyle($designStyle, $fontScale, $accentFontWeight);
+    $: {
+        const fontFamily = textFontFamily($designStyle);
+        textPaint.setFontFamily(fontFamily);
+        textIconPaint.setFontFamily(fontFamily);
+    }
 
     // const arcPaint = new Paint();
     // arcPaint.style = Style.STROKE;

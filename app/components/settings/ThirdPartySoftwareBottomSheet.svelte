@@ -12,6 +12,10 @@
             moduleUrl: 'https://tabler.io/icons'
         },
         {
+            moduleName: 'Inter',
+            moduleUrl: 'https://rsms.me/inter/'
+        },
+        {
             moduleName: 'Weather Icons',
             moduleUrl: 'https://erikflowers.github.io/weather-icons/'
         },
