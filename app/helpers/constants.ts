@@ -57,11 +57,11 @@ export const DEFAULT_METRIC_CM_TO_MM = true;
 export const DEFAULT_DAILY_DATE_FORMAT = 'DD/MM';
 export const DEFAULT_DAILY_DATA_ALIGNMENT = 'center';
 
-export const WEATHER_DATA_LAYOUT = 'default';
-export const DESIGN_STYLE = 'classic';
+export const WEATHER_DATA_LAYOUT = 'grid';
+export const DESIGN_STYLE = 'modern';
 export const ACCENT_FONT_WEIGHT = 700;
-export const SHOW_EMPTY_DATA = true;
-export const DATA_INTENSITY = false;
+export const SHOW_EMPTY_DATA = false;
+export const DATA_INTENSITY = true;
 
 export const MAX_NB_DAYS_FORECAST = 16;
 export const NB_DAYS_FORECAST = 7;

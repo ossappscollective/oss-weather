@@ -62,7 +62,7 @@ export class IconService extends Observable {
     usingProvider = false;
 
     load(fireChange = true) {
-        this.iconSet = ApplicationSettings.getString('icon_set', 'meteocons');
+        this.iconSet = ApplicationSettings.getString('icon_set', 'tabler');
         if (this.iconSet.startsWith('provider:')) {
             this.iconSetFolderPath = null;
             this.iconSetConfig = JSON.parse(com.akylas.weather.WeatherIconProviderRegistry.getPackageInfo(Utils.android.getApplicationContext(), this.iconSet.substring(9)));
