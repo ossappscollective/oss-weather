@@ -28,10 +28,12 @@
         SETTINGS_FEELS_LIKE_TEMPERATURES,
         SETTINGS_SHOW_CURRENT_DAY_DAILY,
         SETTINGS_SHOW_DAILY_IN_CURRENTLY,
+        SETTINGS_METEOBLUE_ENABLED,
         SETTINGS_SWIPE_ACTION_BAR_PROVIDER,
         SETTINGS_WEATHER_LOCATION,
         SHOW_CURRENT_DAY_DAILY,
-        SWIPE_ACTION_BAR_PROVIDER
+        SWIPE_ACTION_BAR_PROVIDER,
+        METEOBLUE_ENABLED
     } from '~/helpers/constants';
     import {
         EVENT_FAVORITE,
@@ -198,12 +200,15 @@
                             id: 'map',
                             name: lc('map')
                         },
-                        {
-                            icon: 'mb',
-                            iconFontSize: 15,
-                            id: 'meteo_blue',
-                            name: lc('meteoblue')
-                        },
+                        ...(ApplicationSettings.getBoolean(SETTINGS_METEOBLUE_ENABLED, METEOBLUE_ENABLED)
+                            ? [
+                                  {
+                                      icon: 'mdi-chart-line',
+                                      id: 'meteo_blue',
+                                      name: lc('meteoblue')
+                                  }
+                              ]
+                            : []),
                         {
                             icon: 'mdi-waves',
                             id: 'provider_marine',
@@ -1113,12 +1118,15 @@
                     id: 'map',
                     name: lc('map')
                 },
-                {
-                    icon: 'mb',
-                    iconFontSize: 16,
-                    id: 'meteo_blue',
-                    name: lc('meteoblue')
-                },
+                ...(ApplicationSettings.getBoolean(SETTINGS_METEOBLUE_ENABLED, METEOBLUE_ENABLED)
+                    ? [
+                          {
+                              icon: 'mdi-chart-line',
+                              id: 'meteo_blue',
+                              name: lc('meteoblue')
+                          }
+                      ]
+                    : []),
                 {
                     icon: 'mdi-trash-can',
                     id: 'delete',

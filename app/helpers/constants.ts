@@ -14,6 +14,7 @@ export const SETTINGS_ENABLE_CRASH_REPORT = 'enable_crash_report';
 
 export const SETTINGS_HOURLY_VIEW_MODE = 'hourly_view_mode';
 export const SETTINGS_SWIPE_ACTION_BAR_PROVIDER = 'swipe_actionbar_provider';
+export const SETTINGS_METEOBLUE_ENABLED = 'meteoblue_enabled';
 export const SETTINGS_UNITS = 'units';
 export const SETTINGS_METRIC_TEMP_DECIMAL = 'metric_temp_decimal';
 export const SETTINGS_METRIC_CM_TO_MM = 'metric_cm_to_mm';
@@ -45,6 +46,7 @@ export const DEFAULT_COLOR_THEME = 'default';
 export const MAIN_PAGE_HOURLY_CHART = false;
 export const HOURLY_VIEW_MODE = 'classic';
 export const SWIPE_ACTION_BAR_PROVIDER = false;
+export const METEOBLUE_ENABLED = false;
 
 export const ANIMATIONS_ENABLED = false;
 export const CHARTS_LANDSCAPE = false;

@@ -65,6 +65,7 @@
         SETTINGS_SHOW_CURRENT_DAY_DAILY,
         SETTINGS_SHOW_DAILY_IN_CURRENTLY,
         SETTINGS_SHOW_EMPTY_DATA,
+        SETTINGS_METEOBLUE_ENABLED,
         SETTINGS_SWIPE_ACTION_BAR_PROVIDER,
         SETTINGS_UNITS,
         SETTINGS_WEATHER_DATA_LAYOUT,
@@ -72,6 +73,7 @@
         SHOW_DAILY_IN_CURRENTLY,
         SHOW_EMPTY_DATA,
         SWIPE_ACTION_BAR_PROVIDER,
+        METEOBLUE_ENABLED,
         WEATHER_DATA_LAYOUT
     } from '~/helpers/constants';
     import { clock_24, getLocaleDisplayName, l, lc, onLanguageChanged, selectLanguage, slc } from '~/helpers/locale';
@@ -552,6 +554,13 @@
                             title: lc('swipe_actionbar_provider'),
                             description: lc('swipe_actionbar_provider_desc'),
                             value: ApplicationSettings.getBoolean(SETTINGS_SWIPE_ACTION_BAR_PROVIDER, SWIPE_ACTION_BAR_PROVIDER)
+                        },
+                        {
+                            type: 'switch',
+                            id: SETTINGS_METEOBLUE_ENABLED,
+                            title: lc('meteoblue'),
+                            description: lc('meteoblue_enabled_desc'),
+                            value: ApplicationSettings.getBoolean(SETTINGS_METEOBLUE_ENABLED, METEOBLUE_ENABLED)
                         }
                     ] as any[];
                     providers.sort().forEach((provider) => {

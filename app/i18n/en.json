@@ -229,6 +229,7 @@
   "max_temperature": "Max Temperature",
   "medium": "Moderate",
   "meteoblue": "meteoblue",
+  "meteoblue_enabled_desc": "show the meteoblue forecast pages in the menus",
   "meteogram": "meteogram",
   "metric_temp_decimal": "use decimal for temperature",
   "min_temperature": "Min Temperature",
