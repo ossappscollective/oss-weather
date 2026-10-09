@@ -6,6 +6,7 @@
     import { path } from '@nativescript/core';
     import { iconService, iconThemesFolder } from '~/services/icon';
     import { colors } from '~/variables';
+    import WidgetHourlyChart from 'plugin-widgets/svelte/WidgetHourlyChart.svelte';
     import type { WeatherWidgetData, WidgetConfig } from 'plugin-widgets/WidgetTypes';
 </script>
 <script lang="ts">
@@ -18,31 +19,50 @@
 </script>
 
 <gridlayout width={size.width} height={size.height} {...$$restProps} class="widget-container">
-    <stacklayout paddingLeft={Math.min(size.width * 0.05, 10)} paddingRight={Math.min(size.width * 0.05, 10)} paddingTop={Math.min(size.height * 0.07, 6)} paddingBottom={Math.min(size.height * 0.07, 6)} orientation="vertical">
-        {#if size.height >= 80}
-            <stacklayout orientation="vertical" horizontalAlignment="stretch" verticalAlignment="top">
-                <label text={data.locationName} fontSize={12} opacity={0.5} textAlignment="left" maxLines={1} color={widgetColor} horizontalAlignment="left"></label>
-                <absolutelayout height={2} horizontalAlignment="left"></absolutelayout>
-            </stacklayout>
-        {:else}
-
-        {/if}
-        <collectionview items={data.hourlyData?.slice(0, 8)} orientation="horizontal" colWidth="auto" horizontalAlignment="stretch" verticalAlignment="top">
-            <Template let:item>
-            <stacklayout width={56} paddingLeft={2} paddingRight={2} padding={size.height < 60 ? 0 : 2} orientation="vertical">
-                <label text={item.time} fontSize={size.height < 60 ? 9 : 11} opacity={0.5} maxLines={1} color={widgetColor} horizontalAlignment="center" verticalAlignment="center"></label>
-                <image src={iconService.getIconPath(item.iconPath, true, false, config.iconSet)} width={size.height < 60 ? 24 : size.height < 80 ? 28 : 32} height={size.height < 60 ? 24 : size.height < 80 ? 28 : 32} horizontalAlignment="center" verticalAlignment="center"></image>
-                <label text={item.temperature} fontSize={size.height < 60 ? 12 : 14} fontWeight="700" maxLines={1} color={widgetColor} horizontalAlignment="center" verticalAlignment="center"></label>
-                {#if size.height >= 60 && item.precipAccumulation != null}
-                    <stacklayout orientation="vertical" horizontalAlignment="center" verticalAlignment="center">
-                        <absolutelayout height={2}></absolutelayout>
-                        <label text={item.precipAccumulation} fontSize={size.height < 80 ? 9 : 10} opacity={0.5} color={widgetColor}></label>
+    {#if size.height >= 160}
+        <stacklayout paddingLeft={6} paddingRight={6} paddingTop={10} paddingBottom={10} orientation="vertical">
+            <gridlayout row="auto" paddingLeft={8} paddingRight={8} columns="*,auto,4,auto">
+                <label text={data.locationName} fontSize={13} maxLines={1} fontWeight="500" color={widgetColor} col={0} verticalAlignment="center"></label>
+                <label text={data.temperature} fontSize={13} maxLines={1} color={widgetColor} col={1} verticalAlignment="center"></label>
+                <absolutelayout width={4} col={2} verticalAlignment="center"></absolutelayout>
+                <label text={data.description} fontSize={12} maxLines={1} opacity={0.6} color={widgetColor} col={3} verticalAlignment="center"></label>
+            </gridlayout>
+                <collectionview items={data.hourlyData?.slice(0, size.width >= 400 ? 7 : size.width >= 330 ? 6 : size.width >= 260 ? 5 : 4)}>
+                    <Template let:item>
+                    <stacklayout orientation="vertical">
+                        <label text={item.hour} fontSize={12} maxLines={1} fontWeight="500" color={widgetColor} horizontalAlignment="center"></label>
+                        <absolutelayout height={2} horizontalAlignment="center"></absolutelayout>
+                        <image src={iconService.getIconPath(item.iconPath, true, false, config.iconSet)} width={22} height={22} horizontalAlignment="center"></image>
+                        <absolutelayout height={2} horizontalAlignment="center"></absolutelayout>
+                        <stacklayout orientation="horizontal" horizontalAlignment="center">
+                            <image src={item.wind.iconPath} width={11} height={11} visibility={(item.wind.iconPath != null) ? 'visible' : 'collapsed'} verticalAlignment="center"></image>
+                            <absolutelayout width={2} verticalAlignment="center"></absolutelayout>
+                            <label text={item.wind.value} fontSize={11} maxLines={1} color={widgetColor} verticalAlignment="center"></label>
+                        </stacklayout>
                     </stacklayout>
-                {:else}
-
-                {/if}
-            </stacklayout>
-            </Template>
-        </collectionview>
-    </stacklayout>
+                    </Template>
+                </collectionview>
+            <WidgetHourlyChart fontSize={13} height={Math.max(size.height - 96, 60)} hours={data.hourlyData} limit={size.width >= 400 ? 7 : size.width >= 330 ? 6 : size.width >= 260 ? 5 : 4} color={widgetColor}></WidgetHourlyChart>
+        </stacklayout>
+    {:else}
+        <stacklayout paddingLeft={6} paddingRight={6} paddingTop={8} paddingBottom={8} orientation="vertical">
+            <gridlayout row="auto" paddingLeft={8} paddingRight={8} columns="*,auto,4,auto">
+                <label text={data.locationName} fontSize={13} maxLines={1} fontWeight="500" color={widgetColor} col={0} verticalAlignment="center"></label>
+                <label text={data.temperature} fontSize={13} maxLines={1} color={widgetColor} col={1} verticalAlignment="center"></label>
+                <absolutelayout width={4} col={2} verticalAlignment="center"></absolutelayout>
+                <label text={data.description} fontSize={12} maxLines={1} opacity={0.6} color={widgetColor} col={3} verticalAlignment="center"></label>
+            </gridlayout>
+                <collectionview items={data.hourlyData?.slice(0, size.width >= 400 ? 7 : size.width >= 330 ? 6 : size.width >= 260 ? 5 : 4)}>
+                    <Template let:item>
+                    <stacklayout orientation="vertical">
+                        <label text={item.hour} fontSize={12} maxLines={1} fontWeight="500" color={widgetColor} horizontalAlignment="center"></label>
+                        <absolutelayout height={2} horizontalAlignment="center"></absolutelayout>
+                        <image src={iconService.getIconPath(item.iconPath, true, false, config.iconSet)} width={22} height={22} horizontalAlignment="center"></image>
+                        <absolutelayout height={2} horizontalAlignment="center"></absolutelayout>
+                        <label text={item.temperature} fontSize={13} maxLines={1} fontWeight="500" color={widgetColor} horizontalAlignment="center"></label>
+                    </stacklayout>
+                    </Template>
+                </collectionview>
+        </stacklayout>
+    {/if}
 </gridlayout>

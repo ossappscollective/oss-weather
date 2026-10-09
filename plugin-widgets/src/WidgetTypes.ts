@@ -43,6 +43,8 @@ export interface HourlyData {
     precipitation: string;
     precipAccumulation: string;
     windSpeed: string;
+    // short hour label ("Now", "18")
+    hour?: string;
     // temperature curve height (0 lowest - 1 highest of the shown hours)
     curve?: number;
     // precipitation bar height (0-1, intensity) and color
@@ -56,6 +58,11 @@ export interface DailyData {
     date?: string;
     description?: string;
     chips?: WidgetChip[];
+    // the precipitation chip alone (daily columns)
+    precipChips?: WidgetChip[];
+    // min / max on the range of the shown days (0-1), for the range bar
+    rangeStart?: number;
+    rangeEnd?: number;
     temperatureHigh: string;
     temperatureLow: string;
     iconPath: string;

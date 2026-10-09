@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
@@ -39,18 +38,8 @@ private const val LOG_TAG = "SimpleWeatherWithDateWidget"
 
 class SimpleWeatherWithDateWidget : WeatherWidget() {
 
-    override val sizeMode = SizeMode.Responsive(
-        setOf(
-            // DpSize(100.dp, 100.dp),
-            DpSize(150.dp, 100.dp),
-            DpSize(200.dp, 100.dp),
-            DpSize(200.dp, 200.dp),
-            DpSize(250.dp, 200.dp),
-            DpSize(250.dp, 200.dp),
-            DpSize(300.dp, 100.dp),
-            DpSize(300.dp, 200.dp),
-        )
-    )
+    // layouts adapt to the real widget size (LocalSize), not to size buckets
+    override val sizeMode = SizeMode.Exact
 
     class WeatherWidgetDateWorker(
         appContext: Context,

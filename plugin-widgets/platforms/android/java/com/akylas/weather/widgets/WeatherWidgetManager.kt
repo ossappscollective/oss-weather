@@ -1497,11 +1497,12 @@ data class HourlyData(
     val precipitation: String = "",
     val windSpeed: String = "",
     val precipAccumulation: String = "",
+    val hour: String = "",
     // temperature curve height (0 lowest - 1 highest of the shown hours)
     val curve: Float = 0.5f,
     val precipFraction: Float = 0f,
     val precipColor: String = "",
-    val wind: WidgetChip? = null,
+    val wind: WidgetChip = WidgetChip(),
 )
 
 @Serializable
@@ -1509,6 +1510,10 @@ data class DailyData(
     val day: String = "",
     val date: String = "",
     val chips: List<WidgetChip> = emptyList(),
+    val precipChips: List<WidgetChip> = emptyList(),
+    // min / max on the range of the shown days (0-1), for the range bar
+    val rangeStart: Float = 0f,
+    val rangeEnd: Float = 1f,
     val description: String = "",
     val temperatureHigh: String = "",
     val temperatureLow: String = "",

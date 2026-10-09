@@ -3,134 +3,485 @@
     "name": "SimpleWeatherWidget",
     "displayName": "Simple Weather",
     "description": "Shows current temperature, weather icon, and location",
-    "defaultPadding": 6,
+    "defaultPadding": 0,
     "color": ["case", ["==", ["get", "config.settings.color"], null], "color.onSurface", ["get", "config.settings.color"]],
     "layout": {
         "type": "conditional",
-        "condition": ["<", ["get", "size.width"], 120],
+        "condition": ["<", ["get", "size.width"], 110],
         "then": {
             "type": "column",
-            "fillWidth": true,
-            "fillHeight": true,
-            "padding": 3,
-            "crossAlignment": "center",
             "children": [
                 {
-                    "type": "column",
-                    "fillWidth": true,
-                    "alignment": "center",
-                    "crossAlignment": "center",
-                    "children": [
-                        {
-                            "type": "image",
-                            "src": ["get", "iconPath"],
-                            "size": ["*", ["get", "size.width"], 0.44],
-                            "visibleIf": ["has", "iconPath"]
-                        },
-                        {
-                            "type": "label",
-                            "text": ["get", "temperature"],
-                            "fontSize": ["*", ["get", "size.width"], 0.2],
-                            "fontWeight": "bold"
-                        }
-                    ]
+                    "type": "image",
+                    "src": ["get", "iconPath"],
+                    "size": ["*", ["min", ["*", ["get", "size.width"], 0.5], ["min", ["*", ["get", "size.height"], 0.4], 56]], 1.3],
+                    "visibleIf": ["has", "iconPath"]
                 },
                 {
                     "type": "label",
-                    "text": ["get", "locationName"],
-                    "fontSize": 8,
-                    "opacity": 0.5,
-                    "maxLines": 1
+                    "text": ["get", "temperature"],
+                    "fontSize": ["max", ["min", ["*", ["get", "size.width"], 0.24], ["min", ["*", ["get", "size.height"], 0.2], 26]], 14],
+                    "maxLines": 1,
+                    "fontWeight": "light"
+                },
+                {
+                    "type": "conditional",
+                    "condition": [">=", ["get", "size.height"], 110],
+                    "then": {
+                        "type": "label",
+                        "text": ["get", "locationName"],
+                        "fontSize": 10,
+                        "maxLines": 1,
+                        "opacity": 0.6
+                    },
+                    "else": { "type": "column", "children": [], "fillWidth": true }
                 }
-            ]
+            ],
+            "fillMaxSize": true,
+            "alignment": "center",
+            "crossAlignment": "center"
         },
         "else": {
-            "type": "stack",
-            "fillWidth": true,
-            "fillHeight": true,
-            "paddingHorizontal": ["min", ["*", ["get", "size.width"], 0.1], 16],
-            "paddingVertical": ["min", ["*", ["get", "size.height"], 0.14], 16],
-            "children": [
-                {
-                    "type": "label",
-                    "text": ["get", "locationName"],
-                    "fontSize": 12,
-                    "opacity": 0.5,
-                    "crossAlignment": "start",
-                    "maxLines": 1
+            "type": "conditional",
+            "condition": [">=", ["get", "size.height"], 250],
+            "then": {
+                "type": "column",
+                "children": [
+                    {
+                        "type": "row",
+                        "children": [
+                            {
+                                "type": "column",
+                                "children": [
+                                    {
+                                        "type": "label",
+                                        "text": ["get", "locationName"],
+                                        "fontSize": ["min", ["*", ["get", "size.width"], 0.08], ["min", ["*", ["get", "size.height"], 0.05], 15]],
+                                        "maxLines": 1,
+                                        "opacity": 0.6
+                                    },
+                                    {
+                                        "type": "label",
+                                        "text": ["get", "temperature"],
+                                        "fontSize": ["min", ["*", ["get", "size.width"], 0.3], ["min", ["*", ["get", "size.height"], 0.16], 58]],
+                                        "maxLines": 1,
+                                        "fontWeight": "light"
+                                    },
+                                    {
+                                        "type": "label",
+                                        "text": ["get", "description"],
+                                        "fontSize": ["min", ["*", ["get", "size.width"], 0.08], ["min", ["*", ["get", "size.height"], 0.05], 15]],
+                                        "maxLines": 1
+                                    },
+                                    {
+                                        "type": "row",
+                                        "children": [
+                                            {
+                                                "type": "label",
+                                                "text": ["get", "temperatureLow"],
+                                                "fontSize": ["min", ["*", ["get", "size.width"], 0.08], ["min", ["*", ["get", "size.height"], 0.05], 15]],
+                                                "maxLines": 1,
+                                                "opacity": 0.6
+                                            },
+                                            { "type": "spacer", "size": 4, "direction": "horizontal" },
+                                            {
+                                                "type": "label",
+                                                "text": ["get", "temperatureHigh"],
+                                                "fontSize": ["min", ["*", ["get", "size.width"], 0.08], ["min", ["*", ["get", "size.height"], 0.05], 15]],
+                                                "maxLines": 1,
+                                                "fontWeight": "medium"
+                                            }
+                                        ],
+                                        "crossAlignment": "center"
+                                    }
+                                ],
+                                "flex": 1
+                            },
+                            {
+                                "type": "image",
+                                "src": ["get", "iconPath"],
+                                "size": ["*", ["min", ["*", ["get", "size.width"], 0.4], ["min", ["*", ["get", "size.height"], 0.22], 80]], 1.3],
+                                "visibleIf": ["has", "iconPath"]
+                            }
+                        ],
+                        "fillWidth": true,
+                        "crossAlignment": "start"
+                    },
+                    { "type": "spacer", "size": 8 },
+                    {
+                        "type": "chips",
+                        "items": "chips",
+                        "limit": 6,
+                        "fontSize": ["max", ["min", ["*", ["get", "size.width"], 0.065], ["min", ["*", ["get", "size.height"], 0.04], 13]], 11],
+                        "iconSize": ["max", ["min", ["*", ["get", "size.width"], 0.075], ["min", ["*", ["get", "size.height"], 0.045], 15]], 12],
+                        "maxWidth": ["-", ["get", "size.width"], 28],
+                        "maxRows": 2
+                    },
+                    { "type": "spacer", "size": 10 },
+                    {
+                        "type": "forEach",
+                        "items": "dailyData",
+                        "limit": [
+                            "case",
+                            [">=", ["get", "size.height"], 438],
+                            6,
+                            [">=", ["get", "size.height"], 395],
+                            5,
+                            [">=", ["get", "size.height"], 352],
+                            4,
+                            [">=", ["get", "size.height"], 309],
+                            3,
+                            [">=", ["get", "size.height"], 266],
+                            2,
+                            1
+                        ],
+                        "itemTemplate": { "type": "template", "name": "dailyRow" }
+                    }
+                ],
+                "fillMaxSize": true,
+                "padding": 14
+            },
+            "else": {
+                "type": "conditional",
+                "condition": [">=", ["get", "size.width"], 220],
+                "then": {
+                    "type": "conditional",
+                    "condition": ["<", ["get", "size.height"], 140],
+                    "then": {
+                        "type": "row",
+                        "children": [
+                            {
+                                "type": "column",
+                                "children": [
+                                    {
+                                        "type": "label",
+                                        "text": ["get", "temperature"],
+                                        "fontSize": ["max", ["min", ["*", ["get", "size.width"], 0.13], ["min", ["*", ["get", "size.height"], 0.36], 40]], 20],
+                                        "maxLines": 1,
+                                        "fontWeight": "light"
+                                    },
+                                    {
+                                        "type": "row",
+                                        "children": [
+                                            {
+                                                "type": "label",
+                                                "text": ["get", "description"],
+                                                "fontSize": [
+                                                    "max",
+                                                    ["min", ["*", ["get", "size.width"], 0.045], ["min", ["*", ["get", "size.height"], 0.13], 13]],
+                                                    11
+                                                ],
+                                                "maxLines": 1
+                                            },
+                                            { "type": "spacer", "size": 6, "direction": "horizontal" },
+                                            {
+                                                "type": "row",
+                                                "children": [
+                                                    {
+                                                        "type": "label",
+                                                        "text": ["get", "temperatureLow"],
+                                                        "fontSize": [
+                                                            "max",
+                                                            [
+                                                                "min",
+                                                                ["*", ["get", "size.width"], 0.045],
+                                                                ["min", ["*", ["get", "size.height"], 0.13], 13]
+                                                            ],
+                                                            11
+                                                        ],
+                                                        "maxLines": 1,
+                                                        "opacity": 0.6
+                                                    },
+                                                    { "type": "spacer", "size": 4, "direction": "horizontal" },
+                                                    {
+                                                        "type": "label",
+                                                        "text": ["get", "temperatureHigh"],
+                                                        "fontSize": [
+                                                            "max",
+                                                            [
+                                                                "min",
+                                                                ["*", ["get", "size.width"], 0.045],
+                                                                ["min", ["*", ["get", "size.height"], 0.13], 13]
+                                                            ],
+                                                            11
+                                                        ],
+                                                        "maxLines": 1,
+                                                        "fontWeight": "medium"
+                                                    }
+                                                ],
+                                                "crossAlignment": "center"
+                                            }
+                                        ],
+                                        "crossAlignment": "center"
+                                    }
+                                ],
+                                "flex": 1
+                            },
+                            { "type": "spacer", "size": 6, "direction": "horizontal" },
+                            {
+                                "type": "chips",
+                                "items": "chips",
+                                "limit": 6,
+                                "fontSize": ["max", ["min", ["*", ["get", "size.width"], 0.035], ["min", ["*", ["get", "size.height"], 0.11], 12]], 10],
+                                "iconSize": ["max", ["min", ["*", ["get", "size.width"], 0.04], ["min", ["*", ["get", "size.height"], 0.13], 14]], 12],
+                                "maxWidth": ["*", ["get", "size.width"], 0.4],
+                                "maxRows": 2
+                            },
+                            { "type": "spacer", "size": 8, "direction": "horizontal" },
+                            {
+                                "type": "image",
+                                "src": ["get", "iconPath"],
+                                "size": ["*", ["min", ["*", ["get", "size.width"], 0.15], ["min", ["*", ["get", "size.height"], 0.5], 60]], 1.3],
+                                "visibleIf": ["has", "iconPath"]
+                            }
+                        ],
+                        "fillMaxSize": true,
+                        "crossAlignment": "center",
+                        "paddingHorizontal": 14,
+                        "paddingVertical": 8
+                    },
+                    "else": {
+                        "type": "column",
+                        "children": [
+                            {
+                                "type": "row",
+                                "children": [
+                                    {
+                                        "type": "column",
+                                        "children": [
+                                            {
+                                                "type": "label",
+                                                "text": ["get", "temperature"],
+                                                "fontSize": [
+                                                    "max",
+                                                    ["min", ["*", ["get", "size.width"], 0.13], ["min", ["*", ["get", "size.height"], 0.3], 44]],
+                                                    22
+                                                ],
+                                                "maxLines": 1,
+                                                "fontWeight": "light"
+                                            },
+                                            {
+                                                "type": "label",
+                                                "text": ["get", "description"],
+                                                "fontSize": [
+                                                    "max",
+                                                    ["min", ["*", ["get", "size.width"], 0.045], ["min", ["*", ["get", "size.height"], 0.1], 14]],
+                                                    11
+                                                ],
+                                                "maxLines": 1
+                                            },
+                                            {
+                                                "type": "row",
+                                                "children": [
+                                                    {
+                                                        "type": "label",
+                                                        "text": ["get", "temperatureLow"],
+                                                        "fontSize": [
+                                                            "max",
+                                                            [
+                                                                "min",
+                                                                ["*", ["get", "size.width"], 0.045],
+                                                                ["min", ["*", ["get", "size.height"], 0.1], 14]
+                                                            ],
+                                                            11
+                                                        ],
+                                                        "maxLines": 1,
+                                                        "opacity": 0.6
+                                                    },
+                                                    { "type": "spacer", "size": 4, "direction": "horizontal" },
+                                                    {
+                                                        "type": "label",
+                                                        "text": ["get", "temperatureHigh"],
+                                                        "fontSize": [
+                                                            "max",
+                                                            [
+                                                                "min",
+                                                                ["*", ["get", "size.width"], 0.045],
+                                                                ["min", ["*", ["get", "size.height"], 0.1], 14]
+                                                            ],
+                                                            11
+                                                        ],
+                                                        "maxLines": 1,
+                                                        "fontWeight": "medium"
+                                                    }
+                                                ],
+                                                "crossAlignment": "center"
+                                            }
+                                        ],
+                                        "flex": 1
+                                    },
+                                    {
+                                        "type": "image",
+                                        "src": ["get", "iconPath"],
+                                        "size": ["*", ["min", ["*", ["get", "size.width"], 0.16], ["min", ["*", ["get", "size.height"], 0.42], 72]], 1.3],
+                                        "visibleIf": ["has", "iconPath"]
+                                    }
+                                ],
+                                "fillWidth": true,
+                                "crossAlignment": "start"
+                            },
+                            { "type": "spacer", "size": 6 },
+                            {
+                                "type": "chips",
+                                "items": "chips",
+                                "limit": 6,
+                                "fontSize": ["max", ["min", ["*", ["get", "size.width"], 0.04], ["min", ["*", ["get", "size.height"], 0.09], 12]], 10],
+                                "iconSize": ["max", ["min", ["*", ["get", "size.width"], 0.045], ["min", ["*", ["get", "size.height"], 0.1], 14]], 12],
+                                "maxWidth": ["-", ["get", "size.width"], 24],
+                                "maxRows": ["case", [">=", ["get", "size.height"], 170], 2, 1]
+                            },
+                            { "type": "spacer", "flex": 1 },
+                            {
+                                "type": "conditional",
+                                "condition": [">=", ["get", "size.height"], 150],
+                                "then": {
+                                    "type": "label",
+                                    "text": ["get", "locationName"],
+                                    "fontSize": ["max", ["min", ["*", ["get", "size.width"], 0.04], ["min", ["*", ["get", "size.height"], 0.09], 11]], 10],
+                                    "maxLines": 1,
+                                    "opacity": 0.6
+                                },
+                                "else": { "type": "column", "children": [], "fillWidth": true }
+                            }
+                        ],
+                        "fillMaxSize": true,
+                        "padding": 12
+                    }
                 },
-                {
-                    "type": "row",
-                    "fillWidth": true,
-                    "fillHeight": true,
-                    "alignment": "center",
+                "else": {
+                    "type": "column",
                     "children": [
                         {
-                            "type": "column",
-                            "fillHeight": true,
-                            "alignment": "center",
-                            "crossAlignment": "start",
+                            "type": "row",
                             "children": [
                                 {
-                                    "type": "label",
-                                    "text": ["get", "temperature"],
-                                    "fontSize": ["min", ["*", ["get", "size.width"], 0.26], 30],
-                                    "fontWeight": "bold"
-                                }
-                            ]
-                        },
-                        {
-                            "type": "column",
-                            "fillHeight": true,
-                            "flex": 1,
-                            "alignment": "center",
-                            "crossAlignment": "end",
-                            "children": [
+                                    "type": "column",
+                                    "children": [
+                                        {
+                                            "type": "label",
+                                            "text": ["get", "temperature"],
+                                            "fontSize": [
+                                                "max",
+                                                ["min", ["*", ["get", "size.width"], 0.26], ["min", ["*", ["get", "size.height"], 0.26], 44]],
+                                                22
+                                            ],
+                                            "maxLines": 1,
+                                            "fontWeight": "light"
+                                        },
+                                        {
+                                            "type": "label",
+                                            "text": ["get", "description"],
+                                            "fontSize": [
+                                                "max",
+                                                ["min", ["*", ["get", "size.width"], 0.075], ["min", ["*", ["get", "size.height"], 0.075], 13]],
+                                                11
+                                            ],
+                                            "maxLines": 1
+                                        },
+                                        {
+                                            "type": "row",
+                                            "children": [
+                                                {
+                                                    "type": "label",
+                                                    "text": ["get", "temperatureLow"],
+                                                    "fontSize": [
+                                                        "max",
+                                                        [
+                                                            "min",
+                                                            ["*", ["get", "size.width"], 0.075],
+                                                            ["min", ["*", ["get", "size.height"], 0.075], 13]
+                                                        ],
+                                                        11
+                                                    ],
+                                                    "maxLines": 1,
+                                                    "opacity": 0.6
+                                                },
+                                                { "type": "spacer", "size": 4, "direction": "horizontal" },
+                                                {
+                                                    "type": "label",
+                                                    "text": ["get", "temperatureHigh"],
+                                                    "fontSize": [
+                                                        "max",
+                                                        [
+                                                            "min",
+                                                            ["*", ["get", "size.width"], 0.075],
+                                                            ["min", ["*", ["get", "size.height"], 0.075], 13]
+                                                        ],
+                                                        11
+                                                    ],
+                                                    "maxLines": 1,
+                                                    "fontWeight": "medium"
+                                                }
+                                            ],
+                                            "crossAlignment": "center"
+                                        }
+                                    ],
+                                    "flex": 1
+                                },
                                 {
                                     "type": "image",
                                     "src": ["get", "iconPath"],
-                                    "size": 64,
+                                    "size": ["*", ["min", ["*", ["get", "size.width"], 0.34], ["min", ["*", ["get", "size.height"], 0.45], 64]], 1.3],
                                     "visibleIf": ["has", "iconPath"]
                                 }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    "type": "stack",
-                    "fillWidth": true,
-                    "fillHeight": true,
-                    "alignment": "end",
-                    "crossAlignment": "end",
-                    "contentAlignment": "BottomEnd",
-                    "visibleIf": ["has", "description"],
-                    "children": [
+                            ],
+                            "fillWidth": true,
+                            "crossAlignment": "start"
+                        },
+                        { "type": "spacer", "size": 6 },
                         {
-                            "type": "label",
-                            "text": ["get", "description"],
-                            "fontSize": 12,
-                            "opacity": 0.5,
-                            "textAlign": "right"
+                            "type": "conditional",
+                            "condition": [">=", ["get", "size.height"], 140],
+                            "then": {
+                                "type": "chips",
+                                "items": "chips",
+                                "limit": 6,
+                                "fontSize": ["max", ["min", ["*", ["get", "size.width"], 0.065], ["min", ["*", ["get", "size.height"], 0.065], 12]], 10],
+                                "iconSize": ["max", ["min", ["*", ["get", "size.width"], 0.075], ["min", ["*", ["get", "size.height"], 0.075], 14]], 12],
+                                "maxWidth": ["-", ["get", "size.width"], 24],
+                                "maxRows": ["case", [">=", ["get", "size.height"], 170], 2, 1]
+                            },
+                            "else": { "type": "column", "children": [], "fillWidth": true }
+                        },
+                        { "type": "spacer", "flex": 1 },
+                        {
+                            "type": "conditional",
+                            "condition": [">=", ["get", "size.height"], 170],
+                            "then": {
+                                "type": "label",
+                                "text": ["get", "locationName"],
+                                "fontSize": ["max", ["min", ["*", ["get", "size.width"], 0.065], ["min", ["*", ["get", "size.height"], 0.065], 11]], 10],
+                                "maxLines": 1,
+                                "opacity": 0.6
+                            },
+                            "else": { "type": "column", "children": [], "fillWidth": true }
                         }
-                    ]
+                    ],
+                    "fillMaxSize": true,
+                    "padding": 12
                 }
-            ]
+            }
         }
     },
     "generatePreviews": true,
     "preview": {
         "sizes": [
-            { "width": 260, "height": 120 },
-            { "width": 50, "height": 50 },
+            { "width": 160, "height": 160 },
+            { "width": 160, "height": 100 },
+            { "width": 340, "height": 100 },
             { "width": 80, "height": 80 },
-            { "width": 120, "height": 120 }
+            { "width": 300, "height": 140 },
+            { "width": 320, "height": 380 },
+            { "width": 170, "height": 320 }
         ],
         "fakeData": {
-            "temperature": "8\u00b0",
+            "temperature": "8°",
             "iconPath": 800,
             "description": "Partly Cloudy",
             "locationName": "Grenoble",
-            "date": "Mon, Feb 24"
+            "date": "Mon, Feb 24",
+            "temperatureHigh": "17°",
+            "temperatureLow": "11°"
         }
     }
 }

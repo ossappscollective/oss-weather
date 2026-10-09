@@ -33,6 +33,7 @@ import com.akylas.weather.widgets.WidgetComposables
 import com.akylas.weather.widgets.WidgetModern
 import androidx.glance.text.FontFamily
 import com.akylas.weather.widgets.WidgetLoadingState
+import kotlin.math.max
 import kotlin.math.min
 import kotlinx.serialization.json.*
 
@@ -42,9 +43,9 @@ import kotlinx.serialization.json.*
  */
 
 @OptIn(ExperimentalGlancePreviewApi::class)
-@Preview(widthDp = 360, heightDp = 150)
-@Preview(widthDp = 120, heightDp = 120)
-@Preview(widthDp = 260, heightDp = 120)
+@Preview(widthDp = 360, heightDp = 200)
+@Preview(widthDp = 260, heightDp = 170)
+@Preview(widthDp = 300, heightDp = 100)
 @Composable
 private fun Preview() {
     val fakeWeatherWidgetData = WeatherWidgetData(
@@ -89,63 +90,140 @@ fun HourlyWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
     val size = LocalSize.current
     val widgetColor = run { val colorValue = when { config.settings?.get("color")?.jsonPrimitive?.contentOrNull == null -> GlanceTheme.colors.onSurface; else -> config.settings?.get("color")?.jsonPrimitive?.contentOrNull }; if (colorValue is String) ColorProvider(Color(colorValue.toColorIntRgba())) else GlanceTheme.colors.onSurface }
 
-    Column(
-        modifier = GlanceModifier.padding(horizontal = (min((size.width.value * 0.05f), 10.0f)).dp, vertical = (min((size.height.value * 0.07f), 6.0f)).dp),
-        horizontalAlignment = Alignment.Horizontal.CenterHorizontally,
-        verticalAlignment = Alignment.Vertical.Top,
-    ) {
-        if (size.height.value >= 80) {
-            Column(
-                modifier = GlanceModifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.Horizontal.Start,
+    if (size.height.value >= 160) {
+        Column(
+            modifier = GlanceModifier.fillMaxSize().padding(horizontal = (6).dp, vertical = (10).dp),
+        ) {
+            Row(
+                modifier = GlanceModifier.fillMaxWidth().padding(horizontal = (8).dp).padding(bottom = (4).dp),
+                verticalAlignment = Alignment.Vertical.CenterVertically,
             ) {
                 Text(
+                    modifier = GlanceModifier.defaultWeight(),
                     text = data.locationName,
-                    style = TextStyle(fontSize = (12 * fontScaleFactor).sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f)), textAlign = TextAlign.Start),
+                    style = TextStyle(fontSize = (13 * fontScaleFactor).sp, fontWeight = FontWeight.Medium, color = widgetColor),
                     maxLines = 1
                 )
-                Spacer(modifier = GlanceModifier.height(2.dp))
+                Text(
+                    text = data.temperature,
+                    style = TextStyle(fontSize = (13 * fontScaleFactor).sp, color = widgetColor),
+                    maxLines = 1
+                )
+                Spacer(modifier = GlanceModifier.width(4.dp))
+                Text(
+                    text = data.description,
+                    style = TextStyle(fontSize = (12 * fontScaleFactor).sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.6f))),
+                    maxLines = 1
+                )
             }
-        }
-        Row {
-            data.hourlyData.take(8).forEach { item ->
-                Column(
-                    modifier = GlanceModifier.width((56).dp).fillMaxHeight().padding(horizontal = (2).dp),
-                    horizontalAlignment = Alignment.Horizontal.CenterHorizontally,
-                    verticalAlignment = Alignment.Vertical.CenterVertically,
-                ) {
-                    Text(
-                        text = item.time,
-                        style = TextStyle(fontSize = when { size.height.value < 60 -> 9.sp; else -> 11.sp }, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f))),
-                        maxLines = 1
-                    )
-                    Spacer(modifier = GlanceModifier.height(when { size.height.value < 60 -> 0.dp; else -> 2.dp }))
-                    WeatherWidgetManager.getIconImageProviderFromPath(item.iconPath, LocalContext.current)?.let { provider ->
-                        Image(
-                           provider = provider,
-                           contentDescription = item.iconPath,
-                           modifier = GlanceModifier.size(when { size.height.value < 60 -> 24.dp; size.height.value < 80 -> 28.dp; else -> 32.dp })
+            Row(
+                modifier = GlanceModifier.fillMaxWidth(),
+            ) {
+                data.hourlyData.take(when { size.width.value >= 400 -> 7; size.width.value >= 330 -> 6; size.width.value >= 260 -> 5; else -> 4 }).forEach { item ->
+                    Column(
+                        modifier = GlanceModifier.defaultWeight(),
+                        horizontalAlignment = Alignment.Horizontal.CenterHorizontally,
+                    ) {
+                        Text(
+                            text = item.hour,
+                            style = TextStyle(fontSize = (12 * fontScaleFactor).sp, fontWeight = FontWeight.Medium, color = widgetColor),
+                            maxLines = 1
                         )
-                    }
-                    Spacer(modifier = GlanceModifier.height(when { size.height.value < 60 -> 0.dp; else -> 2.dp }))
-                    Text(
-                        text = item.temperature,
-                        style = TextStyle(fontSize = when { size.height.value < 60 -> 12.sp; else -> 14.sp }, fontWeight = FontWeight.Bold, color = widgetColor),
-                        maxLines = 1
-                    )
-                    Spacer(modifier = GlanceModifier.height(when { size.height.value < 60 -> 0.dp; else -> 2.dp }))
-                    if ((size.height.value >= 60 && item.precipAccumulation.isNotEmpty())) {
-                        Column(
-                            modifier = GlanceModifier,
-                        ) {
-                            if (size.height.value >= 60) {
-                                Spacer(modifier = GlanceModifier.height(2.dp))
-                            }
-                            Text(
-                                text = item.precipAccumulation,
-                                style = TextStyle(fontSize = when { size.height.value < 80 -> 9.sp; else -> 10.sp }, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f)))
+                        Spacer(modifier = GlanceModifier.height(2.dp))
+                        WeatherWidgetManager.getIconImageProviderFromPath(item.iconPath, LocalContext.current)?.let { provider ->
+                            Image(
+                               provider = provider,
+                               contentDescription = item.iconPath,
+                               modifier = GlanceModifier.size(22.dp)
                             )
                         }
+                        Spacer(modifier = GlanceModifier.height(2.dp))
+                        Row(
+                            modifier = GlanceModifier,
+                            verticalAlignment = Alignment.Vertical.CenterVertically,
+                        ) {
+                            if (item.wind.iconPath.isNotEmpty()) {
+                                WeatherWidgetManager.getIconImageProviderFromPath(item.wind.iconPath, LocalContext.current)?.let { provider ->
+                                    Image(
+                                       provider = provider,
+                                       contentDescription = item.wind.iconPath,
+                                       modifier = GlanceModifier.size(11.dp)
+                                    )
+                                }
+                            }
+                            Spacer(modifier = GlanceModifier.width(2.dp))
+                            Text(
+                                text = item.wind.value,
+                                style = TextStyle(fontSize = (11 * fontScaleFactor).sp, color = widgetColor),
+                                maxLines = 1
+                            )
+                        }
+                    }
+                }
+            }
+            WidgetModern.HourlyChart(
+                hours = data.hourlyData,
+                limit = when { size.width.value >= 400 -> 7; size.width.value >= 330 -> 6; size.width.value >= 260 -> 5; else -> 4 },
+                height = (max((size.height.value - 96.0f), 60.0f)).dp,
+                color = widgetColor,
+                fontSize = 13f * fontScaleFactor,
+                modifier = GlanceModifier.fillMaxWidth()
+            )
+        }
+    }
+    else {
+        Column(
+            modifier = GlanceModifier.fillMaxSize().padding(horizontal = (6).dp, vertical = (8).dp),
+        ) {
+            Row(
+                modifier = GlanceModifier.fillMaxWidth().padding(horizontal = (8).dp).padding(bottom = (4).dp),
+                verticalAlignment = Alignment.Vertical.CenterVertically,
+            ) {
+                Text(
+                    modifier = GlanceModifier.defaultWeight(),
+                    text = data.locationName,
+                    style = TextStyle(fontSize = (13 * fontScaleFactor).sp, fontWeight = FontWeight.Medium, color = widgetColor),
+                    maxLines = 1
+                )
+                Text(
+                    text = data.temperature,
+                    style = TextStyle(fontSize = (13 * fontScaleFactor).sp, color = widgetColor),
+                    maxLines = 1
+                )
+                Spacer(modifier = GlanceModifier.width(4.dp))
+                Text(
+                    text = data.description,
+                    style = TextStyle(fontSize = (12 * fontScaleFactor).sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.6f))),
+                    maxLines = 1
+                )
+            }
+            Row(
+                modifier = GlanceModifier.fillMaxWidth(),
+            ) {
+                data.hourlyData.take(when { size.width.value >= 400 -> 7; size.width.value >= 330 -> 6; size.width.value >= 260 -> 5; else -> 4 }).forEach { item ->
+                    Column(
+                        modifier = GlanceModifier.defaultWeight(),
+                        horizontalAlignment = Alignment.Horizontal.CenterHorizontally,
+                    ) {
+                        Text(
+                            text = item.hour,
+                            style = TextStyle(fontSize = (12 * fontScaleFactor).sp, fontWeight = FontWeight.Medium, color = widgetColor),
+                            maxLines = 1
+                        )
+                        Spacer(modifier = GlanceModifier.height(2.dp))
+                        WeatherWidgetManager.getIconImageProviderFromPath(item.iconPath, LocalContext.current)?.let { provider ->
+                            Image(
+                               provider = provider,
+                               contentDescription = item.iconPath,
+                               modifier = GlanceModifier.size(22.dp)
+                            )
+                        }
+                        Spacer(modifier = GlanceModifier.height(2.dp))
+                        Text(
+                            text = item.temperature,
+                            style = TextStyle(fontSize = (13 * fontScaleFactor).sp, fontWeight = FontWeight.Medium, color = widgetColor),
+                            maxLines = 1
+                        )
                     }
                 }
             }

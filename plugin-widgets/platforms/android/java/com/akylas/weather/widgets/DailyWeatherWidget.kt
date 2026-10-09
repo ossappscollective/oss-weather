@@ -5,7 +5,6 @@ import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
@@ -34,14 +33,8 @@ private const val LOG_TAG = "DailyWeatherWidget"
 
 class DailyWeatherWidget : WeatherWidget() {
     
-    override val sizeMode = SizeMode.Responsive(
-        setOf(
-            // Medium widget
-            DpSize(260.dp, 120.dp),
-            // Large widget
-            DpSize(260.dp, 200.dp)
-        )
-    )
+    // layouts adapt to the real widget size (LocalSize), not to size buckets
+    override val sizeMode = SizeMode.Exact
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
 //        WidgetsLogger.d(LOG_TAG, "provideGlance(glanceId=$id)")

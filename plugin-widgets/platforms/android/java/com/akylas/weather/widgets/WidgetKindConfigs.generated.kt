@@ -14,7 +14,7 @@ import kotlinx.serialization.json.JsonPrimitive
 
 object WidgetKindConfigs {
     val WIDGET_KINDS = listOf("DailyWeatherWidget", "ForecastWeatherWidget", "HourlyWeatherWidget", "SimpleWeatherWidget", "SimpleWeatherWithClockWidget", "SimpleWeatherWithDateWidget")
-
+    
     /**
      * Create default config for a widget kind
      */

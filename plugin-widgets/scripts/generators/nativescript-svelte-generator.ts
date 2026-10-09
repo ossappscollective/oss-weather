@@ -835,6 +835,8 @@ function generateMarkup(
         // Skip limit and direction (direction is converted to orientation below)
         if (k === 'limit' || k === 'direction') continue;
 
+        // chips and hourly chart get their list as their own prop (below)
+        if (k === 'items' && (elType === 'chips' || elType === 'hourlyChart')) continue;
         if (!attributesToMap.includes(k) && k !== 'text' && k !== 'src' && k !== 'items') {
             // alignment/crossAlignment on non-container elements (labels, images inside a stack) still apply directly
             if ((k === 'alignment' || k === 'crossAlignment') && elType !== 'column' && elType !== 'row') {

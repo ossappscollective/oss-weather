@@ -29,10 +29,14 @@ class WidgetKindConfigs {
             return nil
         case "SimpleWeatherWithClockWidget":
             return [
-                "clockBold": true
+                "clockBold": false,
+                "showHourly": false
             ]
         case "SimpleWeatherWithDateWidget":
-            return nil
+            return [
+                "clockBold": false,
+                "showHourly": false
+            ]
         default:
             return nil
         }

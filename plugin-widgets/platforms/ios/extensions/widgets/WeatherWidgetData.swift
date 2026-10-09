@@ -63,7 +63,7 @@ struct HourlyData: Codable, Identifiable {
     var curve: Double = 0.5
     var precipFraction: Double = 0
     var precipColor: String = ""
-    var wind: WidgetChip? = nil
+    var wind: WidgetChip = WidgetChip()
     
     // Coding keys for JSON serialization
     enum CodingKeys: String, CodingKey {
@@ -92,7 +92,7 @@ struct HourlyData: Codable, Identifiable {
         curve = try container.decodeIfPresent(Double.self, forKey: .curve) ?? 0.5
         precipFraction = try container.decodeIfPresent(Double.self, forKey: .precipFraction) ?? 0
         precipColor = try container.decodeIfPresent(String.self, forKey: .precipColor) ?? ""
-        wind = try container.decodeIfPresent(WidgetChip.self, forKey: .wind)
+        wind = try container.decodeIfPresent(WidgetChip.self, forKey: .wind) ?? WidgetChip()
     }
 
     func encode(to encoder: Encoder) throws {
@@ -106,7 +106,7 @@ struct HourlyData: Codable, Identifiable {
         try container.encode(curve, forKey: .curve)
         try container.encode(precipFraction, forKey: .precipFraction)
         try container.encode(precipColor, forKey: .precipColor)
-        try container.encodeIfPresent(wind, forKey: .wind)
+        try container.encode(wind, forKey: .wind)
     }
     
     // Manual initializer for convenience
@@ -138,11 +138,17 @@ struct DailyData: Codable, Identifiable {
     let precipAccumulation: String
     var date: String = ""
     var chips: [WidgetChip] = []
+    var precipChips: [WidgetChip] = []
+    var rangeStart: Double = 0
+    var rangeEnd: Double = 1
     
     enum CodingKeys: String, CodingKey {
         case day
         case date
         case chips
+        case precipChips
+        case rangeStart
+        case rangeEnd
         case temperatureHigh
         case temperatureLow
         case iconPath
@@ -165,6 +171,9 @@ struct DailyData: Codable, Identifiable {
         precipAccumulation = try container.decodeIfPresent(String.self, forKey: .precipAccumulation) ?? ""
         date = try container.decodeIfPresent(String.self, forKey: .date) ?? ""
         chips = try container.decodeIfPresent([WidgetChip].self, forKey: .chips) ?? []
+        precipChips = try container.decodeIfPresent([WidgetChip].self, forKey: .precipChips) ?? []
+        rangeStart = try container.decodeIfPresent(Double.self, forKey: .rangeStart) ?? 0
+        rangeEnd = try container.decodeIfPresent(Double.self, forKey: .rangeEnd) ?? 1
     }
     
     // Manual initializer for convenience

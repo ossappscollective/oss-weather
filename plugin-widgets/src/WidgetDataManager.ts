@@ -3,14 +3,14 @@
 
 import { ApplicationSettings, Color, path } from '@nativescript/core';
 import { DATA_INTENSITY, SETTINGS_DATA_INTENSITY, SETTINGS_WEATHER_DATA_LAYOUT, SETTINGS_WEATHER_LOCATION, WEATHER_DATA_LAYOUT } from '~/helpers/constants';
-import { formatDate, formatTime } from '~/helpers/locale';
+import { clock_24, formatDate, formatTime, lc } from '~/helpers/locale';
 import { WeatherLocation } from '~/services/api';
 import { iconService, iconThemesFolder } from '~/services/icon';
 import { CommonWeatherData, WeatherData } from '~/services/providers/weather';
 import { getWeather } from '~/services/providers/weatherproviderfactory';
 import { CommonData, WeatherProps, formatWeatherValue, weatherDataService } from '~/services/weatherData';
 import { dataTint, modernDataColor } from '~/utils/designStyle';
-import { curvePositions } from '~/utils/widgetCurve';
+import { curvePositions, rangePositions } from '~/utils/widgetCurve';
 import { widgetChip } from '~/utils/widgetChips';
 import { renderWidgetIcon } from './WidgetIcons';
 import { ForecastData, WeatherWidgetData, WidgetChip, WidgetConfig } from './WidgetTypes';
@@ -95,6 +95,8 @@ export class WidgetDataManager {
             const hours = weatherData.hourly.slice(0, 24);
             const curve = curvePositions(hours.map((hour) => hour.temperature));
             formattedData.hourlyData = hours.map((hour, index) => ({
+                // short hour label like the app hourly card ("Now", "18" / "6PM")
+                hour: index === 0 ? lc('now') : formatTime(hour.time, clock_24 ? 'HH' : 'hA'),
                 curve: curve[index],
                 precipFraction: dataTint(WeatherProps.precipAccumulation, hour)?.fraction ?? 0,
                 precipColor: modernDataColor(WeatherProps.precipAccumulation),
@@ -110,7 +112,15 @@ export class WidgetDataManager {
 
         // Format daily data (next 7 days)
         if (weatherData.daily?.data && weatherData.daily.data.length > 0) {
-            formattedData.dailyData = weatherData.daily.data.slice(0, 7).map((day) => ({
+            const days = weatherData.daily.data.slice(0, 7);
+            const ranges = rangePositions(
+                days.map((day) => day.temperatureMin),
+                days.map((day) => day.temperatureMax)
+            );
+            formattedData.dailyData = days.map((day, index) => ({
+                rangeStart: ranges[index].start,
+                rangeEnd: ranges[index].end,
+                precipChips: [this.chip(weatherDataService.getItemData(WeatherProps.precipAccumulation, day, 'daily'))].filter((chip) => !!chip),
                 day: this.formatDayName(day.time),
                 date: formatDate(day.time, 'DD/MM'),
                 description: day.description || '',

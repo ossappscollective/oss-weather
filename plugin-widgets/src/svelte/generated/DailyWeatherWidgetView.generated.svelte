@@ -6,6 +6,7 @@
     import { path } from '@nativescript/core';
     import { iconService, iconThemesFolder } from '~/services/icon';
     import { colors } from '~/variables';
+    import WidgetChips from 'plugin-widgets/svelte/WidgetChips.svelte';
     import type { WeatherWidgetData, WidgetConfig } from 'plugin-widgets/WidgetTypes';
 </script>
 <script lang="ts">
@@ -18,40 +19,84 @@
 </script>
 
 <gridlayout width={size.width} height={size.height} {...$$restProps} class="widget-container">
-    <stacklayout orientation="vertical">
-        <gridlayout row="auto" paddingLeft={Math.min(size.width * 0.05, 10)} paddingRight={Math.min(size.width * 0.05, 10)} paddingTop={Math.min(size.height * 0.07, 6)} paddingBottom={Math.min(size.height * 0.07, 6)} columns="auto,*,auto" horizontalAlignment="stretch" verticalAlignment="top">
-            <stacklayout orientation="vertical" col={0} verticalAlignment="top" horizontalAlignment="left">
-                <label text={data.locationName} fontSize={12} opacity={0.5} textAlignment="left" maxLines={1} color={widgetColor} horizontalAlignment="left" verticalAlignment="top"></label>
-                <label text={data.temperature} fontSize={26} fontWeight="700" color={widgetColor} horizontalAlignment="left" verticalAlignment="top"></label>
-            </stacklayout>
-            <stacklayout orientation="vertical" col={2} verticalAlignment="top" horizontalAlignment="left">
-                <image src={iconService.getIconPath(data.iconPath, true, false, config.iconSet)} width={54} height={54} visibility={(data.iconPath != null) ? 'visible' : 'collapsed'} horizontalAlignment="right" verticalAlignment="bottom"></image>
-                <label text={data.description} fontSize={11} opacity={0.5} textAlignment="right" maxLines={1} visibility={(data.description != null) ? 'visible' : 'collapsed'} color={widgetColor} horizontalAlignment="right" verticalAlignment="bottom"></label>
-            </stacklayout>
-        </gridlayout>
-            <label text={lc('daily')} textAlignment="left" fontSize={12} fontWeight="500" opacity={0.5} paddingLeft={8} paddingRight={8} color={widgetColor} horizontalAlignment="left" verticalAlignment="top"></label>
-        <absolutelayout height={4} horizontalAlignment="stretch" verticalAlignment="top"></absolutelayout>
-        <collectionview items={data.dailyData?.slice(0, 10)} orientation="vertical" colWidth="auto" horizontalAlignment="stretch" verticalAlignment="top">
-            <Template let:item>
-            <stacklayout padding={2} orientation="vertical">
-                <stacklayout paddingLeft={6} paddingRight={6} paddingTop={2} paddingBottom={2} backgroundColor={colorSurfaceVariant} borderRadius={8} orientation="vertical" horizontalAlignment="center" verticalAlignment="center">
-                    <gridlayout row="auto" columns="auto,*,auto,*,auto" horizontalAlignment="center" verticalAlignment="center">
-                        <label text={item.day} fontSize={12} fontWeight="500" maxLines={1} color={widgetColor} col={0} verticalAlignment="center" horizontalAlignment="center"></label>
-                        <image src={iconService.getIconPath(item.iconPath, true, false, config.iconSet)} width={36} height={36} col={2} verticalAlignment="center" horizontalAlignment="center"></image>
-                        <stacklayout orientation="vertical" col={4} verticalAlignment="center" horizontalAlignment="center">
-                            <stacklayout padding={6} orientation="horizontal" horizontalAlignment="right" verticalAlignment="bottom">
-                                <label text={item.temperatureHigh} fontSize={13} fontWeight="700" maxLines={1} color={widgetColor} verticalAlignment="center" horizontalAlignment="right"></label>
-                                <label text={item.temperatureLow} fontSize={11} opacity={0.5} maxLines={1} color={widgetColor} verticalAlignment="center" horizontalAlignment="right"></label>
-                            </stacklayout>
-                            <stacklayout padding={6} orientation="horizontal" horizontalAlignment="right" verticalAlignment="bottom">
-                                <label text={item.precipAccumulation} fontSize={10} opacity={0.5} visibility={(item.precipAccumulation != null) ? 'visible' : 'collapsed'} color={widgetColor} verticalAlignment="center" horizontalAlignment="right"></label>
-                                <label text={"💧" + item.precipitation} fontSize={10} opacity={0.5} visibility={(item.precipitation != null) ? 'visible' : 'collapsed'} color={widgetColor} verticalAlignment="center" horizontalAlignment="right"></label>
-                            </stacklayout>
+    {#if size.width >= 250 && size.height < 170}
+        <stacklayout paddingLeft={12} paddingRight={12} paddingTop={10} paddingBottom={10} orientation="vertical">
+            <gridlayout row="auto" columns="*,auto,4,auto">
+                <label text={data.locationName} fontSize={13} maxLines={1} fontWeight="500" color={widgetColor} col={0} verticalAlignment="center"></label>
+                <label text={data.temperature} fontSize={13} maxLines={1} color={widgetColor} col={1} verticalAlignment="center"></label>
+                <absolutelayout width={4} col={2} verticalAlignment="center"></absolutelayout>
+                <label text={data.description} fontSize={12} maxLines={1} opacity={0.6} color={widgetColor} col={3} verticalAlignment="center"></label>
+            </gridlayout>
+                <collectionview items={data.dailyData?.slice(0, size.width >= 340 ? 5 : 4)}>
+                    <Template let:item>
+                    <stacklayout orientation="vertical">
+                        <label text={item.day} fontSize={13} maxLines={1} fontWeight="500" color={widgetColor} horizontalAlignment="center"></label>
+                        <absolutelayout height={2} horizontalAlignment="center"></absolutelayout>
+                        <image src={iconService.getIconPath(item.iconPath, true, false, config.iconSet)} width={26} height={26} horizontalAlignment="center"></image>
+                        <absolutelayout height={2} horizontalAlignment="center"></absolutelayout>
+                        <stacklayout orientation="horizontal" horizontalAlignment="center">
+                            <label text={item.temperatureLow} fontSize={13} maxLines={1} opacity={0.6} color={widgetColor} verticalAlignment="center"></label>
+                            <absolutelayout width={4} verticalAlignment="center"></absolutelayout>
+                            <label text={item.temperatureHigh} fontSize={13} maxLines={1} fontWeight="500" color={widgetColor} verticalAlignment="center"></label>
+                        </stacklayout>
+                        <absolutelayout height={3} horizontalAlignment="center"></absolutelayout>
+                        <WidgetChips fontSize={11} chips={item.precipChips} iconSize={11} maxWidth={size.width - 24 / size.width >= 340 ? 5 : 4} limit={1} color={widgetColor} horizontalAlignment="center"></WidgetChips>
+                    </stacklayout>
+                    </Template>
+                </collectionview>
+        </stacklayout>
+    {:else}
+        <stacklayout paddingLeft={14} paddingRight={14} paddingTop={10} paddingBottom={10} orientation="vertical">
+            <gridlayout row="auto" columns="*,auto,4,auto">
+                <label text={data.locationName} fontSize={13} maxLines={1} fontWeight="500" color={widgetColor} col={0} verticalAlignment="center"></label>
+                <label text={data.temperature} fontSize={13} maxLines={1} color={widgetColor} col={1} verticalAlignment="center"></label>
+                <absolutelayout width={4} col={2} verticalAlignment="center"></absolutelayout>
+                <label text={data.description} fontSize={12} maxLines={1} opacity={0.6} color={widgetColor} col={3} verticalAlignment="center"></label>
+            </gridlayout>
+            <collectionview items={data.dailyData?.slice(0, size.height >= 394 ? 8 : size.height >= 351 ? 7 : size.height >= 308 ? 6 : size.height >= 265 ? 5 : size.height >= 222 ? 4 : size.height >= 179 ? 3 : 2)}>
+                <Template let:item>
+                {#if size.width < 250}
+                    <gridlayout row="auto" paddingTop={3} paddingBottom={3} columns="auto,6,auto,4,*,auto">
+                        <image src={iconService.getIconPath(item.iconPath, true, false, config.iconSet)} width={22} height={22} col={0} verticalAlignment="center"></image>
+                        <absolutelayout width={6} col={1} verticalAlignment="center"></absolutelayout>
+                        <label text={item.day} fontSize={13} maxLines={1} fontWeight="500" color={widgetColor} col={2} verticalAlignment="center"></label>
+                        <absolutelayout width={4} col={3} verticalAlignment="center"></absolutelayout>
+                        <label text={item.date} fontSize={11} maxLines={1} opacity={0.6} color={widgetColor} col={4} verticalAlignment="center"></label>
+                        <stacklayout orientation="horizontal" col={5} verticalAlignment="center">
+                            <label text={item.temperatureLow} fontSize={13} maxLines={1} opacity={0.6} color={widgetColor} verticalAlignment="center"></label>
+                            <absolutelayout width={4} verticalAlignment="center"></absolutelayout>
+                            <label text={item.temperatureHigh} fontSize={13} maxLines={1} fontWeight="500" color={widgetColor} verticalAlignment="center"></label>
                         </stacklayout>
                     </gridlayout>
-                </stacklayout>
-            </stacklayout>
-            </Template>
-        </collectionview>
-    </stacklayout>
+                {:else}
+                    <gridlayout row="auto" paddingTop={4} paddingBottom={4} columns="auto,8,*,auto,5,auto,5,auto">
+                        <image src={iconService.getIconPath(item.iconPath, true, false, config.iconSet)} width={24} height={24} col={0} verticalAlignment="center"></image>
+                        <absolutelayout width={8} col={1} verticalAlignment="center"></absolutelayout>
+                        <stacklayout orientation="vertical" col={2} verticalAlignment="center">
+                            <stacklayout orientation="horizontal">
+                                <label text={item.day} fontSize={14} maxLines={1} fontWeight="500" color={widgetColor} verticalAlignment="center"></label>
+                                <absolutelayout width={4} verticalAlignment="center"></absolutelayout>
+                                <label text={item.date} fontSize={12} maxLines={1} opacity={0.6} color={widgetColor} verticalAlignment="center"></label>
+                                <absolutelayout width={6} verticalAlignment="center"></absolutelayout>
+                                <WidgetChips fontSize={11} chips={item.chips} iconSize={12} chipSpacing={3} maxWidth={size.width - 270} limit={3} color={widgetColor} verticalAlignment="center"></WidgetChips>
+                            </stacklayout>
+                            <label text={item.description} fontSize={12} maxLines={1} opacity={0.6} color={widgetColor}></label>
+                        </stacklayout>
+                        <label text={item.temperatureLow} fontSize={13} maxLines={1} opacity={0.6} color={widgetColor} col={3} verticalAlignment="center"></label>
+                        <absolutelayout width={5} col={4} verticalAlignment="center"></absolutelayout>
+                        <gridlayout row="auto" width={30} height={3} col={5} verticalAlignment="center">
+                            <stacklayout width={30} height={3} backgroundColor={colorSurfaceVariant} borderRadius={2} orientation="horizontal"></stacklayout>
+                            <stacklayout height={3} orientation="horizontal">
+                                <absolutelayout width={item.rangeStart * 30}></absolutelayout>
+                                <stacklayout width={item.rangeEnd - item.rangeStart * 30} height={3} backgroundColor="#EF9F27" borderRadius={2} orientation="horizontal"></stacklayout>
+                            </stacklayout>
+                        </gridlayout>
+                        <absolutelayout width={5} col={6} verticalAlignment="center"></absolutelayout>
+                        <label text={item.temperatureHigh} fontSize={14} maxLines={1} fontWeight="500" width={30} textAlignment="right" color={widgetColor} col={7} verticalAlignment="center"></label>
+                    </gridlayout>
+                {/if}
+                </Template>
+            </collectionview>
+        </stacklayout>
+    {/if}
 </gridlayout>
