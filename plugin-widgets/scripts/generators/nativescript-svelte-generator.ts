@@ -320,7 +320,8 @@ function evaluateMapboxExpression(expr: any, context: string = 'data', usedColor
         case '%': {
             const left = evaluateMapboxExpression(args[0], context, usedColors);
             const right = evaluateMapboxExpression(args[1], context, usedColors);
-            return `${left} ${op} ${right}`;
+            // parenthesized: nested arithmetic keeps its order
+            return `(${left} ${op} ${right})`;
         }
         case 'min': {
             const a = evaluateMapboxExpression(args[0], context, usedColors);

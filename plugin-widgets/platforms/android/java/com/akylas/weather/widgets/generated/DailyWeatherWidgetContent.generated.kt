@@ -156,17 +156,25 @@ fun DailyWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
                             )
                         }
                         Spacer(modifier = GlanceModifier.height(3.dp))
-                        WidgetModern.Chips(
-                            chips = item.precipChips,
-                            color = widgetColor,
-                            fontSize = 11f * fontScaleFactor,
-                            iconSize = 11f * fontScaleFactor,
-                            spacing = 4f,
-                            limit = 1,
-                            maxWidth = ((size.width.value - 24.0f) / when { size.width.value >= 340.0f -> 5.0f; else -> 4.0f }),
-                            maxRows = 1,
-                            modifier = GlanceModifier
-                        )
+                        if (config.settings?.get("showChips")?.jsonPrimitive?.booleanOrNull != false) {
+                            WidgetModern.Chips(
+                                chips = item.precipChips,
+                                color = widgetColor,
+                                fontSize = 11f * fontScaleFactor,
+                                iconSize = 11f * fontScaleFactor,
+                                spacing = 4f,
+                                limit = 1,
+                                maxWidth = ((size.width.value - 24.0f) / when { size.width.value >= 340.0f -> 5.0f; else -> 4.0f }),
+                                maxRows = 1,
+                                modifier = GlanceModifier
+                            )
+                        }
+                        else {
+                            Column(
+                                modifier = GlanceModifier,
+                            ) {
+                            }
+                        }
                     }
                 }
             }
@@ -274,17 +282,25 @@ fun DailyWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
                                     maxLines = 1
                                 )
                                 Spacer(modifier = GlanceModifier.width(6.dp))
-                                WidgetModern.Chips(
-                                    chips = item.chips,
-                                    color = widgetColor,
-                                    fontSize = 11f * fontScaleFactor,
-                                    iconSize = 12f * fontScaleFactor,
-                                    spacing = 3f,
-                                    limit = 3,
-                                    maxWidth = (size.width.value - 270.0f),
-                                    maxRows = 1,
-                                    modifier = GlanceModifier
-                                )
+                                if (config.settings?.get("showChips")?.jsonPrimitive?.booleanOrNull != false) {
+                                    WidgetModern.Chips(
+                                        chips = item.chips,
+                                        color = widgetColor,
+                                        fontSize = 11f * fontScaleFactor,
+                                        iconSize = 12f * fontScaleFactor,
+                                        spacing = 3f,
+                                        limit = 3,
+                                        maxWidth = (size.width.value - 222.0f),
+                                        maxRows = 1,
+                                        modifier = GlanceModifier
+                                    )
+                                }
+                                else {
+                                    Column(
+                                        modifier = GlanceModifier,
+                                    ) {
+                                    }
+                                }
                             }
                             Text(
                                 text = item.description,

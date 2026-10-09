@@ -109,13 +109,18 @@
                     },
                     { "type": "spacer", "size": 8 },
                     {
-                        "type": "chips",
-                        "items": "chips",
-                        "limit": 6,
-                        "fontSize": ["max", ["min", ["*", ["get", "size.width"], 0.065], ["min", ["*", ["get", "size.height"], 0.04], 13]], 11],
-                        "iconSize": ["max", ["min", ["*", ["get", "size.width"], 0.075], ["min", ["*", ["get", "size.height"], 0.045], 15]], 12],
-                        "maxWidth": ["-", ["get", "size.width"], 28],
-                        "maxRows": 2
+                        "type": "conditional",
+                        "condition": ["!=", ["get", "config.settings.showChips"], false],
+                        "then": {
+                            "type": "chips",
+                            "items": "chips",
+                            "limit": 6,
+                            "fontSize": ["max", ["min", ["*", ["get", "size.width"], 0.065], ["min", ["*", ["get", "size.height"], 0.04], 13]], 11],
+                            "iconSize": ["max", ["min", ["*", ["get", "size.width"], 0.075], ["min", ["*", ["get", "size.height"], 0.045], 15]], 12],
+                            "maxWidth": ["-", ["get", "size.width"], 28],
+                            "maxRows": 2
+                        },
+                        "else": { "type": "column", "children": [] }
                     },
                     { "type": "spacer", "size": 10 },
                     {
@@ -219,13 +224,18 @@
                             },
                             { "type": "spacer", "size": 6, "direction": "horizontal" },
                             {
-                                "type": "chips",
-                                "items": "chips",
-                                "limit": 6,
-                                "fontSize": ["max", ["min", ["*", ["get", "size.width"], 0.035], ["min", ["*", ["get", "size.height"], 0.11], 12]], 10],
-                                "iconSize": ["max", ["min", ["*", ["get", "size.width"], 0.04], ["min", ["*", ["get", "size.height"], 0.13], 14]], 12],
-                                "maxWidth": ["*", ["get", "size.width"], 0.4],
-                                "maxRows": 2
+                                "type": "conditional",
+                                "condition": ["!=", ["get", "config.settings.showChips"], false],
+                                "then": {
+                                    "type": "chips",
+                                    "items": "chips",
+                                    "limit": 6,
+                                    "fontSize": ["max", ["min", ["*", ["get", "size.width"], 0.035], ["min", ["*", ["get", "size.height"], 0.11], 12]], 10],
+                                    "iconSize": ["max", ["min", ["*", ["get", "size.width"], 0.04], ["min", ["*", ["get", "size.height"], 0.13], 14]], 12],
+                                    "maxWidth": ["*", ["get", "size.width"], 0.4],
+                                    "maxRows": 2
+                                },
+                                "else": { "type": "column", "children": [] }
                             },
                             { "type": "spacer", "size": 8, "direction": "horizontal" },
                             {
@@ -322,13 +332,18 @@
                             },
                             { "type": "spacer", "size": 6 },
                             {
-                                "type": "chips",
-                                "items": "chips",
-                                "limit": 6,
-                                "fontSize": ["max", ["min", ["*", ["get", "size.width"], 0.04], ["min", ["*", ["get", "size.height"], 0.09], 12]], 10],
-                                "iconSize": ["max", ["min", ["*", ["get", "size.width"], 0.045], ["min", ["*", ["get", "size.height"], 0.1], 14]], 12],
-                                "maxWidth": ["-", ["get", "size.width"], 24],
-                                "maxRows": ["case", [">=", ["get", "size.height"], 170], 2, 1]
+                                "type": "conditional",
+                                "condition": ["!=", ["get", "config.settings.showChips"], false],
+                                "then": {
+                                    "type": "chips",
+                                    "items": "chips",
+                                    "limit": 6,
+                                    "fontSize": ["max", ["min", ["*", ["get", "size.width"], 0.04], ["min", ["*", ["get", "size.height"], 0.09], 12]], 10],
+                                    "iconSize": ["max", ["min", ["*", ["get", "size.width"], 0.045], ["min", ["*", ["get", "size.height"], 0.1], 14]], 12],
+                                    "maxWidth": ["-", ["get", "size.width"], 24],
+                                    "maxRows": ["case", [">=", ["get", "size.height"], 170], 2, 1]
+                                },
+                                "else": { "type": "column", "children": [] }
                             },
                             { "type": "spacer", "flex": 1 },
                             {
@@ -433,13 +448,18 @@
                             "type": "conditional",
                             "condition": [">=", ["get", "size.height"], 140],
                             "then": {
-                                "type": "chips",
-                                "items": "chips",
-                                "limit": 6,
-                                "fontSize": ["max", ["min", ["*", ["get", "size.width"], 0.065], ["min", ["*", ["get", "size.height"], 0.065], 12]], 10],
-                                "iconSize": ["max", ["min", ["*", ["get", "size.width"], 0.075], ["min", ["*", ["get", "size.height"], 0.075], 14]], 12],
-                                "maxWidth": ["-", ["get", "size.width"], 24],
-                                "maxRows": ["case", [">=", ["get", "size.height"], 170], 2, 1]
+                                "type": "conditional",
+                                "condition": ["!=", ["get", "config.settings.showChips"], false],
+                                "then": {
+                                    "type": "chips",
+                                    "items": "chips",
+                                    "limit": 6,
+                                    "fontSize": ["max", ["min", ["*", ["get", "size.width"], 0.065], ["min", ["*", ["get", "size.height"], 0.065], 12]], 10],
+                                    "iconSize": ["max", ["min", ["*", ["get", "size.width"], 0.075], ["min", ["*", ["get", "size.height"], 0.075], 14]], 12],
+                                    "maxWidth": ["-", ["get", "size.width"], 24],
+                                    "maxRows": ["case", [">=", ["get", "size.height"], 170], 2, 1]
+                                },
+                                "else": { "type": "column", "children": [] }
                             },
                             "else": { "type": "column", "children": [], "fillWidth": true }
                         },
@@ -483,5 +503,8 @@
             "temperatureHigh": "17°",
             "temperatureLow": "11°"
         }
+    },
+    "settings": {
+        "showChips": { "type": "boolean", "default": true, "title": "widget_show_chips" }
     }
 }

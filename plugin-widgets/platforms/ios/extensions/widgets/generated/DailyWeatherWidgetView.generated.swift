@@ -57,7 +57,13 @@ struct DailyWeatherWidgetView: View {
                                                 .lineLimit(1)
                                         }
                                         Spacer().frame(height: 3)
-                                        WidgetChipsView(chips: item.precipChips, color: widgetColor, fontSize: 11, iconSize: 11, spacing: 4, limit: 1, maxWidth: ((width - 24) / width >= 340 ? 5 : 4), maxRows: 1)
+                                        if entry.config.settings["showChips"] as? Bool != false {
+                                            WidgetChipsView(chips: item.precipChips, color: widgetColor, fontSize: 11, iconSize: 11, spacing: 4, limit: 1, maxWidth: ((width - 24) / width >= 340 ? 5 : 4), maxRows: 1)
+                                        }
+                                        else {
+                                            VStack(alignment: .center, spacing: 0) {
+                                            }
+                                        }
                                     }.layoutPriority(1)
                                 }
                             }.frame(maxWidth: .infinity)
@@ -123,7 +129,13 @@ struct DailyWeatherWidgetView: View {
                                                     .foregroundColor(widgetColor)
                                                     .lineLimit(1).opacity(0.6)
                                                 Spacer().frame(width: 6)
-                                                WidgetChipsView(chips: item.chips, color: widgetColor, fontSize: 11, iconSize: 12, spacing: 3, limit: 3, maxWidth: (width - 270), maxRows: 1)
+                                                if entry.config.settings["showChips"] as? Bool != false {
+                                                    WidgetChipsView(chips: item.chips, color: widgetColor, fontSize: 11, iconSize: 12, spacing: 3, limit: 3, maxWidth: (width - 222), maxRows: 1)
+                                                }
+                                                else {
+                                                    VStack(alignment: .center, spacing: 0) {
+                                                    }
+                                                }
                                             }
                                             Text(item.description)
                                                 .font(.system(size: 12, weight: .regular))

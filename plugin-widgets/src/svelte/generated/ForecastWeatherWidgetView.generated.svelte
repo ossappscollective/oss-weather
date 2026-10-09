@@ -24,7 +24,7 @@
         <gridlayout row="auto" columns="*,auto">
             <stacklayout orientation="vertical" col={0} verticalAlignment="top">
                 <label text={data.locationName} fontSize={12} maxLines={1} opacity={0.6} color={widgetColor}></label>
-                <label text={data.temperature} fontSize={Math.min(size.width * 0.15, Math.min(size.height * 0.15, 50))} maxLines={1} fontWeight="300" color={widgetColor}></label>
+                <label text={data.temperature} fontSize={Math.min((size.width * 0.15), Math.min((size.height * 0.15), 50))} maxLines={1} fontWeight="300" color={widgetColor}></label>
                 <label text={data.description} fontSize={14} maxLines={1} color={widgetColor}></label>
                 <stacklayout orientation="horizontal">
                     <label text={data.temperatureLow} fontSize={14} maxLines={1} opacity={0.6} color={widgetColor} verticalAlignment="center"></label>
@@ -32,10 +32,14 @@
                     <label text={data.temperatureHigh} fontSize={14} maxLines={1} fontWeight="500" color={widgetColor} verticalAlignment="center"></label>
                 </stacklayout>
             </stacklayout>
-            <image src={iconService.getIconPath(data.iconPath, true, false, config.iconSet)} width={Math.min(size.width * 0.26, Math.min(size.height * 0.26, 80)) * 1.3} height={Math.min(size.width * 0.26, Math.min(size.height * 0.26, 80)) * 1.3} visibility={(data.iconPath != null) ? 'visible' : 'collapsed'} col={1} verticalAlignment="top"></image>
+            <image src={iconService.getIconPath(data.iconPath, true, false, config.iconSet)} width={(Math.min((size.width * 0.26), Math.min((size.height * 0.26), 80)) * 1.3)} height={(Math.min((size.width * 0.26), Math.min((size.height * 0.26), 80)) * 1.3)} visibility={(data.iconPath != null) ? 'visible' : 'collapsed'} col={1} verticalAlignment="top"></image>
         </gridlayout>
         <absolutelayout height={6}></absolutelayout>
-        <WidgetChips fontSize={12} chips={data.chips} iconSize={14} maxWidth={size.width - 28} maxRows={2} limit={6} color={widgetColor}></WidgetChips>
+        {#if config.settings.showChips !== false}
+            <WidgetChips fontSize={12} chips={data.chips} iconSize={14} maxWidth={(size.width - 28)} maxRows={2} limit={6} color={widgetColor}></WidgetChips>
+        {:else}
+            <stacklayout orientation="vertical"></stacklayout>
+        {/if}
         <absolutelayout height={10}></absolutelayout>
         {#if size.height >= 380}
             <stacklayout orientation="vertical">
@@ -80,7 +84,11 @@
                             <absolutelayout width={4} verticalAlignment="center"></absolutelayout>
                             <label text={item.date} fontSize={12} maxLines={1} opacity={0.6} color={widgetColor} verticalAlignment="center"></label>
                             <absolutelayout width={6} verticalAlignment="center"></absolutelayout>
-                            <WidgetChips fontSize={11} chips={item.chips} iconSize={12} chipSpacing={3} maxWidth={size.width - 270} limit={3} color={widgetColor} verticalAlignment="center"></WidgetChips>
+                            {#if config.settings.showChips !== false}
+                                <WidgetChips fontSize={11} chips={item.chips} iconSize={12} chipSpacing={3} maxWidth={(size.width - 222)} limit={3} color={widgetColor} verticalAlignment="center"></WidgetChips>
+                            {:else}
+                                <stacklayout orientation="vertical" verticalAlignment="center"></stacklayout>
+                            {/if}
                         </stacklayout>
                         <label text={item.description} fontSize={12} maxLines={1} opacity={0.6} color={widgetColor}></label>
                     </stacklayout>
@@ -89,8 +97,8 @@
                     <gridlayout row="auto" width={30} height={3} col={5} verticalAlignment="center">
                         <stacklayout width={30} height={3} backgroundColor={colorSurfaceVariant} borderRadius={2} orientation="horizontal"></stacklayout>
                         <stacklayout height={3} orientation="horizontal">
-                            <absolutelayout width={item.rangeStart * 30}></absolutelayout>
-                            <stacklayout width={item.rangeEnd - item.rangeStart * 30} height={3} backgroundColor="#EF9F27" borderRadius={2} orientation="horizontal"></stacklayout>
+                            <absolutelayout width={(item.rangeStart * 30)}></absolutelayout>
+                            <stacklayout width={((item.rangeEnd - item.rangeStart) * 30)} height={3} backgroundColor="#EF9F27" borderRadius={2} orientation="horizontal"></stacklayout>
                         </stacklayout>
                     </gridlayout>
                     <absolutelayout width={5} col={6} verticalAlignment="center"></absolutelayout>

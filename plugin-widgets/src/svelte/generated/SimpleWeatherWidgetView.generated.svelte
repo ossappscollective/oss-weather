@@ -21,8 +21,8 @@
 <gridlayout width={size.width} height={size.height} {...$$restProps} class="widget-container">
     {#if size.width < 110}
         <stacklayout orientation="vertical">
-            <image src={iconService.getIconPath(data.iconPath, true, false, config.iconSet)} width={Math.min(size.width * 0.5, Math.min(size.height * 0.4, 56)) * 1.3} height={Math.min(size.width * 0.5, Math.min(size.height * 0.4, 56)) * 1.3} visibility={(data.iconPath != null) ? 'visible' : 'collapsed'} horizontalAlignment="center" verticalAlignment="center"></image>
-            <label text={data.temperature} fontSize={Math.max(Math.min(size.width * 0.24, Math.min(size.height * 0.2, 26)), 14)} maxLines={1} fontWeight="300" color={widgetColor} horizontalAlignment="center" verticalAlignment="center"></label>
+            <image src={iconService.getIconPath(data.iconPath, true, false, config.iconSet)} width={(Math.min((size.width * 0.5), Math.min((size.height * 0.4), 56)) * 1.3)} height={(Math.min((size.width * 0.5), Math.min((size.height * 0.4), 56)) * 1.3)} visibility={(data.iconPath != null) ? 'visible' : 'collapsed'} horizontalAlignment="center" verticalAlignment="center"></image>
+            <label text={data.temperature} fontSize={Math.max(Math.min((size.width * 0.24), Math.min((size.height * 0.2), 26)), 14)} maxLines={1} fontWeight="300" color={widgetColor} horizontalAlignment="center" verticalAlignment="center"></label>
             {#if size.height >= 110}
                 <label text={data.locationName} fontSize={10} maxLines={1} opacity={0.6} color={widgetColor} horizontalAlignment="center" verticalAlignment="center"></label>
             {:else}
@@ -34,19 +34,23 @@
             <stacklayout padding={14} orientation="vertical">
                 <gridlayout row="auto" columns="*,auto">
                     <stacklayout orientation="vertical" col={0} verticalAlignment="top">
-                        <label text={data.locationName} fontSize={Math.min(size.width * 0.08, Math.min(size.height * 0.05, 15))} maxLines={1} opacity={0.6} color={widgetColor}></label>
-                        <label text={data.temperature} fontSize={Math.min(size.width * 0.3, Math.min(size.height * 0.16, 58))} maxLines={1} fontWeight="300" color={widgetColor}></label>
-                        <label text={data.description} fontSize={Math.min(size.width * 0.08, Math.min(size.height * 0.05, 15))} maxLines={1} color={widgetColor}></label>
+                        <label text={data.locationName} fontSize={Math.min((size.width * 0.08), Math.min((size.height * 0.05), 15))} maxLines={1} opacity={0.6} color={widgetColor}></label>
+                        <label text={data.temperature} fontSize={Math.min((size.width * 0.3), Math.min((size.height * 0.16), 58))} maxLines={1} fontWeight="300" color={widgetColor}></label>
+                        <label text={data.description} fontSize={Math.min((size.width * 0.08), Math.min((size.height * 0.05), 15))} maxLines={1} color={widgetColor}></label>
                         <stacklayout orientation="horizontal">
-                            <label text={data.temperatureLow} fontSize={Math.min(size.width * 0.08, Math.min(size.height * 0.05, 15))} maxLines={1} opacity={0.6} color={widgetColor} verticalAlignment="center"></label>
+                            <label text={data.temperatureLow} fontSize={Math.min((size.width * 0.08), Math.min((size.height * 0.05), 15))} maxLines={1} opacity={0.6} color={widgetColor} verticalAlignment="center"></label>
                             <absolutelayout width={4} verticalAlignment="center"></absolutelayout>
-                            <label text={data.temperatureHigh} fontSize={Math.min(size.width * 0.08, Math.min(size.height * 0.05, 15))} maxLines={1} fontWeight="500" color={widgetColor} verticalAlignment="center"></label>
+                            <label text={data.temperatureHigh} fontSize={Math.min((size.width * 0.08), Math.min((size.height * 0.05), 15))} maxLines={1} fontWeight="500" color={widgetColor} verticalAlignment="center"></label>
                         </stacklayout>
                     </stacklayout>
-                    <image src={iconService.getIconPath(data.iconPath, true, false, config.iconSet)} width={Math.min(size.width * 0.4, Math.min(size.height * 0.22, 80)) * 1.3} height={Math.min(size.width * 0.4, Math.min(size.height * 0.22, 80)) * 1.3} visibility={(data.iconPath != null) ? 'visible' : 'collapsed'} col={1} verticalAlignment="top"></image>
+                    <image src={iconService.getIconPath(data.iconPath, true, false, config.iconSet)} width={(Math.min((size.width * 0.4), Math.min((size.height * 0.22), 80)) * 1.3)} height={(Math.min((size.width * 0.4), Math.min((size.height * 0.22), 80)) * 1.3)} visibility={(data.iconPath != null) ? 'visible' : 'collapsed'} col={1} verticalAlignment="top"></image>
                 </gridlayout>
                 <absolutelayout height={8}></absolutelayout>
-                <WidgetChips fontSize={Math.max(Math.min(size.width * 0.065, Math.min(size.height * 0.04, 13)), 11)} chips={data.chips} iconSize={Math.max(Math.min(size.width * 0.075, Math.min(size.height * 0.045, 15)), 12)} maxWidth={size.width - 28} maxRows={2} limit={6} color={widgetColor}></WidgetChips>
+                {#if config.settings.showChips !== false}
+                    <WidgetChips fontSize={Math.max(Math.min((size.width * 0.065), Math.min((size.height * 0.04), 13)), 11)} chips={data.chips} iconSize={Math.max(Math.min((size.width * 0.075), Math.min((size.height * 0.045), 15)), 12)} maxWidth={(size.width - 28)} maxRows={2} limit={6} color={widgetColor}></WidgetChips>
+                {:else}
+                    <stacklayout orientation="vertical"></stacklayout>
+                {/if}
                 <absolutelayout height={10}></absolutelayout>
                 <collectionview items={data.dailyData?.slice(0, size.height >= 438 ? 6 : size.height >= 395 ? 5 : size.height >= 352 ? 4 : size.height >= 309 ? 3 : size.height >= 266 ? 2 : 1)}>
                     <Template let:item>
@@ -73,7 +77,11 @@
                                     <absolutelayout width={4} verticalAlignment="center"></absolutelayout>
                                     <label text={item.date} fontSize={12} maxLines={1} opacity={0.6} color={widgetColor} verticalAlignment="center"></label>
                                     <absolutelayout width={6} verticalAlignment="center"></absolutelayout>
-                                    <WidgetChips fontSize={11} chips={item.chips} iconSize={12} chipSpacing={3} maxWidth={size.width - 270} limit={3} color={widgetColor} verticalAlignment="center"></WidgetChips>
+                                    {#if config.settings.showChips !== false}
+                                        <WidgetChips fontSize={11} chips={item.chips} iconSize={12} chipSpacing={3} maxWidth={(size.width - 222)} limit={3} color={widgetColor} verticalAlignment="center"></WidgetChips>
+                                    {:else}
+                                        <stacklayout orientation="vertical" verticalAlignment="center"></stacklayout>
+                                    {/if}
                                 </stacklayout>
                                 <label text={item.description} fontSize={12} maxLines={1} opacity={0.6} color={widgetColor}></label>
                             </stacklayout>
@@ -82,8 +90,8 @@
                             <gridlayout row="auto" width={30} height={3} col={5} verticalAlignment="center">
                                 <stacklayout width={30} height={3} backgroundColor={colorSurfaceVariant} borderRadius={2} orientation="horizontal"></stacklayout>
                                 <stacklayout height={3} orientation="horizontal">
-                                    <absolutelayout width={item.rangeStart * 30}></absolutelayout>
-                                    <stacklayout width={item.rangeEnd - item.rangeStart * 30} height={3} backgroundColor="#EF9F27" borderRadius={2} orientation="horizontal"></stacklayout>
+                                    <absolutelayout width={(item.rangeStart * 30)}></absolutelayout>
+                                    <stacklayout width={((item.rangeEnd - item.rangeStart) * 30)} height={3} backgroundColor="#EF9F27" borderRadius={2} orientation="horizontal"></stacklayout>
                                 </stacklayout>
                             </gridlayout>
                             <absolutelayout width={5} col={6} verticalAlignment="center"></absolutelayout>
@@ -98,40 +106,48 @@
                 {#if size.height < 140}
                     <gridlayout row="auto" paddingLeft={14} paddingRight={14} paddingTop={8} paddingBottom={8} columns="*,6,auto,8,auto">
                         <stacklayout orientation="vertical" col={0} verticalAlignment="center">
-                            <label text={data.temperature} fontSize={Math.max(Math.min(size.width * 0.13, Math.min(size.height * 0.36, 40)), 20)} maxLines={1} fontWeight="300" color={widgetColor}></label>
+                            <label text={data.temperature} fontSize={Math.max(Math.min((size.width * 0.13), Math.min((size.height * 0.36), 40)), 20)} maxLines={1} fontWeight="300" color={widgetColor}></label>
                             <stacklayout orientation="horizontal">
-                                <label text={data.description} fontSize={Math.max(Math.min(size.width * 0.045, Math.min(size.height * 0.13, 13)), 11)} maxLines={1} color={widgetColor} verticalAlignment="center"></label>
+                                <label text={data.description} fontSize={Math.max(Math.min((size.width * 0.045), Math.min((size.height * 0.13), 13)), 11)} maxLines={1} color={widgetColor} verticalAlignment="center"></label>
                                 <absolutelayout width={6} verticalAlignment="center"></absolutelayout>
                                 <stacklayout orientation="horizontal" verticalAlignment="center">
-                                    <label text={data.temperatureLow} fontSize={Math.max(Math.min(size.width * 0.045, Math.min(size.height * 0.13, 13)), 11)} maxLines={1} opacity={0.6} color={widgetColor} verticalAlignment="center"></label>
+                                    <label text={data.temperatureLow} fontSize={Math.max(Math.min((size.width * 0.045), Math.min((size.height * 0.13), 13)), 11)} maxLines={1} opacity={0.6} color={widgetColor} verticalAlignment="center"></label>
                                     <absolutelayout width={4} verticalAlignment="center"></absolutelayout>
-                                    <label text={data.temperatureHigh} fontSize={Math.max(Math.min(size.width * 0.045, Math.min(size.height * 0.13, 13)), 11)} maxLines={1} fontWeight="500" color={widgetColor} verticalAlignment="center"></label>
+                                    <label text={data.temperatureHigh} fontSize={Math.max(Math.min((size.width * 0.045), Math.min((size.height * 0.13), 13)), 11)} maxLines={1} fontWeight="500" color={widgetColor} verticalAlignment="center"></label>
                                 </stacklayout>
                             </stacklayout>
                         </stacklayout>
                         <absolutelayout width={6} col={1} verticalAlignment="center"></absolutelayout>
-                        <WidgetChips fontSize={Math.max(Math.min(size.width * 0.035, Math.min(size.height * 0.11, 12)), 10)} chips={data.chips} iconSize={Math.max(Math.min(size.width * 0.04, Math.min(size.height * 0.13, 14)), 12)} maxWidth={size.width * 0.4} maxRows={2} limit={6} color={widgetColor} col={2} verticalAlignment="center"></WidgetChips>
+                        {#if config.settings.showChips !== false}
+                            <WidgetChips fontSize={Math.max(Math.min((size.width * 0.035), Math.min((size.height * 0.11), 12)), 10)} chips={data.chips} iconSize={Math.max(Math.min((size.width * 0.04), Math.min((size.height * 0.13), 14)), 12)} maxWidth={(size.width * 0.4)} maxRows={2} limit={6} color={widgetColor} col={2} verticalAlignment="center"></WidgetChips>
+                        {:else}
+                            <stacklayout orientation="vertical" verticalAlignment="center"></stacklayout>
+                        {/if}
                         <absolutelayout width={8} col={3} verticalAlignment="center"></absolutelayout>
-                        <image src={iconService.getIconPath(data.iconPath, true, false, config.iconSet)} width={Math.min(size.width * 0.15, Math.min(size.height * 0.5, 60)) * 1.3} height={Math.min(size.width * 0.15, Math.min(size.height * 0.5, 60)) * 1.3} visibility={(data.iconPath != null) ? 'visible' : 'collapsed'} col={4} verticalAlignment="center"></image>
+                        <image src={iconService.getIconPath(data.iconPath, true, false, config.iconSet)} width={(Math.min((size.width * 0.15), Math.min((size.height * 0.5), 60)) * 1.3)} height={(Math.min((size.width * 0.15), Math.min((size.height * 0.5), 60)) * 1.3)} visibility={(data.iconPath != null) ? 'visible' : 'collapsed'} col={4} verticalAlignment="center"></image>
                     </gridlayout>
                 {:else}
                     <gridlayout row="auto" padding={12} rows="auto,6,auto,*,auto">
                         <gridlayout row="auto" columns="*,auto">
                             <stacklayout orientation="vertical" col={0} verticalAlignment="top">
-                                <label text={data.temperature} fontSize={Math.max(Math.min(size.width * 0.13, Math.min(size.height * 0.3, 44)), 22)} maxLines={1} fontWeight="300" color={widgetColor}></label>
-                                <label text={data.description} fontSize={Math.max(Math.min(size.width * 0.045, Math.min(size.height * 0.1, 14)), 11)} maxLines={1} color={widgetColor}></label>
+                                <label text={data.temperature} fontSize={Math.max(Math.min((size.width * 0.13), Math.min((size.height * 0.3), 44)), 22)} maxLines={1} fontWeight="300" color={widgetColor}></label>
+                                <label text={data.description} fontSize={Math.max(Math.min((size.width * 0.045), Math.min((size.height * 0.1), 14)), 11)} maxLines={1} color={widgetColor}></label>
                                 <stacklayout orientation="horizontal">
-                                    <label text={data.temperatureLow} fontSize={Math.max(Math.min(size.width * 0.045, Math.min(size.height * 0.1, 14)), 11)} maxLines={1} opacity={0.6} color={widgetColor} verticalAlignment="center"></label>
+                                    <label text={data.temperatureLow} fontSize={Math.max(Math.min((size.width * 0.045), Math.min((size.height * 0.1), 14)), 11)} maxLines={1} opacity={0.6} color={widgetColor} verticalAlignment="center"></label>
                                     <absolutelayout width={4} verticalAlignment="center"></absolutelayout>
-                                    <label text={data.temperatureHigh} fontSize={Math.max(Math.min(size.width * 0.045, Math.min(size.height * 0.1, 14)), 11)} maxLines={1} fontWeight="500" color={widgetColor} verticalAlignment="center"></label>
+                                    <label text={data.temperatureHigh} fontSize={Math.max(Math.min((size.width * 0.045), Math.min((size.height * 0.1), 14)), 11)} maxLines={1} fontWeight="500" color={widgetColor} verticalAlignment="center"></label>
                                 </stacklayout>
                             </stacklayout>
-                            <image src={iconService.getIconPath(data.iconPath, true, false, config.iconSet)} width={Math.min(size.width * 0.16, Math.min(size.height * 0.42, 72)) * 1.3} height={Math.min(size.width * 0.16, Math.min(size.height * 0.42, 72)) * 1.3} visibility={(data.iconPath != null) ? 'visible' : 'collapsed'} col={1} verticalAlignment="top"></image>
+                            <image src={iconService.getIconPath(data.iconPath, true, false, config.iconSet)} width={(Math.min((size.width * 0.16), Math.min((size.height * 0.42), 72)) * 1.3)} height={(Math.min((size.width * 0.16), Math.min((size.height * 0.42), 72)) * 1.3)} visibility={(data.iconPath != null) ? 'visible' : 'collapsed'} col={1} verticalAlignment="top"></image>
                         </gridlayout>
                         <absolutelayout height={6} row={1}></absolutelayout>
-                        <WidgetChips fontSize={Math.max(Math.min(size.width * 0.04, Math.min(size.height * 0.09, 12)), 10)} chips={data.chips} iconSize={Math.max(Math.min(size.width * 0.045, Math.min(size.height * 0.1, 14)), 12)} maxWidth={size.width - 24} maxRows={size.height >= 170 ? 2 : 1} limit={6} color={widgetColor} row={2}></WidgetChips>
+                        {#if config.settings.showChips !== false}
+                            <WidgetChips fontSize={Math.max(Math.min((size.width * 0.04), Math.min((size.height * 0.09), 12)), 10)} chips={data.chips} iconSize={Math.max(Math.min((size.width * 0.045), Math.min((size.height * 0.1), 14)), 12)} maxWidth={(size.width - 24)} maxRows={size.height >= 170 ? 2 : 1} limit={6} color={widgetColor} row={2}></WidgetChips>
+                        {:else}
+                            <stacklayout orientation="vertical"></stacklayout>
+                        {/if}
                         {#if size.height >= 150}
-                            <label text={data.locationName} fontSize={Math.max(Math.min(size.width * 0.04, Math.min(size.height * 0.09, 11)), 10)} maxLines={1} opacity={0.6} color={widgetColor} row={4}></label>
+                            <label text={data.locationName} fontSize={Math.max(Math.min((size.width * 0.04), Math.min((size.height * 0.09), 11)), 10)} maxLines={1} opacity={0.6} color={widgetColor} row={4}></label>
                         {:else}
                             <stacklayout orientation="vertical"></stacklayout>
                         {/if}
@@ -141,24 +157,28 @@
                 <gridlayout row="auto" padding={12} rows="auto,6,auto,*,auto">
                     <gridlayout row="auto" columns="*,auto">
                         <stacklayout orientation="vertical" col={0} verticalAlignment="top">
-                            <label text={data.temperature} fontSize={Math.max(Math.min(size.width * 0.26, Math.min(size.height * 0.26, 44)), 22)} maxLines={1} fontWeight="300" color={widgetColor}></label>
-                            <label text={data.description} fontSize={Math.max(Math.min(size.width * 0.075, Math.min(size.height * 0.075, 13)), 11)} maxLines={1} color={widgetColor}></label>
+                            <label text={data.temperature} fontSize={Math.max(Math.min((size.width * 0.26), Math.min((size.height * 0.26), 44)), 22)} maxLines={1} fontWeight="300" color={widgetColor}></label>
+                            <label text={data.description} fontSize={Math.max(Math.min((size.width * 0.075), Math.min((size.height * 0.075), 13)), 11)} maxLines={1} color={widgetColor}></label>
                             <stacklayout orientation="horizontal">
-                                <label text={data.temperatureLow} fontSize={Math.max(Math.min(size.width * 0.075, Math.min(size.height * 0.075, 13)), 11)} maxLines={1} opacity={0.6} color={widgetColor} verticalAlignment="center"></label>
+                                <label text={data.temperatureLow} fontSize={Math.max(Math.min((size.width * 0.075), Math.min((size.height * 0.075), 13)), 11)} maxLines={1} opacity={0.6} color={widgetColor} verticalAlignment="center"></label>
                                 <absolutelayout width={4} verticalAlignment="center"></absolutelayout>
-                                <label text={data.temperatureHigh} fontSize={Math.max(Math.min(size.width * 0.075, Math.min(size.height * 0.075, 13)), 11)} maxLines={1} fontWeight="500" color={widgetColor} verticalAlignment="center"></label>
+                                <label text={data.temperatureHigh} fontSize={Math.max(Math.min((size.width * 0.075), Math.min((size.height * 0.075), 13)), 11)} maxLines={1} fontWeight="500" color={widgetColor} verticalAlignment="center"></label>
                             </stacklayout>
                         </stacklayout>
-                        <image src={iconService.getIconPath(data.iconPath, true, false, config.iconSet)} width={Math.min(size.width * 0.34, Math.min(size.height * 0.45, 64)) * 1.3} height={Math.min(size.width * 0.34, Math.min(size.height * 0.45, 64)) * 1.3} visibility={(data.iconPath != null) ? 'visible' : 'collapsed'} col={1} verticalAlignment="top"></image>
+                        <image src={iconService.getIconPath(data.iconPath, true, false, config.iconSet)} width={(Math.min((size.width * 0.34), Math.min((size.height * 0.45), 64)) * 1.3)} height={(Math.min((size.width * 0.34), Math.min((size.height * 0.45), 64)) * 1.3)} visibility={(data.iconPath != null) ? 'visible' : 'collapsed'} col={1} verticalAlignment="top"></image>
                     </gridlayout>
                     <absolutelayout height={6} row={1}></absolutelayout>
                     {#if size.height >= 140}
-                        <WidgetChips fontSize={Math.max(Math.min(size.width * 0.065, Math.min(size.height * 0.065, 12)), 10)} chips={data.chips} iconSize={Math.max(Math.min(size.width * 0.075, Math.min(size.height * 0.075, 14)), 12)} maxWidth={size.width - 24} maxRows={size.height >= 170 ? 2 : 1} limit={6} color={widgetColor} row={2}></WidgetChips>
+                        {#if config.settings.showChips !== false}
+                            <WidgetChips fontSize={Math.max(Math.min((size.width * 0.065), Math.min((size.height * 0.065), 12)), 10)} chips={data.chips} iconSize={Math.max(Math.min((size.width * 0.075), Math.min((size.height * 0.075), 14)), 12)} maxWidth={(size.width - 24)} maxRows={size.height >= 170 ? 2 : 1} limit={6} color={widgetColor} row={2}></WidgetChips>
+                        {:else}
+                            <stacklayout orientation="vertical"></stacklayout>
+                        {/if}
                     {:else}
                         <stacklayout orientation="vertical"></stacklayout>
                     {/if}
                     {#if size.height >= 170}
-                        <label text={data.locationName} fontSize={Math.max(Math.min(size.width * 0.065, Math.min(size.height * 0.065, 11)), 10)} maxLines={1} opacity={0.6} color={widgetColor} row={4}></label>
+                        <label text={data.locationName} fontSize={Math.max(Math.min((size.width * 0.065), Math.min((size.height * 0.065), 11)), 10)} maxLines={1} opacity={0.6} color={widgetColor} row={4}></label>
                     {:else}
                         <stacklayout orientation="vertical"></stacklayout>
                     {/if}

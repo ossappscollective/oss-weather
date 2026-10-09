@@ -183,17 +183,25 @@ fun SimpleWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
                     }
                 }
                 Spacer(modifier = GlanceModifier.height(8.dp))
-                WidgetModern.Chips(
-                    chips = data.chips,
-                    color = widgetColor,
-                    fontSize = max(min((size.width.value * 0.065f), min((size.height.value * 0.04f), 13.0f)), 11.0f) * fontScaleFactor,
-                    iconSize = max(min((size.width.value * 0.075f), min((size.height.value * 0.045f), 15.0f)), 12.0f) * fontScaleFactor,
-                    spacing = 4f,
-                    limit = 6,
-                    maxWidth = (size.width.value - 28.0f),
-                    maxRows = 2,
-                    modifier = GlanceModifier
-                )
+                if (config.settings?.get("showChips")?.jsonPrimitive?.booleanOrNull != false) {
+                    WidgetModern.Chips(
+                        chips = data.chips,
+                        color = widgetColor,
+                        fontSize = max(min((size.width.value * 0.065f), min((size.height.value * 0.04f), 13.0f)), 11.0f) * fontScaleFactor,
+                        iconSize = max(min((size.width.value * 0.075f), min((size.height.value * 0.045f), 15.0f)), 12.0f) * fontScaleFactor,
+                        spacing = 4f,
+                        limit = 6,
+                        maxWidth = (size.width.value - 28.0f),
+                        maxRows = 2,
+                        modifier = GlanceModifier
+                    )
+                }
+                else {
+                    Column(
+                        modifier = GlanceModifier,
+                    ) {
+                    }
+                }
                 Spacer(modifier = GlanceModifier.height(10.dp))
                 data.dailyData.take(when { size.height.value >= 438 -> 6; size.height.value >= 395 -> 5; size.height.value >= 352 -> 4; size.height.value >= 309 -> 3; size.height.value >= 266 -> 2; else -> 1 }).forEach { item ->
                     if (size.width.value < 250) {
@@ -271,17 +279,25 @@ fun SimpleWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
                                         maxLines = 1
                                     )
                                     Spacer(modifier = GlanceModifier.width(6.dp))
-                                    WidgetModern.Chips(
-                                        chips = item.chips,
-                                        color = widgetColor,
-                                        fontSize = 11f * fontScaleFactor,
-                                        iconSize = 12f * fontScaleFactor,
-                                        spacing = 3f,
-                                        limit = 3,
-                                        maxWidth = (size.width.value - 270.0f),
-                                        maxRows = 1,
-                                        modifier = GlanceModifier
-                                    )
+                                    if (config.settings?.get("showChips")?.jsonPrimitive?.booleanOrNull != false) {
+                                        WidgetModern.Chips(
+                                            chips = item.chips,
+                                            color = widgetColor,
+                                            fontSize = 11f * fontScaleFactor,
+                                            iconSize = 12f * fontScaleFactor,
+                                            spacing = 3f,
+                                            limit = 3,
+                                            maxWidth = (size.width.value - 222.0f),
+                                            maxRows = 1,
+                                            modifier = GlanceModifier
+                                        )
+                                    }
+                                    else {
+                                        Column(
+                                            modifier = GlanceModifier,
+                                        ) {
+                                        }
+                                    }
                                 }
                                 Text(
                                     text = item.description,
@@ -368,17 +384,25 @@ fun SimpleWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
                             }
                         }
                         Spacer(modifier = GlanceModifier.width(6.dp))
-                        WidgetModern.Chips(
-                            chips = data.chips,
-                            color = widgetColor,
-                            fontSize = max(min((size.width.value * 0.035f), min((size.height.value * 0.11f), 12.0f)), 10.0f) * fontScaleFactor,
-                            iconSize = max(min((size.width.value * 0.04f), min((size.height.value * 0.13f), 14.0f)), 12.0f) * fontScaleFactor,
-                            spacing = 4f,
-                            limit = 6,
-                            maxWidth = (size.width.value * 0.4f),
-                            maxRows = 2,
-                            modifier = GlanceModifier
-                        )
+                        if (config.settings?.get("showChips")?.jsonPrimitive?.booleanOrNull != false) {
+                            WidgetModern.Chips(
+                                chips = data.chips,
+                                color = widgetColor,
+                                fontSize = max(min((size.width.value * 0.035f), min((size.height.value * 0.11f), 12.0f)), 10.0f) * fontScaleFactor,
+                                iconSize = max(min((size.width.value * 0.04f), min((size.height.value * 0.13f), 14.0f)), 12.0f) * fontScaleFactor,
+                                spacing = 4f,
+                                limit = 6,
+                                maxWidth = (size.width.value * 0.4f),
+                                maxRows = 2,
+                                modifier = GlanceModifier
+                            )
+                        }
+                        else {
+                            Column(
+                                modifier = GlanceModifier,
+                            ) {
+                            }
+                        }
                         Spacer(modifier = GlanceModifier.width(8.dp))
                         if (data.iconPath.isNotEmpty()) {
                             WeatherWidgetManager.getIconImageProviderFromPath(data.iconPath, LocalContext.current)?.let { provider ->
@@ -440,17 +464,25 @@ fun SimpleWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
                             }
                         }
                         Spacer(modifier = GlanceModifier.height(6.dp))
-                        WidgetModern.Chips(
-                            chips = data.chips,
-                            color = widgetColor,
-                            fontSize = max(min((size.width.value * 0.04f), min((size.height.value * 0.09f), 12.0f)), 10.0f) * fontScaleFactor,
-                            iconSize = max(min((size.width.value * 0.045f), min((size.height.value * 0.1f), 14.0f)), 12.0f) * fontScaleFactor,
-                            spacing = 4f,
-                            limit = 6,
-                            maxWidth = (size.width.value - 24.0f),
-                            maxRows = when { size.height.value >= 170 -> 2; else -> 1 },
-                            modifier = GlanceModifier
-                        )
+                        if (config.settings?.get("showChips")?.jsonPrimitive?.booleanOrNull != false) {
+                            WidgetModern.Chips(
+                                chips = data.chips,
+                                color = widgetColor,
+                                fontSize = max(min((size.width.value * 0.04f), min((size.height.value * 0.09f), 12.0f)), 10.0f) * fontScaleFactor,
+                                iconSize = max(min((size.width.value * 0.045f), min((size.height.value * 0.1f), 14.0f)), 12.0f) * fontScaleFactor,
+                                spacing = 4f,
+                                limit = 6,
+                                maxWidth = (size.width.value - 24.0f),
+                                maxRows = when { size.height.value >= 170 -> 2; else -> 1 },
+                                modifier = GlanceModifier
+                            )
+                        }
+                        else {
+                            Column(
+                                modifier = GlanceModifier,
+                            ) {
+                            }
+                        }
                         Spacer(modifier = GlanceModifier.defaultWeight())
                         if (size.height.value >= 150) {
                             Text(
@@ -518,17 +550,25 @@ fun SimpleWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
                     }
                     Spacer(modifier = GlanceModifier.height(6.dp))
                     if (size.height.value >= 140) {
-                        WidgetModern.Chips(
-                            chips = data.chips,
-                            color = widgetColor,
-                            fontSize = max(min((size.width.value * 0.065f), min((size.height.value * 0.065f), 12.0f)), 10.0f) * fontScaleFactor,
-                            iconSize = max(min((size.width.value * 0.075f), min((size.height.value * 0.075f), 14.0f)), 12.0f) * fontScaleFactor,
-                            spacing = 4f,
-                            limit = 6,
-                            maxWidth = (size.width.value - 24.0f),
-                            maxRows = when { size.height.value >= 170 -> 2; else -> 1 },
-                            modifier = GlanceModifier
-                        )
+                        if (config.settings?.get("showChips")?.jsonPrimitive?.booleanOrNull != false) {
+                            WidgetModern.Chips(
+                                chips = data.chips,
+                                color = widgetColor,
+                                fontSize = max(min((size.width.value * 0.065f), min((size.height.value * 0.065f), 12.0f)), 10.0f) * fontScaleFactor,
+                                iconSize = max(min((size.width.value * 0.075f), min((size.height.value * 0.075f), 14.0f)), 12.0f) * fontScaleFactor,
+                                spacing = 4f,
+                                limit = 6,
+                                maxWidth = (size.width.value - 24.0f),
+                                maxRows = when { size.height.value >= 170 -> 2; else -> 1 },
+                                modifier = GlanceModifier
+                            )
+                        }
+                        else {
+                            Column(
+                                modifier = GlanceModifier,
+                            ) {
+                            }
+                        }
                     }
                     else {
                         Column(

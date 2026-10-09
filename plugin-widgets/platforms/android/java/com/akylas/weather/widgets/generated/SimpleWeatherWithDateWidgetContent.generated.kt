@@ -155,6 +155,38 @@ fun SimpleWeatherWithDateWidgetContent(config: WidgetConfig, data: WeatherWidget
                         text = android.text.format.DateFormat.getLongDateFormat(context).format(java.util.Date()),
                         style = TextStyle(fontSize = (max(min((size.width.value * 0.05f), min((size.height.value * 0.13f), 13.0f)), 10.0f) * fontScaleFactor).sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.6f)))
                     )
+                    if (size.height.value >= 130) {
+                        Column(
+                            modifier = GlanceModifier,
+                        ) {
+                            Spacer(modifier = GlanceModifier.height(4.dp))
+                            if (config.settings?.get("showChips")?.jsonPrimitive?.booleanOrNull != false) {
+                                WidgetModern.Chips(
+                                    chips = data.chips,
+                                    color = widgetColor,
+                                    fontSize = 11f * fontScaleFactor,
+                                    iconSize = 12f * fontScaleFactor,
+                                    spacing = 4f,
+                                    limit = 4,
+                                    maxWidth = (size.width.value - 170.0f),
+                                    maxRows = 1,
+                                    modifier = GlanceModifier
+                                )
+                            }
+                            else {
+                                Column(
+                                    modifier = GlanceModifier,
+                                ) {
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        Column(
+                            modifier = GlanceModifier,
+                        ) {
+                        }
+                    }
                 }
                 Column(
                     modifier = GlanceModifier,
@@ -319,6 +351,38 @@ fun SimpleWeatherWithDateWidgetContent(config: WidgetConfig, data: WeatherWidget
                             style = TextStyle(fontSize = (max(min((size.width.value * 0.08f), min((size.height.value * 0.08f), 12.0f)), 10.0f) * fontScaleFactor).sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.6f)))
                         )
                         Spacer(modifier = GlanceModifier.defaultWeight())
+                        if (size.height.value >= 170) {
+                            Column(
+                                modifier = GlanceModifier,
+                            ) {
+                                if (config.settings?.get("showChips")?.jsonPrimitive?.booleanOrNull != false) {
+                                    WidgetModern.Chips(
+                                        chips = data.chips,
+                                        color = widgetColor,
+                                        fontSize = 11f * fontScaleFactor,
+                                        iconSize = 12f * fontScaleFactor,
+                                        spacing = 4f,
+                                        limit = 4,
+                                        maxWidth = (size.width.value - 24.0f),
+                                        maxRows = 1,
+                                        modifier = GlanceModifier
+                                    )
+                                }
+                                else {
+                                    Column(
+                                        modifier = GlanceModifier,
+                                    ) {
+                                    }
+                                }
+                                Spacer(modifier = GlanceModifier.height(6.dp))
+                            }
+                        }
+                        else {
+                            Column(
+                                modifier = GlanceModifier,
+                            ) {
+                            }
+                        }
                         Row(
                             modifier = GlanceModifier.fillMaxWidth(),
                             verticalAlignment = Alignment.Vertical.CenterVertically,
@@ -428,6 +492,26 @@ fun SimpleWeatherWithDateWidgetContent(config: WidgetConfig, data: WeatherWidget
                                 )
                             }
                         }
+                        Spacer(modifier = GlanceModifier.height(8.dp))
+                        if (config.settings?.get("showChips")?.jsonPrimitive?.booleanOrNull != false) {
+                            WidgetModern.Chips(
+                                chips = data.chips,
+                                color = widgetColor,
+                                fontSize = 12f * fontScaleFactor,
+                                iconSize = 14f * fontScaleFactor,
+                                spacing = 4f,
+                                limit = 6,
+                                maxWidth = (size.width.value - 36.0f),
+                                maxRows = 1,
+                                modifier = GlanceModifier
+                            )
+                        }
+                        else {
+                            Column(
+                                modifier = GlanceModifier,
+                            ) {
+                            }
+                        }
                         Spacer(modifier = GlanceModifier.height(10.dp))
                         if ((config.settings?.get("showHourly")?.jsonPrimitive?.booleanOrNull == true && size.height.value >= 300)) {
                             Column(
@@ -477,7 +561,7 @@ fun SimpleWeatherWithDateWidgetContent(config: WidgetConfig, data: WeatherWidget
                             ) {
                             }
                         }
-                        data.dailyData.take(when { (config.settings?.get("showHourly")?.jsonPrimitive?.booleanOrNull == true && size.height.value >= 300) -> when { size.height.value >= 500 -> 4; size.height.value >= 457 -> 3; size.height.value >= 414 -> 2; size.height.value >= 371 -> 1; else -> 0 }; else -> when { size.height.value >= 455 -> 6; size.height.value >= 412 -> 5; size.height.value >= 369 -> 4; size.height.value >= 326 -> 3; size.height.value >= 283 -> 2; size.height.value >= 240 -> 1; else -> 0 } }).forEach { item ->
+                        data.dailyData.take(when { (config.settings?.get("showHourly")?.jsonPrimitive?.booleanOrNull == true && size.height.value >= 300) -> when { size.height.value >= 530 -> 4; size.height.value >= 487 -> 3; size.height.value >= 444 -> 2; size.height.value >= 401 -> 1; else -> 0 }; else -> when { size.height.value >= 485 -> 6; size.height.value >= 442 -> 5; size.height.value >= 399 -> 4; size.height.value >= 356 -> 3; size.height.value >= 313 -> 2; size.height.value >= 270 -> 1; else -> 0 } }).forEach { item ->
                             if (size.width.value < 250) {
                                 Row(
                                     modifier = GlanceModifier.fillMaxWidth().padding(vertical = (3).dp),
@@ -553,17 +637,25 @@ fun SimpleWeatherWithDateWidgetContent(config: WidgetConfig, data: WeatherWidget
                                                 maxLines = 1
                                             )
                                             Spacer(modifier = GlanceModifier.width(6.dp))
-                                            WidgetModern.Chips(
-                                                chips = item.chips,
-                                                color = widgetColor,
-                                                fontSize = 11f * fontScaleFactor,
-                                                iconSize = 12f * fontScaleFactor,
-                                                spacing = 3f,
-                                                limit = 3,
-                                                maxWidth = (size.width.value - 270.0f),
-                                                maxRows = 1,
-                                                modifier = GlanceModifier
-                                            )
+                                            if (config.settings?.get("showChips")?.jsonPrimitive?.booleanOrNull != false) {
+                                                WidgetModern.Chips(
+                                                    chips = item.chips,
+                                                    color = widgetColor,
+                                                    fontSize = 11f * fontScaleFactor,
+                                                    iconSize = 12f * fontScaleFactor,
+                                                    spacing = 3f,
+                                                    limit = 3,
+                                                    maxWidth = (size.width.value - 222.0f),
+                                                    maxRows = 1,
+                                                    modifier = GlanceModifier
+                                                )
+                                            }
+                                            else {
+                                                Column(
+                                                    modifier = GlanceModifier,
+                                                ) {
+                                                }
+                                            }
                                         }
                                         Text(
                                             text = item.description,
@@ -631,6 +723,38 @@ fun SimpleWeatherWithDateWidgetContent(config: WidgetConfig, data: WeatherWidget
                                 text = android.text.format.DateFormat.getLongDateFormat(context).format(java.util.Date()),
                                 style = TextStyle(fontSize = (max(min((size.width.value * 0.05f), min((size.height.value * 0.13f), 13.0f)), 10.0f) * fontScaleFactor).sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.6f)))
                             )
+                            if (size.height.value >= 130) {
+                                Column(
+                                    modifier = GlanceModifier,
+                                ) {
+                                    Spacer(modifier = GlanceModifier.height(4.dp))
+                                    if (config.settings?.get("showChips")?.jsonPrimitive?.booleanOrNull != false) {
+                                        WidgetModern.Chips(
+                                            chips = data.chips,
+                                            color = widgetColor,
+                                            fontSize = 11f * fontScaleFactor,
+                                            iconSize = 12f * fontScaleFactor,
+                                            spacing = 4f,
+                                            limit = 4,
+                                            maxWidth = (size.width.value - 170.0f),
+                                            maxRows = 1,
+                                            modifier = GlanceModifier
+                                        )
+                                    }
+                                    else {
+                                        Column(
+                                            modifier = GlanceModifier,
+                                        ) {
+                                        }
+                                    }
+                                }
+                            }
+                            else {
+                                Column(
+                                    modifier = GlanceModifier,
+                                ) {
+                                }
+                            }
                         }
                         Column(
                             modifier = GlanceModifier,

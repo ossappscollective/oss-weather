@@ -42,7 +42,7 @@
                     </stacklayout>
                     </Template>
                 </collectionview>
-            <WidgetHourlyChart fontSize={13} height={Math.max(size.height - 110, 60)} hours={data.hourlyData} limit={size.width >= 400 ? 7 : size.width >= 330 ? 6 : size.width >= 260 ? 5 : 4} color={widgetColor}></WidgetHourlyChart>
+            <WidgetHourlyChart fontSize={13} height={Math.max((size.height - 110), 60)} hours={data.hourlyData} limit={size.width >= 400 ? 7 : size.width >= 330 ? 6 : size.width >= 260 ? 5 : 4} color={widgetColor}></WidgetHourlyChart>
         </stacklayout>
     {:else}
         <stacklayout paddingLeft={6} paddingRight={6} paddingTop={8} paddingBottom={8} orientation="vertical">

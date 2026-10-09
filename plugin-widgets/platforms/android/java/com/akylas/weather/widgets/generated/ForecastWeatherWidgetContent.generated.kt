@@ -145,17 +145,25 @@ fun ForecastWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) 
             }
         }
         Spacer(modifier = GlanceModifier.height(6.dp))
-        WidgetModern.Chips(
-            chips = data.chips,
-            color = widgetColor,
-            fontSize = 12f * fontScaleFactor,
-            iconSize = 14f * fontScaleFactor,
-            spacing = 4f,
-            limit = 6,
-            maxWidth = (size.width.value - 28.0f),
-            maxRows = 2,
-            modifier = GlanceModifier
-        )
+        if (config.settings?.get("showChips")?.jsonPrimitive?.booleanOrNull != false) {
+            WidgetModern.Chips(
+                chips = data.chips,
+                color = widgetColor,
+                fontSize = 12f * fontScaleFactor,
+                iconSize = 14f * fontScaleFactor,
+                spacing = 4f,
+                limit = 6,
+                maxWidth = (size.width.value - 28.0f),
+                maxRows = 2,
+                modifier = GlanceModifier
+            )
+        }
+        else {
+            Column(
+                modifier = GlanceModifier,
+            ) {
+            }
+        }
         Spacer(modifier = GlanceModifier.height(10.dp))
         if (size.height.value >= 380) {
             Column(
@@ -281,17 +289,25 @@ fun ForecastWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) 
                                 maxLines = 1
                             )
                             Spacer(modifier = GlanceModifier.width(6.dp))
-                            WidgetModern.Chips(
-                                chips = item.chips,
-                                color = widgetColor,
-                                fontSize = 11f * fontScaleFactor,
-                                iconSize = 12f * fontScaleFactor,
-                                spacing = 3f,
-                                limit = 3,
-                                maxWidth = (size.width.value - 270.0f),
-                                maxRows = 1,
-                                modifier = GlanceModifier
-                            )
+                            if (config.settings?.get("showChips")?.jsonPrimitive?.booleanOrNull != false) {
+                                WidgetModern.Chips(
+                                    chips = item.chips,
+                                    color = widgetColor,
+                                    fontSize = 11f * fontScaleFactor,
+                                    iconSize = 12f * fontScaleFactor,
+                                    spacing = 3f,
+                                    limit = 3,
+                                    maxWidth = (size.width.value - 222.0f),
+                                    maxRows = 1,
+                                    modifier = GlanceModifier
+                                )
+                            }
+                            else {
+                                Column(
+                                    modifier = GlanceModifier,
+                                ) {
+                                }
+                            }
                         }
                         Text(
                             text = item.description,

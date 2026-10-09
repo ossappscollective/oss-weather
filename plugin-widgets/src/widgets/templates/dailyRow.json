@@ -76,13 +76,18 @@
                             },
                             { "type": "spacer", "size": 6, "direction": "horizontal" },
                             {
-                                "type": "chips",
-                                "items": "item.chips",
-                                "limit": 3,
-                                "fontSize": 11,
-                                "iconSize": 12,
-                                "chipSpacing": 3,
-                                "maxWidth": ["-", ["get", "size.width"], 270]
+                                "type": "conditional",
+                                "condition": ["!=", ["get", "config.settings.showChips"], false],
+                                "then": {
+                                    "type": "chips",
+                                    "items": "item.chips",
+                                    "limit": 3,
+                                    "fontSize": 11,
+                                    "iconSize": 12,
+                                    "chipSpacing": 3,
+                                    "maxWidth": ["-", ["get", "size.width"], 222]
+                                },
+                                "else": { "type": "column", "children": [] }
                             }
                         ],
                         "crossAlignment": "center"

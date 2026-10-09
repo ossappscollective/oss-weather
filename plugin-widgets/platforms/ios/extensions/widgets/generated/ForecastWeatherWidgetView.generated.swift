@@ -50,7 +50,13 @@ struct ForecastWeatherWidgetView: View {
                             }
                         }.frame(maxWidth: .infinity)
                         Spacer().frame(height: 6)
-                        WidgetChipsView(chips: (data.chips ?? []), color: widgetColor, fontSize: 12, iconSize: 14, spacing: 4, limit: 6, maxWidth: (width - 28), maxRows: 2)
+                        if entry.config.settings["showChips"] as? Bool != false {
+                            WidgetChipsView(chips: (data.chips ?? []), color: widgetColor, fontSize: 12, iconSize: 14, spacing: 4, limit: 6, maxWidth: (width - 28), maxRows: 2)
+                        }
+                        else {
+                            VStack(alignment: .center, spacing: 0) {
+                            }
+                        }
                         Spacer().frame(height: 10)
                         if height >= 380 {
                             VStack(alignment: .center, spacing: 0) {
@@ -118,7 +124,13 @@ struct ForecastWeatherWidgetView: View {
                                                 .foregroundColor(widgetColor)
                                                 .lineLimit(1).opacity(0.6)
                                             Spacer().frame(width: 6)
-                                            WidgetChipsView(chips: item.chips, color: widgetColor, fontSize: 11, iconSize: 12, spacing: 3, limit: 3, maxWidth: (width - 270), maxRows: 1)
+                                            if entry.config.settings["showChips"] as? Bool != false {
+                                                WidgetChipsView(chips: item.chips, color: widgetColor, fontSize: 11, iconSize: 12, spacing: 3, limit: 3, maxWidth: (width - 222), maxRows: 1)
+                                            }
+                                            else {
+                                                VStack(alignment: .center, spacing: 0) {
+                                                }
+                                            }
                                         }
                                         Text(item.description)
                                             .font(.system(size: 12, weight: .regular))

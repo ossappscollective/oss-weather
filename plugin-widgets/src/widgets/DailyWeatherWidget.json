@@ -79,12 +79,17 @@
                                     },
                                     { "type": "spacer", "size": 3 },
                                     {
-                                        "type": "chips",
-                                        "items": "item.precipChips",
-                                        "limit": 1,
-                                        "fontSize": 11,
-                                        "iconSize": 11,
-                                        "maxWidth": ["/", ["-", ["get", "size.width"], 24], ["case", [">=", ["get", "size.width"], 340], 5, 4]]
+                                        "type": "conditional",
+                                        "condition": ["!=", ["get", "config.settings.showChips"], false],
+                                        "then": {
+                                            "type": "chips",
+                                            "items": "item.precipChips",
+                                            "limit": 1,
+                                            "fontSize": 11,
+                                            "iconSize": 11,
+                                            "maxWidth": ["/", ["-", ["get", "size.width"], 24], ["case", [">=", ["get", "size.width"], 340], 5, 4]]
+                                        },
+                                        "else": { "type": "column", "children": [] }
                                     }
                                 ],
                                 "flex": 1,
@@ -220,5 +225,8 @@
                 }
             ]
         }
+    },
+    "settings": {
+        "showChips": { "type": "boolean", "default": true, "title": "widget_show_chips" }
     }
 }

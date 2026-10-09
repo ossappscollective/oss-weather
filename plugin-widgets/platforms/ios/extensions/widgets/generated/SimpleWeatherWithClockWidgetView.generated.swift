@@ -83,6 +83,22 @@ struct SimpleWeatherWithClockWidgetView: View {
                                             .font(.system(size: max(min((width * 0.09), min((height * 0.09), 13)), 10), weight: .regular))
                                             .foregroundColor(widgetColor)
                                         Spacer()
+                                        if height >= 170 {
+                                            VStack(alignment: .center, spacing: 0) {
+                                                if entry.config.settings["showChips"] as? Bool != false {
+                                                    WidgetChipsView(chips: (data.chips ?? []), color: widgetColor, fontSize: 11, iconSize: 12, spacing: 4, limit: 4, maxWidth: (width - 24), maxRows: 1)
+                                                }
+                                                else {
+                                                    VStack(alignment: .center, spacing: 0) {
+                                                    }
+                                                }
+                                                Spacer().frame(height: 6)
+                                            }
+                                        }
+                                        else {
+                                            VStack(alignment: .center, spacing: 0) {
+                                            }
+                                        }
                                         HStack(alignment: .center, spacing: 0) {
                                             VStack(alignment: .center, spacing: 0) {
                                                 Text(data.temperature)
@@ -146,6 +162,14 @@ struct SimpleWeatherWithClockWidgetView: View {
                                                     .lineLimit(1)
                                             }
                                         }.frame(maxWidth: .infinity)
+                                        Spacer().frame(height: 8)
+                                        if entry.config.settings["showChips"] as? Bool != false {
+                                            WidgetChipsView(chips: (data.chips ?? []), color: widgetColor, fontSize: 12, iconSize: 14, spacing: 4, limit: 6, maxWidth: (width - 36), maxRows: 1)
+                                        }
+                                        else {
+                                            VStack(alignment: .center, spacing: 0) {
+                                            }
+                                        }
                                         Spacer().frame(height: 10)
                                         if (entry.config.settings["showHourly"] as? Bool == true && height >= 300) {
                                             VStack(alignment: .center, spacing: 0) {
@@ -170,7 +194,7 @@ struct SimpleWeatherWithClockWidgetView: View {
                                             VStack(alignment: .center, spacing: 0) {
                                             }.frame(maxWidth: .infinity)
                                         }
-                                        ForEach(Array(data.dailyData.prefix((entry.config.settings["showHourly"] as? Bool == true && height >= 300) ? height >= 500 ? 4 : height >= 457 ? 3 : height >= 414 ? 2 : height >= 371 ? 1 : 0 : height >= 455 ? 6 : height >= 412 ? 5 : height >= 369 ? 4 : height >= 326 ? 3 : height >= 283 ? 2 : height >= 240 ? 1 : 0).enumerated()), id: \.offset) { index, item in
+                                        ForEach(Array(data.dailyData.prefix((entry.config.settings["showHourly"] as? Bool == true && height >= 300) ? height >= 530 ? 4 : height >= 487 ? 3 : height >= 444 ? 2 : height >= 401 ? 1 : 0 : height >= 485 ? 6 : height >= 442 ? 5 : height >= 399 ? 4 : height >= 356 ? 3 : height >= 313 ? 2 : height >= 270 ? 1 : 0).enumerated()), id: \.offset) { index, item in
                                             if width < 250 {
                                                 HStack(alignment: .center, spacing: 0) {
                                                     WeatherIconView(item.iconPath, description: data.description, size: 22)
@@ -213,7 +237,13 @@ struct SimpleWeatherWithClockWidgetView: View {
                                                                 .foregroundColor(widgetColor)
                                                                 .lineLimit(1).opacity(0.6)
                                                             Spacer().frame(width: 6)
-                                                            WidgetChipsView(chips: item.chips, color: widgetColor, fontSize: 11, iconSize: 12, spacing: 3, limit: 3, maxWidth: (width - 270), maxRows: 1)
+                                                            if entry.config.settings["showChips"] as? Bool != false {
+                                                                WidgetChipsView(chips: item.chips, color: widgetColor, fontSize: 11, iconSize: 12, spacing: 3, limit: 3, maxWidth: (width - 222), maxRows: 1)
+                                                            }
+                                                            else {
+                                                                VStack(alignment: .center, spacing: 0) {
+                                                                }
+                                                            }
                                                         }
                                                         Text(item.description)
                                                             .font(.system(size: 12, weight: .regular))
@@ -259,6 +289,22 @@ struct SimpleWeatherWithClockWidgetView: View {
                                             }())
                                                 .font(.system(size: max(min((width * 0.05), min((height * 0.13), 13)), 10), weight: .regular))
                                                 .foregroundColor(widgetColor)
+                                            if height >= 130 {
+                                                VStack(alignment: .center, spacing: 0) {
+                                                    Spacer().frame(height: 4)
+                                                    if entry.config.settings["showChips"] as? Bool != false {
+                                                        WidgetChipsView(chips: (data.chips ?? []), color: widgetColor, fontSize: 11, iconSize: 12, spacing: 4, limit: 4, maxWidth: (width - 170), maxRows: 1)
+                                                    }
+                                                    else {
+                                                        VStack(alignment: .center, spacing: 0) {
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            else {
+                                                VStack(alignment: .center, spacing: 0) {
+                                                }
+                                            }
                                         }.layoutPriority(1)
                                         VStack(alignment: .trailing, spacing: 0) {
                                             HStack(alignment: .center, spacing: 0) {

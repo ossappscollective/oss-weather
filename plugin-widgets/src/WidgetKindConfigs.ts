@@ -18,7 +18,9 @@ export const WIDGET_KIND_CONFIGS: Record<string, WidgetConfig> = {
         provider: null,
         widgetKind: 'DailyWeatherWidget',
         iconSet: null,
-        settings: null
+        settings: {
+            "showChips": true
+        }
     },
     'ForecastWeatherWidget': {
         locationName: 'current',
@@ -28,7 +30,9 @@ export const WIDGET_KIND_CONFIGS: Record<string, WidgetConfig> = {
         provider: null,
         widgetKind: 'ForecastWeatherWidget',
         iconSet: null,
-        settings: null
+        settings: {
+            "showChips": true
+        }
     },
     'HourlyWeatherWidget': {
         locationName: 'current',
@@ -48,7 +52,9 @@ export const WIDGET_KIND_CONFIGS: Record<string, WidgetConfig> = {
         provider: null,
         widgetKind: 'SimpleWeatherWidget',
         iconSet: null,
-        settings: null
+        settings: {
+            "showChips": true
+        }
     },
     'SimpleWeatherWithClockWidget': {
         locationName: 'current',
@@ -60,7 +66,8 @@ export const WIDGET_KIND_CONFIGS: Record<string, WidgetConfig> = {
         iconSet: null,
         settings: {
             "clockBold": false,
-            "showHourly": false
+            "showHourly": false,
+            "showChips": true
         }
     },
     'SimpleWeatherWithDateWidget': {
@@ -73,7 +80,8 @@ export const WIDGET_KIND_CONFIGS: Record<string, WidgetConfig> = {
         iconSet: null,
         settings: {
             "clockBold": false,
-            "showHourly": false
+            "showHourly": false,
+            "showChips": true
         }
     }
 };

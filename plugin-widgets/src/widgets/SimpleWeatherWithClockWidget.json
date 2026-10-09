@@ -7,7 +7,8 @@
     "color": ["case", ["has", ["get", "config.settings.color"]], ["get", "config.settings.color"], "color.onSurface"],
     "settings": {
         "clockBold": { "type": "boolean", "default": false, "title": "bold_clock" },
-        "showHourly": { "type": "boolean", "default": false, "title": "widget_show_hourly" }
+        "showHourly": { "type": "boolean", "default": false, "title": "widget_show_hourly" },
+        "showChips": { "type": "boolean", "default": true, "title": "widget_show_chips" }
     },
     "layout": {
         "type": "conditional",
@@ -143,6 +144,30 @@
                                 "opacity": 0.6
                             },
                             { "type": "spacer", "flex": 1 },
+                            {
+                                "type": "conditional",
+                                "condition": [">=", ["get", "size.height"], 170],
+                                "then": {
+                                    "type": "column",
+                                    "children": [
+                                        {
+                                            "type": "conditional",
+                                            "condition": ["!=", ["get", "config.settings.showChips"], false],
+                                            "then": {
+                                                "type": "chips",
+                                                "items": "chips",
+                                                "limit": 4,
+                                                "fontSize": 11,
+                                                "iconSize": 12,
+                                                "maxWidth": ["-", ["get", "size.width"], 24]
+                                            },
+                                            "else": { "type": "column", "children": [] }
+                                        },
+                                        { "type": "spacer", "size": 6 }
+                                    ]
+                                },
+                                "else": { "type": "column", "children": [] }
+                            },
                             {
                                 "type": "row",
                                 "children": [
@@ -296,6 +321,20 @@
                                 "fillWidth": true,
                                 "crossAlignment": "center"
                             },
+                            { "type": "spacer", "size": 8 },
+                            {
+                                "type": "conditional",
+                                "condition": ["!=", ["get", "config.settings.showChips"], false],
+                                "then": {
+                                    "type": "chips",
+                                    "items": "chips",
+                                    "limit": 6,
+                                    "fontSize": 12,
+                                    "iconSize": 14,
+                                    "maxWidth": ["-", ["get", "size.width"], 36]
+                                },
+                                "else": { "type": "column", "children": [] }
+                            },
                             { "type": "spacer", "size": 10 },
                             {
                                 "type": "conditional",
@@ -315,29 +354,29 @@
                                     ["all", ["==", ["get", "config.settings.showHourly"], true], [">=", ["get", "size.height"], 300]],
                                     [
                                         "case",
-                                        [">=", ["get", "size.height"], 500],
+                                        [">=", ["get", "size.height"], 530],
                                         4,
-                                        [">=", ["get", "size.height"], 457],
+                                        [">=", ["get", "size.height"], 487],
                                         3,
-                                        [">=", ["get", "size.height"], 414],
+                                        [">=", ["get", "size.height"], 444],
                                         2,
-                                        [">=", ["get", "size.height"], 371],
+                                        [">=", ["get", "size.height"], 401],
                                         1,
                                         0
                                     ],
                                     [
                                         "case",
-                                        [">=", ["get", "size.height"], 455],
+                                        [">=", ["get", "size.height"], 485],
                                         6,
-                                        [">=", ["get", "size.height"], 412],
+                                        [">=", ["get", "size.height"], 442],
                                         5,
-                                        [">=", ["get", "size.height"], 369],
+                                        [">=", ["get", "size.height"], 399],
                                         4,
-                                        [">=", ["get", "size.height"], 326],
+                                        [">=", ["get", "size.height"], 356],
                                         3,
-                                        [">=", ["get", "size.height"], 283],
+                                        [">=", ["get", "size.height"], 313],
                                         2,
-                                        [">=", ["get", "size.height"], 240],
+                                        [">=", ["get", "size.height"], 270],
                                         1,
                                         0
                                     ]
@@ -370,6 +409,30 @@
                                         "fontSize": ["max", ["min", ["*", ["get", "size.width"], 0.05], ["min", ["*", ["get", "size.height"], 0.13], 13]], 10],
                                         "maxLines": 1,
                                         "opacity": 0.6
+                                    },
+                                    {
+                                        "type": "conditional",
+                                        "condition": [">=", ["get", "size.height"], 130],
+                                        "then": {
+                                            "type": "column",
+                                            "children": [
+                                                { "type": "spacer", "size": 4 },
+                                                {
+                                                    "type": "conditional",
+                                                    "condition": ["!=", ["get", "config.settings.showChips"], false],
+                                                    "then": {
+                                                        "type": "chips",
+                                                        "items": "chips",
+                                                        "limit": 4,
+                                                        "fontSize": 11,
+                                                        "iconSize": 12,
+                                                        "maxWidth": ["-", ["get", "size.width"], 170]
+                                                    },
+                                                    "else": { "type": "column", "children": [] }
+                                                }
+                                            ]
+                                        },
+                                        "else": { "type": "column", "children": [] }
                                     }
                                 ],
                                 "flex": 1

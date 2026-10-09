@@ -40,7 +40,11 @@
                             <label text={item.temperatureHigh} fontSize={13} maxLines={1} fontWeight="500" color={widgetColor} verticalAlignment="center"></label>
                         </stacklayout>
                         <absolutelayout height={3} horizontalAlignment="center"></absolutelayout>
-                        <WidgetChips fontSize={11} chips={item.precipChips} iconSize={11} maxWidth={size.width - 24 / size.width >= 340 ? 5 : 4} limit={1} color={widgetColor} horizontalAlignment="center"></WidgetChips>
+                        {#if config.settings.showChips !== false}
+                            <WidgetChips fontSize={11} chips={item.precipChips} iconSize={11} maxWidth={((size.width - 24) / size.width >= 340 ? 5 : 4)} limit={1} color={widgetColor} horizontalAlignment="center"></WidgetChips>
+                        {:else}
+                            <stacklayout orientation="vertical" horizontalAlignment="center"></stacklayout>
+                        {/if}
                     </stacklayout>
                     </Template>
                 </collectionview>
@@ -78,7 +82,11 @@
                                 <absolutelayout width={4} verticalAlignment="center"></absolutelayout>
                                 <label text={item.date} fontSize={12} maxLines={1} opacity={0.6} color={widgetColor} verticalAlignment="center"></label>
                                 <absolutelayout width={6} verticalAlignment="center"></absolutelayout>
-                                <WidgetChips fontSize={11} chips={item.chips} iconSize={12} chipSpacing={3} maxWidth={size.width - 270} limit={3} color={widgetColor} verticalAlignment="center"></WidgetChips>
+                                {#if config.settings.showChips !== false}
+                                    <WidgetChips fontSize={11} chips={item.chips} iconSize={12} chipSpacing={3} maxWidth={(size.width - 222)} limit={3} color={widgetColor} verticalAlignment="center"></WidgetChips>
+                                {:else}
+                                    <stacklayout orientation="vertical" verticalAlignment="center"></stacklayout>
+                                {/if}
                             </stacklayout>
                             <label text={item.description} fontSize={12} maxLines={1} opacity={0.6} color={widgetColor}></label>
                         </stacklayout>
@@ -87,8 +95,8 @@
                         <gridlayout row="auto" width={30} height={3} col={5} verticalAlignment="center">
                             <stacklayout width={30} height={3} backgroundColor={colorSurfaceVariant} borderRadius={2} orientation="horizontal"></stacklayout>
                             <stacklayout height={3} orientation="horizontal">
-                                <absolutelayout width={item.rangeStart * 30}></absolutelayout>
-                                <stacklayout width={item.rangeEnd - item.rangeStart * 30} height={3} backgroundColor="#EF9F27" borderRadius={2} orientation="horizontal"></stacklayout>
+                                <absolutelayout width={(item.rangeStart * 30)}></absolutelayout>
+                                <stacklayout width={((item.rangeEnd - item.rangeStart) * 30)} height={3} backgroundColor="#EF9F27" borderRadius={2} orientation="horizontal"></stacklayout>
                             </stacklayout>
                         </gridlayout>
                         <absolutelayout width={5} col={6} verticalAlignment="center"></absolutelayout>
