@@ -6,10 +6,6 @@
             <solid android:color="@color/md_theme_background" />
         </shape>
     </item>
-    <item android:gravity="center" >
-        <shape android:shape="oval">
-            <solid android:color="@color/md_theme_primary"/>
-            <size  android:width="120dp" android:height="120dp"/>
-        </shape>
-    </item>
+    <!-- the app icon artwork (2/3 of the drawable) -->
+    <item android:gravity="center" android:width="180dp" android:height="180dp" android:drawable="@drawable/ic_launcher_foreground" />
 </layer-list>
