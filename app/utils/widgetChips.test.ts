@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { widgetChip } from './widgetChips';
+import { packChips, widgetChip } from './widgetChips';
 
 describe('widgetChip', () => {
     it('keeps the value and its unit', () => {
@@ -15,5 +15,23 @@ describe('widgetChip', () => {
     });
     it('does not tint when the data intensity is off', () => {
         expect(widgetChip({ value: '70', tint: { color: '#888780', fraction: 1 } }, 'icon.png', false).tint).toBe('');
+    });
+});
+
+describe('packChips', () => {
+    it('keeps the chips that fit on one row', () => {
+        expect(packChips([40, 40, 40], 100, 4, 1)).toEqual([[0, 1]]);
+    });
+    it('wraps to the next rows', () => {
+        expect(packChips([40, 40, 40, 40], 100, 4, 2)).toEqual([
+            [0, 1],
+            [2, 3]
+        ]);
+    });
+    it('stops at the first chip that does not fit, to keep the data order', () => {
+        expect(packChips([40, 90, 20], 100, 4, 1)).toEqual([[0]]);
+    });
+    it('shows nothing when the first chip is too wide', () => {
+        expect(packChips([120], 100, 4, 2)).toEqual([]);
     });
 });

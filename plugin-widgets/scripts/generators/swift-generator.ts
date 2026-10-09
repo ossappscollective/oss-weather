@@ -13,7 +13,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { Expression, compileExpression, compilePropertyValue as compilePropValue } from './expression-compiler';
-import { BaseLayoutElement, getSettingKey, getSingleBinding, hasTemplateBinding, isExpression, isSettingReference, toPlatformFontWeight } from './shared-utils';
+import { BaseLayoutElement, getSettingKey, getSingleBinding, hasTemplateBinding, isExpression, isSettingReference, resolveTemplates, toPlatformFontWeight } from './shared-utils';
 import { DEFAULT_COLOR_MAPS } from './modifier-builders';
 import { compilePropertyValue } from './expression-compiler';
 
@@ -529,6 +529,12 @@ function generateElement(element: BaseLayoutElement, indent: string = '         
         case 'date':
             lines.push(...generateDate(element, currentIndent, defaultColor));
             break;
+        case 'chips':
+            lines.push(...generateChips(element, currentIndent, defaultColor));
+            break;
+        case 'hourlyChart':
+            lines.push(...generateHourlyChart(element, currentIndent, defaultColor));
+            break;
         default:
             lines.push(`${currentIndent}// Unknown element type: ${element.type}`);
     }
@@ -760,6 +766,36 @@ function generateForEach(element: BaseLayoutElement, indent: string, defaultColo
 
     lines.push(`${indent}}`);
 
+    return lines;
+}
+
+function swiftNumber(value: Expression | undefined, defaultValue: number) {
+    return value === undefined ? String(defaultValue) : compileToSwift(value, String(defaultValue));
+}
+
+function swiftDefaultColor(defaultColor?: string) {
+    return defaultColor && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(defaultColor) ? defaultColor : 'WidgetColorProvider.onSurface';
+}
+
+// modern weather data chips (ModernComponents.swift): content sized, wrapping on maxRows rows of maxWidth
+function generateChips(element: BaseLayoutElement, indent: string, defaultColor?: string): string[] {
+    const items = element.items || 'chips';
+    // data chips are optional (older app data), item chips are not
+    const list = items.startsWith('item.') ? items : `(data.${items} ?? [])`;
+    const lines = [
+        `${indent}WidgetChipsView(chips: ${list}, color: ${swiftDefaultColor(defaultColor)}, fontSize: ${swiftNumber(element.fontSize, 12)}, iconSize: ${swiftNumber(element.iconSize, 14)}, spacing: ${swiftNumber(element.chipSpacing, 4)}, limit: ${swiftNumber(element.limit, 4)}, maxWidth: ${swiftNumber(element.maxWidth, 10000)}, maxRows: ${swiftNumber(element.maxRows, 1)})`
+    ];
+    applySwiftModifiers(lines, element);
+    return lines;
+}
+
+// the app hourly card chart (ModernComponents.swift): temperature curve and values, precipitation
+function generateHourlyChart(element: BaseLayoutElement, indent: string, defaultColor?: string): string[] {
+    const items = element.items || 'hourlyData';
+    const lines = [
+        `${indent}WidgetHourlyChartView(hours: ${items.startsWith('item.') ? items : `data.${items}`}, limit: ${swiftNumber(element.limit, 6)}, color: ${swiftDefaultColor(defaultColor)}, fontSize: ${swiftNumber(element.fontSize, 13)})`
+    ];
+    applySwiftModifiers(lines, { ...element, height: element.height ?? 80 });
     return lines;
 }
 
@@ -1015,7 +1051,7 @@ export function generateAllWidgets(layoutsDir: string, outputDir: string, widget
 
     for (const layoutFilePath of widgetFiles) {
         try {
-            const layout: WidgetLayout = JSON.parse(fs.readFileSync(layoutFilePath, 'utf-8'));
+            const layout: WidgetLayout = resolveTemplates(JSON.parse(fs.readFileSync(layoutFilePath, 'utf-8')), path.join(path.dirname(layoutFilePath), 'templates'));
 
             const swiftCode = generateWidgetView(layout);
             const fileName = `${layout.name}View.generated.swift`;

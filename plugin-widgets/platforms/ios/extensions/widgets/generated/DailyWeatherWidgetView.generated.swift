@@ -14,6 +14,7 @@ struct DailyWeatherWidgetView: View {
             let width = geometry.size.width
             let height = geometry.size.height
             let config = entry.config ?? WidgetConfig()
+            let widgetColor = (entry.config.settings["color"] as? String == nil ? WidgetColorProvider.onSurface : entry.config.settings["color"] as? String as? String).flatMap { Color(UIColor(hexString: $0)) } ?? WidgetColorProvider.onSurface
             
             if let data = entry.data, entry.data?.loadingState == WeatherWidgetData.LoadingState.loaded {
                 WidgetContainer(padding: 8) {
@@ -22,32 +23,32 @@ struct DailyWeatherWidgetView: View {
                             VStack(alignment: .leading, spacing: 0) {
                                 Text(data.locationName)
                                     .font(.system(size: 12, weight: .regular))
-                                    .foregroundColor(WidgetColorProvider.onSurface)
+                                    .foregroundColor(widgetColor)
                                     .multilineTextAlignment(.leading)
-                                    .lineLimit(1).opacity(0.6)
+                                    .lineLimit(1).opacity(0.5)
                                 Text(data.temperature)
                                     .font(.system(size: 26, weight: .bold))
-                                    .foregroundColor(WidgetColorProvider.onSurface)
+                                    .foregroundColor(widgetColor)
                             }
                             Spacer()
                             VStack(alignment: .trailing, spacing: 0) {
-                                if !data.iconPath.isEmpty {
+                                if !(data.iconPath ?? "").isEmpty {
                                     WeatherIconView(data.iconPath, description: data.description, size: 54)
                                 }
-                                if !data.description.isEmpty {
+                                if !(data.description ?? "").isEmpty {
                                     Text(data.description)
                                         .font(.system(size: 11, weight: .regular))
-                                        .foregroundColor(WidgetColorProvider.onSurface)
+                                        .foregroundColor(widgetColor)
                                         .multilineTextAlignment(.trailing)
-                                        .lineLimit(1).opacity(0.6)
+                                        .lineLimit(1).opacity(0.5)
                                 }
                             }
-                        }.frame(maxWidth: .infinity).padding(8)
+                        }.frame(maxWidth: .infinity).padding(.horizontal, min((width * 0.05), 10)).padding(.vertical, min((height * 0.07), 6))
                         VStack(alignment: .leading, spacing: 0) {
                             Text("daily")
                                 .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(WidgetColorProvider.onSurface)
-                                .multilineTextAlignment(.leading).padding(.horizontal, 8).opacity(0.6)
+                                .foregroundColor(widgetColor)
+                                .multilineTextAlignment(.leading).padding(.horizontal, 8).opacity(0.5)
                         }.frame(maxWidth: .infinity)
                         Spacer().frame(height: 4)
                         ScrollView(.vertical, showsIndicators: false) {
@@ -59,7 +60,7 @@ struct DailyWeatherWidgetView: View {
                                                 HStack(alignment: .center, spacing: 0) {
                                                     Text(item.day)
                                                         .font(.system(size: 12, weight: .medium))
-                                                        .foregroundColor(WidgetColorProvider.onSurface)
+                                                        .foregroundColor(widgetColor)
                                                         .lineLimit(1)
                                                     Spacer()
                                                     WeatherIconView(item.iconPath, description: data.description, size: 36)
@@ -68,23 +69,23 @@ struct DailyWeatherWidgetView: View {
                                                         HStack(alignment: .center, spacing: 6) {
                                                             Text(item.temperatureHigh)
                                                                 .font(.system(size: 13, weight: .bold))
-                                                                .foregroundColor(WidgetColorProvider.onSurface)
+                                                                .foregroundColor(widgetColor)
                                                                 .lineLimit(1)
                                                             Text(item.temperatureLow)
                                                                 .font(.system(size: 11, weight: .regular))
-                                                                .foregroundColor(WidgetColorProvider.onSurface)
-                                                                .lineLimit(1).opacity(0.6)
+                                                                .foregroundColor(widgetColor)
+                                                                .lineLimit(1).opacity(0.5)
                                                         }
                                                         HStack(alignment: .center, spacing: 6) {
-                                                            if !item.precipAccumulation.isEmpty {
+                                                            if !(item.precipAccumulation ?? "").isEmpty {
                                                                 Text(item.precipAccumulation)
                                                                     .font(.system(size: 10, weight: .regular))
-                                                                    .foregroundColor(WidgetColorProvider.onSurface).opacity(0.6)
+                                                                    .foregroundColor(widgetColor).opacity(0.5)
                                                             }
-                                                            if !item.precipitation.isEmpty {
+                                                            if !(item.precipitation ?? "").isEmpty {
                                                                 Text("💧" + item.precipitation)
                                                                     .font(.system(size: 10, weight: .regular))
-                                                                    .foregroundColor(WidgetColorProvider.onSurface).opacity(0.6)
+                                                                    .foregroundColor(widgetColor).opacity(0.5)
                                                             }
                                                         }
                                                     }

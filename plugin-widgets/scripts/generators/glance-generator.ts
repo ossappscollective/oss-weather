@@ -7,7 +7,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { Expression, compileExpression as compileExpr, compilePropertyValue as compilePropValue, compilePropertyValue } from './expression-compiler';
-import { isExpression, toPlatformFontWeight, toPlatformHorizontalAlignment, toPlatformVerticalAlignment } from './shared-utils';
+import { isExpression, resolveTemplates, toPlatformFontWeight, toPlatformHorizontalAlignment, toPlatformVerticalAlignment } from './shared-utils';
 import { buildGlanceModifier, formatColor } from './modifier-builders';
 
 interface LayoutElement {
@@ -184,6 +184,12 @@ function generateElement(element: LayoutElement, indent: string = '            '
             break;
         case 'date':
             lines.push(...generateDate(element, currentIndent, defaultColor));
+            break;
+        case 'chips':
+            lines.push(...generateChips(element, currentIndent, defaultColor));
+            break;
+        case 'hourlyChart':
+            lines.push(...generateHourlyChart(element, currentIndent, defaultColor));
             break;
         default:
             lines.push(`${currentIndent}// Unknown element type: ${element.type}`);
@@ -435,6 +441,11 @@ function generateLabel(element: LayoutElement, indent: string, defaultColor?: st
     if (fontWeightExpr) {
         styleProps.push(`fontWeight = ${fontWeightExpr}`);
     }
+    if (JSON.stringify(element.fontWeight ?? '').includes('light')) {
+        // Glance has no light weight: the light system family instead
+        const familyExpr = compilePropValue(element.fontWeight, { platform: 'kotlin', formatter: (v: string) => (v === 'light' ? 'FontFamily("sans-serif-light")' : 'null') }, 'null');
+        styleProps.push(`fontFamily = ${familyExpr}`);
+    }
     if (colorExpr) {
         if (element.opacity !== undefined) {
             const opacityExpr = compilePropertyValue(element.opacity, {
@@ -661,11 +672,58 @@ function generateForEach(element: LayoutElement, indent: string, defaultColor?: 
     const limitValue = element.limit || 10;
     const limitCode = isExpression(limitValue) ? compileExpr(limitValue, { platform: 'kotlin', context: 'value' }) : limitValue;
 
-    lines.push(`${indent}data.${element.items}.take(${limitCode}).forEach { item ->`);
+    lines.push(`${indent}${dataListExpr(element.items)}.take(${limitCode}).forEach { item ->`);
     lines.push(generateElement(element.itemTemplate, indent + '    ', defaultColor));
     lines.push(`${indent}}`);
 
     return lines;
+}
+
+// list property of the data, or of the current forEach item ("item.chips")
+function dataListExpr(items: string) {
+    return items.startsWith('item.') ? items : `data.${items}`;
+}
+
+function floatValue(value: Expression | undefined, defaultValue: number) {
+    if (value === undefined) {
+        return `${defaultValue}f`;
+    }
+    return compilePropValue(value, { platform: 'kotlin', formatter: (v: number) => `${v}f` }, `${defaultValue}f`);
+}
+
+// modern weather data chips (WidgetModern.Chips): content sized, wrapping on maxRows rows of maxWidth
+function generateChips(element: LayoutElement, indent: string, defaultColor?: string): string[] {
+    const modifier = buildGlanceModifier(element);
+    const color = defaultColor && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(defaultColor) ? defaultColor : 'GlanceTheme.colors.onSurface';
+    return [
+        `${indent}WidgetModern.Chips(`,
+        `${indent}    chips = ${dataListExpr(element.items || 'chips')},`,
+        `${indent}    color = ${color},`,
+        `${indent}    fontSize = ${floatValue(element.fontSize, 12)} * fontScaleFactor,`,
+        `${indent}    iconSize = ${floatValue(element.iconSize, 14)} * fontScaleFactor,`,
+        `${indent}    spacing = ${floatValue(element.chipSpacing, 4)},`,
+        `${indent}    limit = ${compilePropValue(element.limit ?? 4, { platform: 'kotlin', formatter: (v: number) => String(v) }, '4')},`,
+        `${indent}    maxWidth = ${floatValue(element.maxWidth, 10000)},`,
+        `${indent}    maxRows = ${compilePropValue(element.maxRows ?? 1, { platform: 'kotlin', formatter: (v: number) => String(v) }, '1')},`,
+        `${indent}    modifier = ${modifier}`,
+        `${indent})`
+    ];
+}
+
+// the app hourly card chart (WidgetModern.HourlyChart): temperature curve and values, precipitation
+function generateHourlyChart(element: LayoutElement, indent: string, defaultColor?: string): string[] {
+    const modifier = buildGlanceModifier({ ...element, height: undefined });
+    const color = defaultColor && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(defaultColor) ? defaultColor : 'GlanceTheme.colors.onSurface';
+    return [
+        `${indent}WidgetModern.HourlyChart(`,
+        `${indent}    hours = ${dataListExpr(element.items || 'hourlyData')},`,
+        `${indent}    limit = ${compilePropValue(element.limit ?? 6, { platform: 'kotlin', formatter: (v: number) => String(v) }, '6')},`,
+        `${indent}    height = ${compileDpValue(element.height, '80.dp')},`,
+        `${indent}    color = ${color},`,
+        `${indent}    fontSize = ${floatValue(element.fontSize, 13)} * fontScaleFactor,`,
+        `${indent}    modifier = ${modifier}`,
+        `${indent})`
+    ];
 }
 
 function generateConditional(element: LayoutElement, indent: string, defaultColor?: string): string[] {
@@ -733,6 +791,11 @@ function generateClock(element: LayoutElement, indent: string, defaultColor?: st
     }
     if (fontWeightExpr) {
         styleProps.push(`fontWeight = ${fontWeightExpr}`);
+    }
+    if (JSON.stringify(element.fontWeight ?? '').includes('light')) {
+        // Glance has no light weight: the light system family instead
+        const familyExpr = compilePropValue(element.fontWeight, { platform: 'kotlin', formatter: (v: string) => (v === 'light' ? 'FontFamily("sans-serif-light")' : 'null') }, 'null');
+        styleProps.push(`fontFamily = ${familyExpr}`);
     }
     if (colorExpr) {
         styleProps.push(`color = ${colorExpr}`);
@@ -838,6 +901,11 @@ function generateDate(element: LayoutElement, indent: string, defaultColor?: str
     }
     if (fontWeightExpr) {
         styleProps.push(`fontWeight = ${fontWeightExpr}`);
+    }
+    if (JSON.stringify(element.fontWeight ?? '').includes('light')) {
+        // Glance has no light weight: the light system family instead
+        const familyExpr = compilePropValue(element.fontWeight, { platform: 'kotlin', formatter: (v: string) => (v === 'light' ? 'FontFamily("sans-serif-light")' : 'null') }, 'null');
+        styleProps.push(`fontFamily = ${familyExpr}`);
     }
 
     if (styleProps.length > 0) {
@@ -1007,7 +1075,10 @@ function generateKotlinFile(layout: WidgetLayout): string {
         lines.push('import com.akylas.weather.widgets.DailyData');
     }
     lines.push('import com.akylas.weather.widgets.WidgetComposables');
+    lines.push('import com.akylas.weather.widgets.WidgetModern');
+    lines.push('import androidx.glance.text.FontFamily');
     lines.push('import com.akylas.weather.widgets.WidgetLoadingState');
+    lines.push('import kotlin.math.max');
     lines.push('import kotlin.math.min');
     lines.push('import kotlinx.serialization.json.*');
     lines.push('');
@@ -1074,7 +1145,7 @@ function main() {
     for (const file of files) {
         const filePath = path.join(widgetsDir, file);
         const content = fs.readFileSync(filePath, 'utf-8');
-        const layout: WidgetLayout = JSON.parse(content);
+        const layout: WidgetLayout = resolveTemplates(JSON.parse(content), path.join(widgetsDir, 'templates'));
 
         console.log(`Generating Glance code for ${layout.name}...`);
 

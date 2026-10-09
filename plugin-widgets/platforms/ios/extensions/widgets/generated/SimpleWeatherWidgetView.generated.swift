@@ -14,52 +14,53 @@ struct SimpleWeatherWidgetView: View {
             let width = geometry.size.width
             let height = geometry.size.height
             let config = entry.config ?? WidgetConfig()
+            let widgetColor = (entry.config.settings["color"] as? String == nil ? WidgetColorProvider.onSurface : entry.config.settings["color"] as? String as? String).flatMap { Color(UIColor(hexString: $0)) } ?? WidgetColorProvider.onSurface
             
             if let data = entry.data, entry.data?.loadingState == WeatherWidgetData.LoadingState.loaded {
                 WidgetContainer(padding: 6) {
                     if width < 120 {
                         VStack(alignment: .center, spacing: 0) {
                             VStack(alignment: .center, spacing: 0) {
-                                if !data.iconPath.isEmpty {
+                                if !(data.iconPath ?? "").isEmpty {
                                     WeatherIconView(data.iconPath, description: data.description, size: (width * 0.44))
                                 }
                                 Text(data.temperature)
                                     .font(.system(size: (width * 0.2), weight: .bold))
-                                    .foregroundColor(WidgetColorProvider.onSurface)
+                                    .foregroundColor(widgetColor)
                             }.frame(maxWidth: .infinity)
                             Text(data.locationName)
                                 .font(.system(size: 8, weight: .regular))
-                                .foregroundColor(WidgetColorProvider.onSurface)
-                                .lineLimit(1).opacity(0.6)
+                                .foregroundColor(widgetColor)
+                                .lineLimit(1).opacity(0.5)
                         }.frame(maxWidth: .infinity).frame(maxHeight: .infinity).padding(3)
                     }
                     else {
                         ZStack {
                             Text(data.locationName)
                                 .font(.system(size: 12, weight: .regular))
-                                .foregroundColor(WidgetColorProvider.onSurface)
-                                .lineLimit(1).opacity(0.6)
+                                .foregroundColor(widgetColor)
+                                .lineLimit(1).opacity(0.5)
                             HStack(alignment: .center, spacing: 0) {
                                 VStack(alignment: .leading, spacing: 0) {
                                     Text(data.temperature)
                                         .font(.system(size: min((width * 0.26), 30), weight: .bold))
-                                        .foregroundColor(WidgetColorProvider.onSurface)
+                                        .foregroundColor(widgetColor)
                                 }.frame(maxHeight: .infinity)
                                 VStack(alignment: .trailing, spacing: 0) {
-                                    if !data.iconPath.isEmpty {
+                                    if !(data.iconPath ?? "").isEmpty {
                                         WeatherIconView(data.iconPath, description: data.description, size: 64)
                                     }
                                 }.frame(maxHeight: .infinity).layoutPriority(1)
                             }.frame(maxWidth: .infinity).frame(maxHeight: .infinity)
-                            if !data.description.isEmpty {
+                            if !(data.description ?? "").isEmpty {
                                 ZStack(alignment: .bottomTrailing) {
                                     Text(data.description)
                                         .font(.system(size: 12, weight: .regular))
-                                        .foregroundColor(WidgetColorProvider.onSurface)
-                                        .multilineTextAlignment(.trailing).opacity(0.6)
+                                        .foregroundColor(widgetColor)
+                                        .multilineTextAlignment(.trailing).opacity(0.5)
                                 }.frame(maxWidth: .infinity).frame(maxHeight: .infinity)
                             }
-                        }.frame(maxWidth: .infinity).frame(maxHeight: .infinity).padding(.horizontal, 10).padding(.vertical, 6)
+                        }.frame(maxWidth: .infinity).frame(maxHeight: .infinity).padding(.horizontal, min((width * 0.1), 16)).padding(.vertical, min((height * 0.14), 16))
                     }
                 }
             } else {

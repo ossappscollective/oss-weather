@@ -36,3 +36,23 @@ export function widgetChip(data: ChipSource, iconPath: string, intensity: boolea
         barColor: hasBar && data.color ? data.color : ''
     };
 }
+
+// widgets have no flow layout: chips fill rows in order while they fit, the others are not shown
+// (same packing in WidgetModern.kt and ModernComponents.swift)
+export function packChips(widths: number[], maxWidth: number, spacing: number, maxRows: number): number[][] {
+    const rows: number[][] = [];
+    let rowWidth = 0;
+    for (let index = 0; index < widths.length; index++) {
+        const current = rows[rows.length - 1];
+        if (current && rowWidth + spacing + widths[index] <= maxWidth) {
+            current.push(index);
+            rowWidth += spacing + widths[index];
+        } else if (rows.length < maxRows && widths[index] <= maxWidth) {
+            rows.push([index]);
+            rowWidth = widths[index];
+        } else {
+            break;
+        }
+    }
+    return rows;
+}

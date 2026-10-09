@@ -14,6 +14,7 @@ struct HourlyWeatherWidgetView: View {
             let width = geometry.size.width
             let height = geometry.size.height
             let config = entry.config ?? WidgetConfig()
+            let widgetColor = (entry.config.settings["color"] as? String == nil ? WidgetColorProvider.onSurface : entry.config.settings["color"] as? String as? String).flatMap { Color(UIColor(hexString: $0)) } ?? WidgetColorProvider.onSurface
             
             if let data = entry.data, entry.data?.loadingState == WeatherWidgetData.LoadingState.loaded {
                 WidgetContainer(padding: 6) {
@@ -22,9 +23,9 @@ struct HourlyWeatherWidgetView: View {
                             VStack(alignment: .leading, spacing: 0) {
                                 Text(data.locationName)
                                     .font(.system(size: 12, weight: .regular))
-                                    .foregroundColor(WidgetColorProvider.onSurface)
+                                    .foregroundColor(widgetColor)
                                     .multilineTextAlignment(.leading)
-                                    .lineLimit(1).opacity(0.6)
+                                    .lineLimit(1).opacity(0.5)
                                 Spacer().frame(height: 2)
                             }.frame(maxWidth: .infinity)
                         }
@@ -35,21 +36,21 @@ struct HourlyWeatherWidgetView: View {
                                         VStack(alignment: .center, spacing: height < 60 ? 0 : 2) {
                                             Text(item.time)
                                                 .font(.system(size: height < 60 ? 9 : 11, weight: .regular))
-                                                .foregroundColor(WidgetColorProvider.onSurface)
-                                                .lineLimit(1).opacity(0.6)
+                                                .foregroundColor(widgetColor)
+                                                .lineLimit(1).opacity(0.5)
                                             WeatherIconView(item.iconPath, description: data.description, size: height < 60 ? 24 : height < 80 ? 28 : 32)
                                             Text(item.temperature)
                                                 .font(.system(size: height < 60 ? 12 : 14, weight: .bold))
-                                                .foregroundColor(WidgetColorProvider.onSurface)
+                                                .foregroundColor(widgetColor)
                                                 .lineLimit(1)
-                                            if (height >= 60 && !item.precipAccumulation.isEmpty) {
+                                            if (height >= 60 && !(item.precipAccumulation ?? "").isEmpty) {
                                                 VStack(alignment: .center, spacing: 0) {
                                                     if height >= 60 {
                                                         Spacer().frame(height: 2)
                                                     }
                                                     Text(item.precipAccumulation)
                                                         .font(.system(size: height < 80 ? 9 : 10, weight: .regular))
-                                                        .foregroundColor(WidgetColorProvider.onSurfaceVariant)
+                                                        .foregroundColor(widgetColor).opacity(0.5)
                                                 }
                                             }
                                         }.frame(width: 56).frame(maxHeight: .infinity).padding(.horizontal, 2)
@@ -57,7 +58,7 @@ struct HourlyWeatherWidgetView: View {
                                 }
                             }
                         }
-                    }.padding(.horizontal, 10).padding(.vertical, 6)
+                    }.padding(.horizontal, min((width * 0.05), 10)).padding(.vertical, min((height * 0.07), 6))
                 }
             } else {
                 NoDataView(state: entry.data?.loadingState ?? WeatherWidgetData.LoadingState.none, errorMessage: entry.data?.errorMessage)

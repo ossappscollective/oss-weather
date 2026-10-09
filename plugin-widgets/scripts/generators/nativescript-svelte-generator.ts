@@ -15,7 +15,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { BaseLayoutElement, getSingleBinding, hasTemplateBinding, isExpression } from './shared-utils';
+import { BaseLayoutElement, getSingleBinding, hasTemplateBinding, isExpression, resolveTemplates } from './shared-utils';
 import { compilePropertyValue as compilePropValue } from './expression-compiler';
 
 type AnyObj = Record<string, any>;
@@ -710,6 +710,10 @@ function generateMarkup(
                 return 'label';
             case 'cspan':
                 return 'cspan';
+            case 'chips':
+                return 'WidgetChips';
+            case 'hourlyChart':
+                return 'WidgetHourlyChart';
             default:
                 return 'stacklayout';
         }
@@ -797,7 +801,6 @@ function generateMarkup(
         'textAlignment',
         'maxLines',
         'size',
-        'thickness',
         'visible',
         'visibleIf',
         'col',
@@ -860,6 +863,24 @@ function generateMarkup(
                 attrsArr.push(attr);
                 for (const an of attrNames) seenAttrs.add(an);
             }
+        }
+    }
+
+    // modern chips and hourly chart previews (src/svelte): their list and sizes
+    if (elType === 'chips' || elType === 'hourlyChart') {
+        const items = (element.items as string) || (elType === 'chips' ? 'chips' : 'hourlyData');
+        const list = items.startsWith('item.') || items.startsWith('data.') ? items : `${defaultPrefix === 'item' ? 'data' : defaultPrefix}.${items}`;
+        attrsArr.push(elType === 'chips' ? `chips={${list}}` : `hours={${list}}`);
+        if (elType === 'chips') {
+            const numberValue = (value) => (Array.isArray(value) ? evaluateMapboxExpression(value, defaultPrefix) : JSON.stringify(value));
+            for (const key of ['iconSize', 'chipSpacing', 'maxWidth', 'maxRows']) {
+                if (element[key] !== undefined) attrsArr.push(`${key}={${numberValue(element[key])}}`);
+            }
+        }
+        if (element.limit !== undefined) attrsArr.push(`limit={${Array.isArray(element.limit) ? evaluateMapboxExpression(element.limit, defaultPrefix) : element.limit}}`);
+        if (!seenAttrs.has('color')) {
+            attrsArr.push(defaultColor && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(defaultColor) ? `color={${defaultColor}}` : 'color={$colors.colorOnSurface}');
+            seenAttrs.add('color');
         }
     }
 
@@ -927,9 +948,8 @@ function generateMarkup(
         attrsArr.push(`height={${thickness}}`);
         seenAttrs.add('height');
         if (!element.color && !seenAttrs.has('backgroundColor')) {
-            const defaultVar = colorTokenToVar('onSurfaceVariant');
-            usedColors.add(defaultVar);
-            attrsArr.push(`backgroundColor={${defaultVar}}`);
+            // the widget text color (dimmed with the divider opacity)
+            attrsArr.push(`backgroundColor={${defaultColor && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(defaultColor) ? defaultColor : '$colors.colorOnSurfaceVariant'}}`);
             seenAttrs.add('backgroundColor');
         }
     } else if (elType === 'forEach') {
@@ -1302,6 +1322,8 @@ function generateSvelteComponent(layout: WidgetLayout): string {
     script += `    import { path } from '@nativescript/core';\n`;
     script += `    import { iconService, iconThemesFolder } from '~/services/icon';\n`;
     script += `    import { colors } from '~/variables';\n`;
+    if (JSON.stringify(layout).includes('"type":"chips"')) script += `    import WidgetChips from 'plugin-widgets/svelte/WidgetChips.svelte';\n`;
+    if (JSON.stringify(layout).includes('"type":"hourlyChart"')) script += `    import WidgetHourlyChart from 'plugin-widgets/svelte/WidgetHourlyChart.svelte';\n`;
     script += `    import type { WeatherWidgetData, WidgetConfig } from 'plugin-widgets/WidgetTypes';\n`;
     script += `</script>\n`;
     script += `<script lang="ts">\n`;
@@ -1395,7 +1417,7 @@ export function generateWidgetSvelte(layoutsDir: string, outputDir: string, widg
     const raw = fs.readFileSync(layoutPath, 'utf-8');
     let layout: WidgetLayout;
     try {
-        layout = JSON.parse(raw) as WidgetLayout;
+        layout = resolveTemplates(JSON.parse(raw) as WidgetLayout, path.join(path.dirname(layoutPath), 'templates'));
     } catch (e) {
         console.error(`Failed to parse ${layoutPath}:`, (e as Error).message);
         return;

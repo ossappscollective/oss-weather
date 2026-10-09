@@ -1472,6 +1472,10 @@ data class WidgetConfig(
 @Serializable
 data class WeatherWidgetData(
     val temperature: String = "",
+    val temperatureHigh: String = "",
+    val temperatureLow: String = "",
+    val chips: List<WidgetChip> = emptyList(),
+    val dataLayout: String = "chips",
     val iconPath: String = "",
     val description: String = "",
     val locationName: String = "",
@@ -1493,11 +1497,18 @@ data class HourlyData(
     val precipitation: String = "",
     val windSpeed: String = "",
     val precipAccumulation: String = "",
+    // temperature curve height (0 lowest - 1 highest of the shown hours)
+    val curve: Float = 0.5f,
+    val precipFraction: Float = 0f,
+    val precipColor: String = "",
+    val wind: WidgetChip? = null,
 )
 
 @Serializable
 data class DailyData(
     val day: String = "",
+    val date: String = "",
+    val chips: List<WidgetChip> = emptyList(),
     val description: String = "",
     val temperatureHigh: String = "",
     val temperatureLow: String = "",
@@ -1505,6 +1516,19 @@ data class DailyData(
     val iconPath: String = "",
     val precipitation: String = "",
     val precipAccumulation: String = "",
+)
+
+/**
+ * A weather data chip (computed by the app): icon png, value, unit, intensity tint and probability bar
+ */
+@Serializable
+data class WidgetChip(
+    val iconPath: String = "",
+    val value: String = "",
+    val unit: String = "",
+    val tint: String = "",
+    val barFraction: Float = 0f,
+    val barColor: String = "",
 )
 
 @Serializable

@@ -189,10 +189,17 @@ export function compileExpression(expr: Expression, options: CompilationOptions)
             }
             result = compileGet(args[0], platform, addDataPrefix, settingType);
             break;
-        case 'has':
-            const a = compileExpression(args[0], { ...options, context: 'value', formatter: undefined });
-            result = `${a} != null`;
+        case 'has': {
+            // ["has", "prop"] or ["has", ["get", "prop"]]: the property has a value
+            const property = typeof args[0] === 'string' ? args[0] : Array.isArray(args[0]) && args[0][0] === 'get' && typeof args[0][1] === 'string' ? args[0][1] : undefined;
+            if (property && !property.startsWith('config.')) {
+                result = compileHas(property, options.platform, options.addDataPrefix !== false);
+            } else {
+                const a = compileExpression(args[0], { ...options, context: 'value', formatter: undefined });
+                result = `${a} != ${options.platform === 'swift' ? 'nil' : 'null'}`;
+            }
             break;
+        }
 
         // Arithmetic
         case '+':
@@ -402,7 +409,8 @@ function compileHas(prop: string, platform: Platform, addDataPrefix: boolean): s
         case 'kotlin':
             return `${path}.isNotEmpty()`;
         case 'swift':
-            return `!${path}.isEmpty`;
+            // works for optional and non optional strings
+            return `!(${path} ?? "").isEmpty`;
         case 'javascript':
         case 'typescript':
             return `${path} !== undefined && ${path} !== null && ${path} !== ''`;

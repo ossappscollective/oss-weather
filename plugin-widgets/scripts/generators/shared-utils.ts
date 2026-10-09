@@ -18,6 +18,9 @@
  * Mapbox-style expression: array format for dynamic values
  * Example: ["get", "temperature"] or ["case", ["<", 10, 20], "cold", "warm"]
  */
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
 export type Expression = any[] | string | number | boolean | null | undefined;
 
 /**
@@ -488,6 +491,8 @@ export function toPlatformFontWeight(weight: string | undefined, platform: 'glan
 
         case 'swift':
             switch (normalized) {
+                case 'light':
+                    return '.light';
                 case 'normal':
                     return '.regular';
                 case 'medium':
@@ -500,6 +505,8 @@ export function toPlatformFontWeight(weight: string | undefined, platform: 'glan
 
         case 'nativescript':
             switch (normalized) {
+                case 'light':
+                    return '300';
                 case 'normal':
                     return 'normal';
                 case 'medium':
@@ -512,6 +519,8 @@ export function toPlatformFontWeight(weight: string | undefined, platform: 'glan
 
         case 'html':
             switch (normalized) {
+                case 'light':
+                    return '300';
                 case 'normal':
                     return '400';
                 case 'medium':
@@ -632,4 +641,22 @@ export function hasModifiers(element: BaseLayoutElement): boolean {
         element.backgroundColor ||
         element.cornerRadius
     );
+}
+
+/**
+ * Inline the shared elements: { "type": "template", "name": "dailyRow" } is replaced by
+ * src/widgets/templates/dailyRow.json (templates can use other templates)
+ */
+export function resolveTemplates<T>(value: T, templatesDir: string): T {
+    if (Array.isArray(value)) {
+        return value.map((item) => resolveTemplates(item, templatesDir)) as T;
+    }
+    if (value && typeof value === 'object') {
+        const element = value as Record<string, unknown>;
+        if (element.type === 'template' && typeof element.name === 'string') {
+            return resolveTemplates(JSON.parse(readFileSync(join(templatesDir, `${element.name}.json`), 'utf-8')), templatesDir);
+        }
+        return Object.fromEntries(Object.entries(element).map(([key, child]) => [key, resolveTemplates(child, templatesDir)])) as T;
+    }
+    return value;
 }

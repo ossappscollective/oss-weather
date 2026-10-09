@@ -4,7 +4,7 @@
     import { modernColors } from '~/helpers/modernTheme';
     import { showError } from '@shared/utils/showError';
     import { showModal } from '@shared/utils/svelte/ui';
-    import { WIDGET_NAMES, WeatherWidgetData, WidgetConfig, WidgetConfigManager, isDefaultLocation, widgetService } from 'plugin-widgets';
+    import { WIDGET_NAMES, WeatherWidgetData, WidgetConfig, WidgetConfigManager, WidgetDataManager, isDefaultLocation, widgetService } from 'plugin-widgets';
     import { onMount } from 'svelte';
     import CActionBar from '~/components/common/CActionBar.svelte';
     import ListItemAutoSize from '~/components/common/ListItemAutoSize.svelte';
@@ -97,6 +97,15 @@
             previewConfig = await loadWidgetData(widgetClass);
             previewData = previewConfig.preview.fakeData;
             previewSize = previewConfig.preview.sizes[0];
+            // preview with the real weather data when available: chips, intensity and layout follow the app settings
+            try {
+                const liveData = await new WidgetDataManager().getWidgetWeatherData(config);
+                if (liveData) {
+                    previewData = liveData;
+                }
+            } catch (error) {
+                DEV_LOG && console.error('widget preview data', error);
+            }
             DEV_LOG && console.log('onMount', widgetClass, typeof previewConfig.settings, JSON.stringify(previewConfig.settings));
             refresh();
         }

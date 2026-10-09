@@ -50,7 +50,7 @@
         },
         "fontWeight": {
             "oneOf": [
-                { "type": "string", "enum": ["normal", "medium", "bold"] },
+                { "type": "string", "enum": ["light", "normal", "medium", "bold"] },
                 { "type": "array", "description": "Mapbox expression evaluating to font weight" }
             ]
         },
@@ -276,8 +276,54 @@
                 }
             ]
         },
+        "chips": {
+            "description": "Weather data chips computed by the app (icon, value, unit, intensity): soft pills sized to their content, wrapping on maxRows rows of maxWidth, the others are not shown",
+            "allOf": [
+                { "$ref": "#/definitions/baseElement" },
+                {
+                    "type": "object",
+                    "properties": {
+                        "type": { "const": "chips" },
+                        "items": { "type": "string", "description": "chips of the data, or of the forEach item (item.chips)", "default": "chips" },
+                        "limit": { "$ref": "#/definitions/number" },
+                        "fontSize": { "$ref": "#/definitions/fontSize" },
+                        "iconSize": { "$ref": "#/definitions/number" },
+                        "chipSpacing": { "$ref": "#/definitions/number" },
+                        "maxWidth": { "$ref": "#/definitions/number", "description": "available width (dp)" },
+                        "maxRows": { "$ref": "#/definitions/number", "default": 1 }
+                    },
+                    "required": ["type"]
+                }
+            ]
+        },
+        "hourlyChart": {
+            "description": "The app hourly chart: temperature curve with its values, precipitation bars with amount and probability",
+            "allOf": [
+                { "$ref": "#/definitions/baseElement" },
+                {
+                    "type": "object",
+                    "properties": {
+                        "type": { "const": "hourlyChart" },
+                        "items": { "type": "string", "default": "hourlyData" },
+                        "limit": { "$ref": "#/definitions/number" },
+                        "fontSize": { "$ref": "#/definitions/fontSize" }
+                    },
+                    "required": ["type"]
+                }
+            ]
+        },
+        "template": {
+            "description": "A shared element from src/widgets/templates/<name>.json, inlined when generating",
+            "type": "object",
+            "properties": {
+                "type": { "const": "template" },
+                "name": { "type": "string" }
+            },
+            "required": ["type", "name"]
+        },
         "element": {
             "oneOf": [
+                { "$ref": "#/definitions/template" },
                 { "$ref": "#/definitions/column" },
                 { "$ref": "#/definitions/row" },
                 { "$ref": "#/definitions/stack" },
@@ -289,7 +335,9 @@
                 { "$ref": "#/definitions/forEach" },
                 { "$ref": "#/definitions/conditional" },
                 { "$ref": "#/definitions/clock" },
-                { "$ref": "#/definitions/date" }
+                { "$ref": "#/definitions/date" },
+                { "$ref": "#/definitions/chips" },
+                { "$ref": "#/definitions/hourlyChart" }
             ]
         }
     },

@@ -1,0 +1,40 @@
+{
+    "type": "column",
+    "children": [
+        {
+            "type": "row",
+            "children": [
+                {
+                    "type": "forEach",
+                    "items": "hourlyData",
+                    "limit": ["case", [">=", ["get", "size.width"], 330], 6, 5],
+                    "itemTemplate": {
+                        "type": "column",
+                        "children": [
+                            {
+                                "type": "label",
+                                "text": ["get", "item.hour"],
+                                "fontSize": 11,
+                                "maxLines": 1,
+                                "fontWeight": "medium"
+                            },
+                            { "type": "image", "src": ["get", "item.iconPath"], "size": 20 }
+                        ],
+                        "flex": 1,
+                        "crossAlignment": "center"
+                    }
+                }
+            ],
+            "fillWidth": true
+        },
+        {
+            "type": "hourlyChart",
+            "items": "hourlyData",
+            "limit": ["case", [">=", ["get", "size.width"], 330], 6, 5],
+            "fontSize": 12,
+            "height": 80,
+            "fillWidth": true
+        }
+    ],
+    "fillWidth": true
+}

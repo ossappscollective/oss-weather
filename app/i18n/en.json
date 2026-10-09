@@ -434,6 +434,7 @@
   "widget_settings_desc": "all settings related to widgets",
   "widget_update_frequency": "Update Frequency",
   "widget_open_app_on_tap": "Open the app when tapping a widget",
+  "widget_show_hourly": "show the hourly forecast",
   "widget_update_frequency_description": "How often widgets should refresh their data",
   "widget_update_frequency_saved": "Update frequency saved",
   "wind": "Wind",

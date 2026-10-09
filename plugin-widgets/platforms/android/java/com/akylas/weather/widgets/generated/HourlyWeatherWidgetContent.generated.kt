@@ -30,6 +30,8 @@ import com.akylas.weather.widgets.WidgetConfig
 import com.akylas.weather.widgets.toColorIntRgba
 import com.akylas.weather.widgets.HourlyData
 import com.akylas.weather.widgets.WidgetComposables
+import com.akylas.weather.widgets.WidgetModern
+import androidx.glance.text.FontFamily
 import com.akylas.weather.widgets.WidgetLoadingState
 import kotlin.math.min
 import kotlinx.serialization.json.*
@@ -132,7 +134,7 @@ fun HourlyWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
                         maxLines = 1
                     )
                     Spacer(modifier = GlanceModifier.height(when { size.height.value < 60 -> 0.dp; else -> 2.dp }))
-                    if ((size.height.value >= 60 && "item.precipAccumulation" != null)) {
+                    if ((size.height.value >= 60 && item.precipAccumulation.isNotEmpty())) {
                         Column(
                             modifier = GlanceModifier,
                         ) {

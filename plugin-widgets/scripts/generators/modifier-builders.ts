@@ -141,6 +141,11 @@ export function formatFontSize(value: number, platform: Platform): string {
     }
 }
 
+// arithmetic expressions compile to plain numbers: Glance sizes need Dp
+function withDp(expr: string): string {
+    return expr.includes('.dp') ? expr : `(${expr}).dp`;
+}
+
 // ============================================================================
 // MODIFIER BUILDERS
 // ============================================================================
@@ -165,7 +170,7 @@ export function buildGlanceModifier(element: BaseLayoutElement): string {
                 formatter: (v: number) => formatDimension(v, 'kotlin')
             });
             if (widthExpr) {
-                modifiers.push(`width(${widthExpr})`);
+                modifiers.push(`width(${withDp(widthExpr)})`);
             }
         }
 
@@ -178,7 +183,7 @@ export function buildGlanceModifier(element: BaseLayoutElement): string {
                 formatter: (v: number) => formatDimension(v, 'kotlin')
             });
             if (heightExpr) {
-                modifiers.push(`height(${heightExpr})`);
+                modifiers.push(`height(${withDp(heightExpr)})`);
             }
         }
     }

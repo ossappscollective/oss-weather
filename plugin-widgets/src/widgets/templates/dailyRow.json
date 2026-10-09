@@ -1,0 +1,157 @@
+{
+    "type": "conditional",
+    "condition": ["<", ["get", "size.width"], 250],
+    "then": {
+        "type": "row",
+        "children": [
+            { "type": "image", "src": ["get", "item.iconPath"], "size": 22 },
+            { "type": "spacer", "size": 6, "direction": "horizontal" },
+            {
+                "type": "label",
+                "text": ["get", "item.day"],
+                "fontSize": 13,
+                "maxLines": 1,
+                "fontWeight": "medium"
+            },
+            { "type": "spacer", "size": 4, "direction": "horizontal" },
+            {
+                "type": "label",
+                "text": ["get", "item.date"],
+                "fontSize": 11,
+                "maxLines": 1,
+                "opacity": 0.6,
+                "flex": 1
+            },
+            {
+                "type": "row",
+                "children": [
+                    {
+                        "type": "label",
+                        "text": ["get", "item.temperatureLow"],
+                        "fontSize": 13,
+                        "maxLines": 1,
+                        "opacity": 0.6
+                    },
+                    { "type": "spacer", "size": 4, "direction": "horizontal" },
+                    {
+                        "type": "label",
+                        "text": ["get", "item.temperatureHigh"],
+                        "fontSize": 13,
+                        "maxLines": 1,
+                        "fontWeight": "medium"
+                    }
+                ],
+                "crossAlignment": "center"
+            }
+        ],
+        "fillWidth": true,
+        "crossAlignment": "center",
+        "paddingVertical": 3
+    },
+    "else": {
+        "type": "row",
+        "children": [
+            { "type": "image", "src": ["get", "item.iconPath"], "size": 24 },
+            { "type": "spacer", "size": 8, "direction": "horizontal" },
+            {
+                "type": "column",
+                "children": [
+                    {
+                        "type": "row",
+                        "children": [
+                            {
+                                "type": "label",
+                                "text": ["get", "item.day"],
+                                "fontSize": 14,
+                                "maxLines": 1,
+                                "fontWeight": "medium"
+                            },
+                            { "type": "spacer", "size": 4, "direction": "horizontal" },
+                            {
+                                "type": "label",
+                                "text": ["get", "item.date"],
+                                "fontSize": 12,
+                                "maxLines": 1,
+                                "opacity": 0.6
+                            },
+                            { "type": "spacer", "size": 6, "direction": "horizontal" },
+                            {
+                                "type": "chips",
+                                "items": "item.chips",
+                                "limit": 3,
+                                "fontSize": 11,
+                                "iconSize": 12,
+                                "chipSpacing": 3,
+                                "maxWidth": ["-", ["get", "size.width"], 270]
+                            }
+                        ],
+                        "crossAlignment": "center"
+                    },
+                    {
+                        "type": "label",
+                        "text": ["get", "item.description"],
+                        "fontSize": 12,
+                        "maxLines": 1,
+                        "opacity": 0.6
+                    }
+                ],
+                "flex": 1
+            },
+            {
+                "type": "label",
+                "text": ["get", "item.temperatureLow"],
+                "fontSize": 13,
+                "maxLines": 1,
+                "opacity": 0.6
+            },
+            { "type": "spacer", "size": 5, "direction": "horizontal" },
+            {
+                "type": "stack",
+                "width": 30,
+                "height": 3,
+                "children": [
+                    {
+                        "type": "row",
+                        "width": 30,
+                        "height": 3,
+                        "backgroundColor": "surfaceVariant",
+                        "cornerRadius": 2,
+                        "children": []
+                    },
+                    {
+                        "type": "row",
+                        "children": [
+                            {
+                                "type": "spacer",
+                                "size": ["*", ["get", "item.rangeStart"], 30],
+                                "direction": "horizontal"
+                            },
+                            {
+                                "type": "row",
+                                "width": ["*", ["-", ["get", "item.rangeEnd"], ["get", "item.rangeStart"]], 30],
+                                "height": 3,
+                                "backgroundColor": "#EF9F27",
+                                "cornerRadius": 2,
+                                "children": []
+                            }
+                        ],
+                        "height": 3
+                    }
+                ]
+            },
+            { "type": "spacer", "size": 5, "direction": "horizontal" },
+            {
+                "type": "label",
+                "text": ["get", "item.temperatureHigh"],
+                "fontSize": 14,
+                "maxLines": 1,
+                "fontWeight": "medium",
+                "width": 30,
+                "textAlign": "right"
+            }
+        ],
+        "fillWidth": true,
+        "crossAlignment": "center",
+        "paddingVertical": 4
+    }
+}

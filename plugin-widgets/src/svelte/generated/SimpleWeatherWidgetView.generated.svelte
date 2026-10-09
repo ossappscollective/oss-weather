@@ -27,7 +27,7 @@
             <label text={data.locationName} fontSize={8} opacity={0.5} maxLines={1} color={widgetColor} horizontalAlignment="center"></label>
         </stacklayout>
     {:else}
-        <gridlayout row="auto" paddingLeft={Math.min(size.width * 0.05, 10)} paddingRight={Math.min(size.width * 0.05, 10)} paddingTop={Math.min(size.height * 0.07, 6)} paddingBottom={Math.min(size.height * 0.07, 6)}>
+        <gridlayout row="auto" paddingLeft={Math.min(size.width * 0.1, 16)} paddingRight={Math.min(size.width * 0.1, 16)} paddingTop={Math.min(size.height * 0.14, 16)} paddingBottom={Math.min(size.height * 0.14, 16)}>
             <label text={data.locationName} fontSize={12} opacity={0.5} horizontalAlignment="left" maxLines={1} color={widgetColor}></label>
             <gridlayout row="auto" columns="auto,*">
                     <label text={data.temperature} fontSize={Math.min(size.width * 0.26, 30)} fontWeight="700" color={widgetColor} horizontalAlignment="left" verticalAlignment="center" col={0}></label>

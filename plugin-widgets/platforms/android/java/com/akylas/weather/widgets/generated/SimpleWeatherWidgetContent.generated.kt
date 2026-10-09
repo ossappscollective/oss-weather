@@ -29,6 +29,8 @@ import com.akylas.weather.widgets.WidgetTheme
 import com.akylas.weather.widgets.WidgetConfig
 import com.akylas.weather.widgets.toColorIntRgba
 import com.akylas.weather.widgets.WidgetComposables
+import com.akylas.weather.widgets.WidgetModern
+import androidx.glance.text.FontFamily
 import com.akylas.weather.widgets.WidgetLoadingState
 import kotlin.math.min
 import kotlinx.serialization.json.*
@@ -97,7 +99,7 @@ fun SimpleWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
                 horizontalAlignment = Alignment.Horizontal.CenterHorizontally,
                 verticalAlignment = Alignment.Vertical.CenterVertically,
             ) {
-                if ("iconPath" != null) {
+                if (data.iconPath.isNotEmpty()) {
                     WeatherWidgetManager.getIconImageProviderFromPath(data.iconPath, LocalContext.current)?.let { provider ->
                         Image(
                            provider = provider,
@@ -146,7 +148,7 @@ fun SimpleWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
                     horizontalAlignment = Alignment.Horizontal.End,
                     verticalAlignment = Alignment.Vertical.CenterVertically,
                 ) {
-                    if ("iconPath" != null) {
+                    if (data.iconPath.isNotEmpty()) {
                         WeatherWidgetManager.getIconImageProviderFromPath(data.iconPath, LocalContext.current)?.let { provider ->
                             Image(
                                provider = provider,
@@ -157,7 +159,7 @@ fun SimpleWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
                     }
                 }
             }
-            if ("description" != null) {
+            if (data.description.isNotEmpty()) {
                 Box(
                     modifier = GlanceModifier.fillMaxWidth().fillMaxHeight(),
                     contentAlignment = Alignment.BottomEnd

@@ -171,8 +171,9 @@ export class WidgetDataManager {
         if (!data || data.value === undefined || data.value === null) {
             return undefined;
         }
-        const color = data.color ? new Color(data.color).hex : undefined;
-        const iconColor = data.iconColor ? new Color(data.iconColor).hex : color || modernDataColor(data.key) || '#888780';
+        const toHex = (value: string | Color) => (value instanceof Color ? value.hex : new Color(value).hex);
+        const color = data.color ? toHex(data.color) : undefined;
+        const iconColor = data.iconColor ? toHex(data.iconColor) : color || modernDataColor(data.key) || '#888780';
         const iconPath = renderWidgetIcon(data.icon, data.paint?.fontFamily, iconColor);
         return widgetChip({ ...data, color }, iconPath, ApplicationSettings.getBoolean(SETTINGS_DATA_INTENSITY, DATA_INTENSITY));
     }

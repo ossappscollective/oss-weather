@@ -31,6 +31,8 @@ import com.akylas.weather.widgets.toColorIntRgba
 import com.akylas.weather.widgets.HourlyData
 import com.akylas.weather.widgets.DailyData
 import com.akylas.weather.widgets.WidgetComposables
+import com.akylas.weather.widgets.WidgetModern
+import androidx.glance.text.FontFamily
 import com.akylas.weather.widgets.WidgetLoadingState
 import kotlin.math.min
 import kotlinx.serialization.json.*
@@ -121,7 +123,7 @@ fun ForecastWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) 
                 horizontalAlignment = Alignment.Horizontal.End,
                 verticalAlignment = Alignment.Vertical.Bottom,
             ) {
-                if ("data.iconPath" != null) {
+                if (data.iconPath.isNotEmpty()) {
                     WeatherWidgetManager.getIconImageProviderFromPath(data.iconPath, LocalContext.current)?.let { provider ->
                         Image(
                            provider = provider,
@@ -130,7 +132,7 @@ fun ForecastWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) 
                         )
                     }
                 }
-                if ("data.description" != null) {
+                if (data.description.isNotEmpty()) {
                     Text(
                         text = data.description,
                         style = TextStyle(fontSize = (11 * fontScaleFactor).sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f)), textAlign = TextAlign.End),
@@ -185,7 +187,7 @@ fun ForecastWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) 
                         maxLines = 1
                     )
                     Spacer(modifier = GlanceModifier.height(2.dp))
-                    if ("item.precipAccumulation" != null) {
+                    if (item.precipAccumulation.isNotEmpty()) {
                         Text(
                             text = item.precipAccumulation,
                             style = TextStyle(fontSize = (9 * fontScaleFactor).sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f)))
@@ -271,14 +273,14 @@ fun ForecastWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) 
                                     horizontalAlignment = Alignment.Horizontal.End,
                                     verticalAlignment = Alignment.Vertical.CenterVertically,
                                 ) {
-                                    if ("item.precipAccumulation" != null) {
+                                    if (item.precipAccumulation.isNotEmpty()) {
                                         Text(
                                             text = item.precipAccumulation,
                                             style = TextStyle(fontSize = (10 * fontScaleFactor).sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f)))
                                         )
                                     }
                                     Spacer(modifier = GlanceModifier.width(6.dp))
-                                    if ("item.precipitation" != null) {
+                                    if (item.precipitation.isNotEmpty()) {
                                         Text(
                                             text = "💧" + item.precipitation,
                                             style = TextStyle(fontSize = (10 * fontScaleFactor).sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.5f)))
