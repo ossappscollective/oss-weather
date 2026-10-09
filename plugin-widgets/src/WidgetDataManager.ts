@@ -4,7 +4,7 @@
 import { ApplicationSettings, Color, path } from '@nativescript/core';
 import { ALWAYS_SHOW_PRECIP_PROB, DATA_INTENSITY, SETTINGS_ALWAYS_SHOW_PRECIP_PROB, SETTINGS_DATA_INTENSITY, SETTINGS_WEATHER_LOCATION } from '~/helpers/constants';
 import { clock_24, formatDate, formatTime, getStartOfDay, lc } from '~/helpers/locale';
-import { WeatherLocation } from '~/services/api';
+import { WeatherLocation, prepareItems } from '~/services/api';
 import { iconService, iconThemesFolder } from '~/services/icon';
 import { CommonWeatherData, WeatherData } from '~/services/providers/weather';
 import { getWeather } from '~/services/providers/weatherproviderfactory';
@@ -84,7 +84,8 @@ export class WidgetDataManager {
             temperature: formatWeatherValue(weatherData.currently, WeatherProps.temperature),
             temperatureHigh: upcoming[0] ? formatWeatherValue(upcoming[0], WeatherProps.temperatureMax) : '',
             temperatureLow: upcoming[0] ? formatWeatherValue(upcoming[0], WeatherProps.temperatureMin) : '',
-            chips: this.chips(weatherData.currently, 'currently'),
+            // the app current item: current weather mixed with the hour and the day data, like the app card
+            chips: this.chips(prepareItems(location, weatherData)[0] ?? weatherData.currently, 'currently'),
             iconPath: this.getIconPath(weatherData.currently.iconId, weatherData.currently.isDay, config.iconSet),
             description: weatherData.currently?.description || '',
             locationName: location.name || '',
