@@ -318,8 +318,8 @@
                     }
                 ];
             case 'debugging':
-                return async () =>
-                    PLAY_STORE_BUILD
+                return async () => [
+                    ...(PLAY_STORE_BUILD
                         ? [
                               {
                                   type: 'switch',
@@ -329,7 +329,10 @@
                                   value: ApplicationSettings.getBoolean(SETTINGS_ENABLE_CRASH_REPORT, PLAY_STORE_BUILD)
                               }
                           ]
-                        : [];
+                        : []),
+                    // dev builds: every widget preview on one page
+                    ...(WIDGETS && !PRODUCTION ? [{ id: 'widgets_gallery', title: lc('widgets_gallery'), icon: 'mdi-widgets' }] : [])
+                ];
             case 'locales':
                 return async () => [
                     {
@@ -979,14 +982,14 @@
                 )
                 .concat(modern ? [{ type: 'sectionheader', title: lc('about') }] : ([] as any))
                 .concat(
-                    PLAY_STORE_BUILD
+                    PLAY_STORE_BUILD || (WIDGETS && !PRODUCTION)
                         ? ([
                               {
                                   id: 'sub_settings',
                                   icon: 'mdi-bug-outline',
                                   title: lc('debugging'),
                                   description: lc('debugging_settings_desc'),
-                                  options: () => getSubSettings('debugging')
+                                  options: getSubSettings('debugging')
                               }
                           ] as any[])
                         : []
@@ -1193,6 +1196,11 @@
                         view: ThirdPartySoftwareBottomSheet
                     });
                     break;
+                case 'widgets_gallery': {
+                    const WidgetsGallery = (await import('~/components/settings/WidgetsGallery.svelte')).default;
+                    navigate({ page: WidgetsGallery });
+                    break;
+                }
                 case 'configure_widget_kind': {
                     if (WIDGETS) {
                         const ConfigWidget = (await import('~/components/settings/ConfigWidget.svelte')).default;
