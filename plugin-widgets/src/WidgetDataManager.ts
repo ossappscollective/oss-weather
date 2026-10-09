@@ -2,14 +2,14 @@
 // Shared logic for fetching and formatting widget data (used by both Android and iOS)
 
 import { ApplicationSettings, Color, path } from '@nativescript/core';
-import { DATA_INTENSITY, SETTINGS_DATA_INTENSITY, SETTINGS_WEATHER_DATA_LAYOUT, SETTINGS_WEATHER_LOCATION, WEATHER_DATA_LAYOUT } from '~/helpers/constants';
+import { DATA_INTENSITY, SETTINGS_DATA_INTENSITY, SETTINGS_WEATHER_LOCATION } from '~/helpers/constants';
 import { clock_24, formatDate, formatTime, getStartOfDay, lc } from '~/helpers/locale';
 import { WeatherLocation } from '~/services/api';
 import { iconService, iconThemesFolder } from '~/services/icon';
 import { CommonWeatherData, WeatherData } from '~/services/providers/weather';
 import { getWeather } from '~/services/providers/weatherproviderfactory';
 import { CommonData, WeatherProps, formatWeatherValue, weatherDataService } from '~/services/weatherData';
-import { dataTint, modernDataColor } from '~/utils/designStyle';
+import { dataTint, modernDataColor, windSpeedColor } from '~/utils/designStyle';
 import { curvePositions, rangePositions } from '~/utils/widgetCurve';
 import { widgetChip } from '~/utils/widgetChips';
 import { upcomingDays } from '~/utils/widgetDays';
@@ -83,7 +83,6 @@ export class WidgetDataManager {
             temperatureHigh: upcoming[0] ? formatWeatherValue(upcoming[0], WeatherProps.temperatureMax) : '',
             temperatureLow: upcoming[0] ? formatWeatherValue(upcoming[0], WeatherProps.temperatureMin) : '',
             chips: this.chips(weatherData.currently, 'currently'),
-            dataLayout: ApplicationSettings.getString(SETTINGS_WEATHER_DATA_LAYOUT, WEATHER_DATA_LAYOUT),
             iconPath: this.getIconPath(weatherData.currently.iconId, weatherData.currently.isDay, config.iconSet),
             description: weatherData.currently?.description || '',
             locationName: location.name || '',
@@ -104,7 +103,7 @@ export class WidgetDataManager {
                 curve: curve[index],
                 precipFraction: dataTint(WeatherProps.precipAccumulation, hour)?.fraction ?? 0,
                 precipColor: modernDataColor(WeatherProps.precipAccumulation),
-                wind: this.chip(weatherDataService.getItemData(WeatherProps.windSpeed, hour, 'hourly')),
+                wind: this.windChip(hour),
                 time: this.formatTime(hour.time),
                 temperature: formatWeatherValue(hour, WeatherProps.temperature),
                 iconPath: this.getIconPath(hour.iconId, hour.isDay, config.iconSet),
@@ -179,6 +178,12 @@ export class WidgetDataManager {
             .getIconsData({ item, type, filter: [WeatherProps.windBearing] })
             .map((data) => this.chip(data))
             .filter((chip) => !!chip);
+    }
+
+    // wind icon colored by the gust strength, like the app hourly icons
+    private windChip(hour: CommonWeatherData) {
+        const data = weatherDataService.getItemData(WeatherProps.windSpeed, hour, 'hourly');
+        return data && this.chip({ ...data, iconColor: windSpeedColor(hour.windGust ?? hour.windSpeed, modernDataColor(WeatherProps.windSpeed)) });
     }
 
     private chip(data: CommonData) {

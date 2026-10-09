@@ -1475,7 +1475,6 @@ data class WeatherWidgetData(
     val temperatureHigh: String = "",
     val temperatureLow: String = "",
     val chips: List<WidgetChip> = emptyList(),
-    val dataLayout: String = "chips",
     val iconPath: String = "",
     val description: String = "",
     val locationName: String = "",

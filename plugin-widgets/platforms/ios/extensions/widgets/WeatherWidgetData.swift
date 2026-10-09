@@ -19,7 +19,6 @@ struct WeatherWidgetData: Codable {
     var temperatureHigh: String? = nil
     var temperatureLow: String? = nil
     var chips: [WidgetChip]? = nil
-    var dataLayout: String? = nil
     
     enum LoadingState: String, Codable {
         case none

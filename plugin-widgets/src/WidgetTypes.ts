@@ -24,8 +24,6 @@ export interface WeatherWidgetData {
     temperatureHigh?: string;
     temperatureLow?: string;
     chips?: WidgetChip[];
-    // app weather data layout: chips, grid or default (blocks)
-    dataLayout?: string;
     iconPath: string;
     description: string;
     locationName: string;
