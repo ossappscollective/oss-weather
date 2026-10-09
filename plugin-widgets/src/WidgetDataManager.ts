@@ -1,15 +1,19 @@
 // app/services/widgets/shared/WidgetDataManager.ts
 // Shared logic for fetching and formatting widget data (used by both Android and iOS)
 
-import { ApplicationSettings, path } from '@nativescript/core';
-import { SETTINGS_WEATHER_LOCATION } from '~/helpers/constants';
+import { ApplicationSettings, Color, path } from '@nativescript/core';
+import { DATA_INTENSITY, SETTINGS_DATA_INTENSITY, SETTINGS_WEATHER_DATA_LAYOUT, SETTINGS_WEATHER_LOCATION, WEATHER_DATA_LAYOUT } from '~/helpers/constants';
 import { formatDate, formatTime } from '~/helpers/locale';
 import { WeatherLocation } from '~/services/api';
 import { iconService, iconThemesFolder } from '~/services/icon';
-import { WeatherData } from '~/services/providers/weather';
+import { CommonWeatherData, WeatherData } from '~/services/providers/weather';
 import { getWeather } from '~/services/providers/weatherproviderfactory';
-import { WeatherProps, formatWeatherValue } from '~/services/weatherData';
-import { ForecastData, WeatherWidgetData, WidgetConfig } from './WidgetTypes';
+import { CommonData, WeatherProps, formatWeatherValue, weatherDataService } from '~/services/weatherData';
+import { dataTint, modernDataColor } from '~/utils/designStyle';
+import { curvePositions } from '~/utils/widgetCurve';
+import { widgetChip } from '~/utils/widgetChips';
+import { renderWidgetIcon } from './WidgetIcons';
+import { ForecastData, WeatherWidgetData, WidgetChip, WidgetConfig } from './WidgetTypes';
 import { queryTimezone } from '~/helpers/favorites';
 
 export function isDefaultLocation(locationName: string) {
@@ -72,6 +76,10 @@ export class WidgetDataManager {
         // Format current weather
         const formattedData: WeatherWidgetData = {
             temperature: formatWeatherValue(weatherData.currently, WeatherProps.temperature),
+            temperatureHigh: weatherData.daily?.data?.[0] ? formatWeatherValue(weatherData.daily.data[0], WeatherProps.temperatureMax) : '',
+            temperatureLow: weatherData.daily?.data?.[0] ? formatWeatherValue(weatherData.daily.data[0], WeatherProps.temperatureMin) : '',
+            chips: this.chips(weatherData.currently, 'currently'),
+            dataLayout: ApplicationSettings.getString(SETTINGS_WEATHER_DATA_LAYOUT, WEATHER_DATA_LAYOUT),
             iconPath: this.getIconPath(weatherData.currently.iconId, weatherData.currently.isDay, config.iconSet),
             description: weatherData.currently?.description || '',
             locationName: location.name || '',
@@ -84,7 +92,13 @@ export class WidgetDataManager {
 
         // Format hourly data (next 24 hours)
         if (weatherData.hourly?.length > 0) {
-            formattedData.hourlyData = weatherData.hourly.slice(0, 24).map((hour) => ({
+            const hours = weatherData.hourly.slice(0, 24);
+            const curve = curvePositions(hours.map((hour) => hour.temperature));
+            formattedData.hourlyData = hours.map((hour, index) => ({
+                curve: curve[index],
+                precipFraction: dataTint(WeatherProps.precipAccumulation, hour)?.fraction ?? 0,
+                precipColor: modernDataColor(WeatherProps.precipAccumulation),
+                wind: this.chip(weatherDataService.getItemData(WeatherProps.windSpeed, hour, 'hourly')),
                 time: this.formatTime(hour.time),
                 temperature: formatWeatherValue(hour, WeatherProps.temperature),
                 iconPath: this.getIconPath(hour.iconId, hour.isDay, config.iconSet),
@@ -98,6 +112,9 @@ export class WidgetDataManager {
         if (weatherData.daily?.data && weatherData.daily.data.length > 0) {
             formattedData.dailyData = weatherData.daily.data.slice(0, 7).map((day) => ({
                 day: this.formatDayName(day.time),
+                date: formatDate(day.time, 'DD/MM'),
+                description: day.description || '',
+                chips: this.chips(day, 'daily'),
                 temperatureHigh: formatWeatherValue(day, WeatherProps.temperatureMax),
                 temperatureLow: formatWeatherValue(day, WeatherProps.temperatureMin),
                 iconPath: this.getIconPath(day.iconId, day.isDay, config.iconSet),
@@ -140,6 +157,24 @@ export class WidgetDataManager {
         formattedData.forecastData = forecastData;
         // DEV_LOG && console.log('formatWeatherDataForWidget', JSON.stringify(forecastData));
         return formattedData;
+    }
+
+    // the shown weather data of an item as chips, like the app (data, order, thresholds and intensity settings)
+    private chips(item: CommonWeatherData, type: 'currently' | 'daily'): WidgetChip[] {
+        return weatherDataService
+            .getIconsData({ item, type, filter: [WeatherProps.windBearing] })
+            .map((data) => this.chip(data))
+            .filter((chip) => !!chip);
+    }
+
+    private chip(data: CommonData) {
+        if (!data || data.value === undefined || data.value === null) {
+            return undefined;
+        }
+        const color = data.color ? new Color(data.color).hex : undefined;
+        const iconColor = data.iconColor ? new Color(data.iconColor).hex : color || modernDataColor(data.key) || '#888780';
+        const iconPath = renderWidgetIcon(data.icon, data.paint?.fontFamily, iconColor);
+        return widgetChip({ ...data, color }, iconPath, ApplicationSettings.getBoolean(SETTINGS_DATA_INTENSITY, DATA_INTENSITY));
     }
 
     private getIconPath(iconId: number, isDay: boolean, iconSet: string): string {
