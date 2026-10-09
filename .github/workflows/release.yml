@@ -43,6 +43,11 @@ on:
         required: false
         type: boolean
         default: false
+      upload_screenshots:
+        description: "Should we push the store screenshots (Playstore and App Store, needs publish)?"
+        required: true
+        type: boolean
+        default: false
       github:
         description: "Should we publish on Github?"
         default: true
@@ -74,6 +79,7 @@ jobs:
       publish: ${{ github.event.inputs.publish }}
       github: ${{ github.event.inputs.github }}
       fakepublish: ${{ github.event.inputs.fakepublish }}
+      upload_screenshots: ${{ github.event.inputs.upload_screenshots }}
       sentry: ${{ github.event.inputs.sentry }}
       sentry_fdroid: ${{ github.event.inputs.sentry_fdroid }}
       logging: ${{ github.event.inputs.logging }}
@@ -85,6 +91,7 @@ jobs:
     with:
       release_type: ${{ github.event.inputs.release_type }}
       publish: ${{ github.event.inputs.publish }}
+      upload_screenshots: ${{ github.event.inputs.upload_screenshots }}
       github: ${{ github.event.inputs.github }}
       sentry: ${{ github.event.inputs.sentry }}
     secrets: inherit

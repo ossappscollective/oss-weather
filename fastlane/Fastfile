@@ -459,8 +459,23 @@ platform :ios do
           # skip_waiting_for_build_processing: true
           notify_external_testers: true
         )
+      if (options[:upload_screenshots])
+        # TestFlight flavors leave the store listing alone: push only the screenshots
+        upload_to_app_store(
+          api_key: api_key,
+          app_version: params[:version],
+          metadata_path:File.join(metadata_path_realpath, "ios"),
+          screenshots_path:File.join(metadata_path_realpath, "ios", "screenshots"),
+          ignore_language_directory_validation: true,
+          skip_binary_upload: true,
+          skip_metadata: true,
+          overwrite_screenshots: true,
+          force: true,
+          submit_for_review: false
+        )
+      end
     end
-    
+
   end
   desc 'Fetch certificates and provisioning profiles'
   lane :certificates do
