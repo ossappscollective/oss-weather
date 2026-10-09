@@ -127,25 +127,33 @@ struct WidgetHourlyChartView: View {
             let count = max(shown.count, 1)
             let columnWidth = width / CGFloat(count)
             let curveTop = fontSize * 1.4
-            let precipArea = fontSize * 0.8 * 3.2
-            let curveBottom = height - precipArea
+            // curve band above the precipitation bars (at most half of the height)
+            let curveBottom = height * 0.5
+            let smallSize = fontSize * 0.85
             let points = shown.enumerated().map { index, hour in
                 CGPoint(x: columnWidth * (CGFloat(index) + 0.5), y: curveBottom - CGFloat(hour.curve) * (curveBottom - curveTop))
             }
             ZStack(alignment: .topLeading) {
+                // precipitation like the app hourly item: rounded bars from the bottom, the amount at the
+                // bottom and the probability above it, over the bars
                 ForEach(Array(shown.enumerated()), id: \.offset) { index, hour in
-                    if hour.precipFraction > 0 {
-                        let barHeight = (precipArea - fontSize * 0.8 * 2.4) * CGFloat(max(0.15, min(1, hour.precipFraction)))
-                        let bottom = height - fontSize * 0.8 * 1.2
-                        let precipColor = colorFromHex(hour.precipColor, fallback: precipFallback)
-                        RoundedRectangle(cornerRadius: 3)
-                            .fill(precipColor.opacity(0.43))
-                            .frame(width: columnWidth * 0.6, height: barHeight)
-                            .position(x: points[index].x, y: bottom - barHeight / 2)
-                        Text(hour.precipAccumulation).font(.system(size: fontSize * 0.8)).foregroundColor(precipColor)
-                            .position(x: points[index].x, y: bottom - barHeight - fontSize * 0.5)
-                        Text(hour.precipitation).font(.system(size: fontSize * 0.8)).foregroundColor(color.opacity(0.6))
-                            .position(x: points[index].x, y: height - fontSize * 0.45)
+                    let left = columnWidth * CGFloat(index)
+                    ForEach(Array(hour.precipBars.enumerated()), id: \.offset) { _, bar in
+                        let top = CGFloat(bar.top) * (height - 10)
+                        let bottom = height - 3
+                        let barWidth = columnWidth * CGFloat(bar.end - bar.start) - 6
+                        RoundedRectangle(cornerRadius: min(4, (bottom - top) / 2))
+                            .fill(colorFromHex(bar.color, fallback: precipFallback))
+                            .frame(width: barWidth, height: bottom - top)
+                            .position(x: left + columnWidth * CGFloat(bar.start) + 3 + barWidth / 2, y: (top + bottom) / 2)
+                    }
+                    if !hour.precipAmount.isEmpty {
+                        Text(hour.precipAmount).font(.system(size: smallSize, weight: .medium)).foregroundColor(color)
+                            .position(x: points[index].x, y: height - 6 - smallSize * 0.35)
+                    }
+                    if !hour.precipProbability.isEmpty {
+                        Text(hour.precipProbability).font(.system(size: smallSize)).foregroundColor(color.opacity(0.6))
+                            .position(x: points[index].x, y: height - (hour.precipAmount.isEmpty ? 6 : 19) - smallSize * 0.35)
                     }
                 }
                 Path { path in

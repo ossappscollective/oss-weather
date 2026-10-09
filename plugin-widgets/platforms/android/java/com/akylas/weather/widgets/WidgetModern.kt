@@ -158,7 +158,7 @@ object WidgetModern {
 
     /**
      * The app hourly card chart: temperature curve with its values, precipitation bars with their amount
-     * and probability. Drawn to a bitmap (Glance cannot draw paths), columns match a row of equal weights
+     * and probability (drawn like HourlyItem.svelte). Drawn to a bitmap (Glance cannot draw paths), columns match a row of equal weights
      */
     @Composable
     fun HourlyChart(
@@ -188,32 +188,41 @@ object WidgetModern {
             this.color = textColor
         }
         val smallPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            textSize = fontSize * 0.8f * density
+            textSize = fontSize * 0.85f * density
             textAlign = Paint.Align.CENTER
-            this.color = secondaryColor
         }
         val columnWidth = widthPx.toFloat() / shown.size
-        // curve band: under the values, above the precipitation area
+        // curve band: under the values, above the precipitation bars (at most half of the height)
         val curveTop = textPaint.textSize * 1.4f
-        val precipArea = smallPaint.textSize * 3.2f
-        val curveBottom = heightPx - precipArea
+        val curveBottom = heightPx * 0.5f
         val points = shown.mapIndexed { index, hour ->
             Pair(columnWidth * (index + 0.5f), curveBottom - hour.curve * (curveBottom - curveTop))
         }
-        // precipitation bars, their amount above and probability under
+        // precipitation like the app hourly item: rounded bars from the bottom, the amount at the bottom
+        // and the probability above it, over the bars
         val barPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+        val inset = 3 * density
         shown.forEachIndexed { index, hour ->
-            if (hour.precipFraction > 0f) {
-                val x = points[index].first
-                val barHeight = (precipArea - smallPaint.textSize * 2.4f) * hour.precipFraction.coerceIn(0.15f, 1f)
-                val bottom = heightPx - smallPaint.textSize * 1.2f
-                barPaint.color = parseColor(hour.precipColor, 0xFF378ADD.toInt())
-                barPaint.alpha = 110
-                canvas.drawRoundRect(RectF(x - columnWidth * 0.3f, bottom - barHeight, x + columnWidth * 0.3f, bottom), 3 * density, 3 * density, barPaint)
-                smallPaint.color = parseColor(hour.precipColor, 0xFF378ADD.toInt())
-                canvas.drawText(hour.precipAccumulation, x, bottom - barHeight - 2 * density, smallPaint)
+            val left = columnWidth * index
+            hour.precipBars.forEach { bar ->
+                val top = bar.top * (heightPx - 10 * density)
+                val bottom = heightPx - inset
+                val radius = minOf(4 * density, (bottom - top) / 2)
+                barPaint.color = parseColor(bar.color, 0x73378ADD)
+                canvas.drawRoundRect(RectF(left + columnWidth * bar.start + inset, top, left + columnWidth * bar.end - inset, bottom), radius, radius, barPaint)
+            }
+            val x = points[index].first
+            var deltaY = 4 * density + 2
+            if (hour.precipAmount.isNotEmpty()) {
+                smallPaint.color = textColor
+                smallPaint.typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+                canvas.drawText(hour.precipAmount, x, heightPx - deltaY, smallPaint)
+                deltaY += 13 * density
+            }
+            if (hour.precipProbability.isNotEmpty()) {
                 smallPaint.color = secondaryColor
-                canvas.drawText(hour.precipitation, x, heightPx - 2 * density, smallPaint)
+                smallPaint.typeface = Typeface.DEFAULT
+                canvas.drawText(hour.precipProbability, x, heightPx - deltaY, smallPaint)
             }
         }
         // smooth curve through the column centers

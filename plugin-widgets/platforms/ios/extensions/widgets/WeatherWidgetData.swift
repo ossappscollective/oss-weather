@@ -57,11 +57,13 @@ struct HourlyData: Codable, Identifiable {
     let iconPath: String?
     let description: String
     let precipAccumulation: String
-    // precipitation probability, temperature curve height (0 lowest - 1 highest), precipitation bar and wind chip
+    // precipitation probability, temperature curve height (0 lowest - 1 highest), precipitation bars, amount
+    // and probability like the app hourly item ("" when hidden), wind chip
     var precipitation: String = ""
     var curve: Double = 0.5
-    var precipFraction: Double = 0
-    var precipColor: String = ""
+    var precipBars: [PrecipBar] = []
+    var precipAmount: String = ""
+    var precipProbability: String = ""
     var wind: WidgetChip = WidgetChip()
     
     // Coding keys for JSON serialization
@@ -74,8 +76,9 @@ struct HourlyData: Codable, Identifiable {
         case precipAccumulation
         case precipitation
         case curve
-        case precipFraction
-        case precipColor
+        case precipBars
+        case precipAmount
+        case precipProbability
         case wind
     }
     
@@ -89,8 +92,9 @@ struct HourlyData: Codable, Identifiable {
         precipAccumulation = try container.decodeIfPresent(String.self, forKey: .precipAccumulation) ?? ""
         precipitation = try container.decodeIfPresent(String.self, forKey: .precipitation) ?? ""
         curve = try container.decodeIfPresent(Double.self, forKey: .curve) ?? 0.5
-        precipFraction = try container.decodeIfPresent(Double.self, forKey: .precipFraction) ?? 0
-        precipColor = try container.decodeIfPresent(String.self, forKey: .precipColor) ?? ""
+        precipBars = try container.decodeIfPresent([PrecipBar].self, forKey: .precipBars) ?? []
+        precipAmount = try container.decodeIfPresent(String.self, forKey: .precipAmount) ?? ""
+        precipProbability = try container.decodeIfPresent(String.self, forKey: .precipProbability) ?? ""
         wind = try container.decodeIfPresent(WidgetChip.self, forKey: .wind) ?? WidgetChip()
     }
 
@@ -103,8 +107,9 @@ struct HourlyData: Codable, Identifiable {
         try container.encode(precipAccumulation, forKey: .precipAccumulation)
         try container.encode(precipitation, forKey: .precipitation)
         try container.encode(curve, forKey: .curve)
-        try container.encode(precipFraction, forKey: .precipFraction)
-        try container.encode(precipColor, forKey: .precipColor)
+        try container.encode(precipBars, forKey: .precipBars)
+        try container.encode(precipAmount, forKey: .precipAmount)
+        try container.encode(precipProbability, forKey: .precipProbability)
         try container.encode(wind, forKey: .wind)
     }
     
@@ -205,6 +210,14 @@ struct WidgetChip: Codable, Hashable {
     var tint: String = ""
     var barFraction: Double = 0
     var barColor: String = ""
+}
+
+// a precipitation bar of an hour column: horizontal part (0-1), top as a fraction of the height, #rrggbbaa color
+struct PrecipBar: Codable, Hashable {
+    var start: Double = 0
+    var end: Double = 1
+    var top: Double = 1
+    var color: String = ""
 }
 
 // MARK: - Forecast Data

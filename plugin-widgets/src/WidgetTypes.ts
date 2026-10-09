@@ -3,7 +3,9 @@
 
 import { ProviderType } from '~/services/providers/weather';
 import type { WidgetChip } from '~/utils/widgetChips';
+import type { PrecipBar } from '~/utils/widgetPrecip';
 export type { WidgetChip } from '~/utils/widgetChips';
+export type { PrecipBar } from '~/utils/widgetPrecip';
 
 export interface WidgetConfig {
     locationName: string;
@@ -45,9 +47,10 @@ export interface HourlyData {
     hour?: string;
     // temperature curve height (0 lowest - 1 highest of the shown hours)
     curve?: number;
-    // precipitation bar height (0-1, intensity) and color
-    precipFraction?: number;
-    precipColor?: string;
+    // precipitation bars, amount (without unit) and probability like the app hourly item ('' when hidden)
+    precipBars?: PrecipBar[];
+    precipAmount?: string;
+    precipProbability?: string;
     wind?: WidgetChip;
 }
 

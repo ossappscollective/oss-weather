@@ -2,17 +2,19 @@
 // Shared logic for fetching and formatting widget data (used by both Android and iOS)
 
 import { ApplicationSettings, Color, path } from '@nativescript/core';
-import { DATA_INTENSITY, SETTINGS_DATA_INTENSITY, SETTINGS_WEATHER_LOCATION } from '~/helpers/constants';
+import { ALWAYS_SHOW_PRECIP_PROB, DATA_INTENSITY, SETTINGS_ALWAYS_SHOW_PRECIP_PROB, SETTINGS_DATA_INTENSITY, SETTINGS_WEATHER_LOCATION } from '~/helpers/constants';
 import { clock_24, formatDate, formatTime, getStartOfDay, lc } from '~/helpers/locale';
 import { WeatherLocation } from '~/services/api';
 import { iconService, iconThemesFolder } from '~/services/icon';
 import { CommonWeatherData, WeatherData } from '~/services/providers/weather';
 import { getWeather } from '~/services/providers/weatherproviderfactory';
 import { CommonData, WeatherProps, formatWeatherValue, weatherDataService } from '~/services/weatherData';
-import { dataTint, modernDataColor, windSpeedColor } from '~/utils/designStyle';
+import { modernDataColor, windSpeedColor } from '~/utils/designStyle';
 import { curvePositions, rangePositions } from '~/utils/widgetCurve';
 import { widgetChip } from '~/utils/widgetChips';
 import { upcomingDays } from '~/utils/widgetDays';
+import { precipBars, precipTexts } from '~/utils/widgetPrecip';
+import { splitValueUnit } from '~/utils/valueUnit';
 import { renderWidgetIcon } from './WidgetIcons';
 import { ForecastData, WeatherWidgetData, WidgetChip, WidgetConfig } from './WidgetTypes';
 import { queryTimezone } from '~/helpers/favorites';
@@ -101,8 +103,7 @@ export class WidgetDataManager {
                 // short hour label like the app hourly card ("Now", "18" / "6PM")
                 hour: index === 0 ? lc('now') : formatTime(hour.time, clock_24 ? 'HH' : 'hA'),
                 curve: curve[index],
-                precipFraction: dataTint(WeatherProps.precipAccumulation, hour)?.fraction ?? 0,
-                precipColor: modernDataColor(WeatherProps.precipAccumulation),
+                ...this.precipitation(hour),
                 wind: this.windChip(hour),
                 time: this.formatTime(hour.time),
                 temperature: formatWeatherValue(hour, WeatherProps.temperature),
@@ -178,6 +179,16 @@ export class WidgetDataManager {
             .getIconsData({ item, type, filter: [WeatherProps.windBearing] })
             .map((data) => this.chip(data))
             .filter((chip) => !!chip);
+    }
+
+    // precipitation bars and texts like the app hourly item
+    private precipitation(hour: CommonWeatherData) {
+        const texts = precipTexts(hour.precipProbability, hour.precipAccumulation, ApplicationSettings.getBoolean(SETTINGS_ALWAYS_SHOW_PRECIP_PROB, ALWAYS_SHOW_PRECIP_PROB));
+        return {
+            precipBars: precipBars(hour),
+            precipAmount: texts.amount ? splitValueUnit(formatWeatherValue(hour, WeatherProps.precipAccumulation)).amount : '',
+            precipProbability: texts.probability ? formatWeatherValue(hour, WeatherProps.precipProbability) : ''
+        };
     }
 
     // wind icon colored by the gust strength, like the app hourly icons

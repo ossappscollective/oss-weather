@@ -3,7 +3,6 @@
     import { Color } from '@nativescript/core';
 
     const CURVE_COLOR = '#EF9F27';
-    const PRECIP_FALLBACK = '#378ADD';
     const curvePaint = new Paint();
     curvePaint.setStyle(Style.STROKE);
     curvePaint.setStrokeWidth(3);
@@ -37,22 +36,35 @@
         const columnWidth = width / shown.length;
         textPaint.setTextSize(fontSize);
         textPaint.setColor(color);
-        smallPaint.setTextSize(fontSize * 0.8);
+        smallPaint.setTextSize(fontSize * 0.85);
         const curveTop = fontSize * 1.4;
-        const precipArea = smallPaint.textSize * 3.2;
-        const curveBottom = height - precipArea;
+        // curve band above the precipitation bars (at most half of the height)
+        const curveBottom = height * 0.5;
         const points = shown.map((hour, index) => ({ x: columnWidth * (index + 0.5), y: curveBottom - (hour.curve ?? 0.5) * (curveBottom - curveTop) }));
+        // precipitation like the app hourly item: rounded bars from the bottom, the amount at the bottom
+        // and the probability above it, over the bars
         shown.forEach((hour, index) => {
-            if (hour.precipFraction > 0) {
-                const barHeight = (precipArea - smallPaint.textSize * 2.4) * Math.min(1, Math.max(0.15, hour.precipFraction));
-                const bottom = height - smallPaint.textSize * 1.2;
-                barPaint.setColor(hour.precipColor || PRECIP_FALLBACK);
-                barPaint.setAlpha(110);
-                canvas.drawRoundRect(points[index].x - columnWidth * 0.3, bottom - barHeight, points[index].x + columnWidth * 0.3, bottom, 3, 3, barPaint);
-                smallPaint.setColor(hour.precipColor || PRECIP_FALLBACK);
-                canvas.drawText(hour.precipAccumulation, points[index].x, bottom - barHeight - 2, smallPaint);
+            const left = columnWidth * index;
+            (hour.precipBars ?? []).forEach((bar) => {
+                const top = bar.top * (height - 10);
+                const bottom = height - 3;
+                const radius = Math.min(4, (bottom - top) / 2);
+                // #rrggbbaa
+                barPaint.setColor(bar.color.slice(0, 7));
+                barPaint.setAlpha(parseInt(bar.color.slice(7, 9) || 'ff', 16));
+                canvas.drawRoundRect(left + columnWidth * bar.start + 3, top, left + columnWidth * bar.end - 3, bottom, radius, radius, barPaint);
+            });
+            let deltaY = 6;
+            if (hour.precipAmount) {
+                smallPaint.setColor(color);
+                smallPaint.setFontWeight('500');
+                canvas.drawText(hour.precipAmount, points[index].x, height - deltaY, smallPaint);
+                deltaY += 13;
+            }
+            if (hour.precipProbability) {
                 smallPaint.setColor(toColor(color).setAlpha(150).hex);
-                canvas.drawText(hour.precipitation, points[index].x, height - 2, smallPaint);
+                smallPaint.setFontWeight('normal');
+                canvas.drawText(hour.precipProbability, points[index].x, height - deltaY, smallPaint);
             }
         });
         const path = new Path();

@@ -164,7 +164,7 @@ fun HourlyWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
             WidgetModern.HourlyChart(
                 hours = data.hourlyData,
                 limit = when { size.width.value >= 400 -> 7; size.width.value >= 330 -> 6; size.width.value >= 260 -> 5; else -> 4 },
-                height = (max((size.height.value - 96.0f), 60.0f)).dp,
+                height = (max((size.height.value - 110.0f), 60.0f)).dp,
                 color = widgetColor,
                 fontSize = 13f * fontScaleFactor,
                 modifier = GlanceModifier.fillMaxWidth()

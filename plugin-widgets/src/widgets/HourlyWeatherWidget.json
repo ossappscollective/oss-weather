@@ -93,7 +93,7 @@
                     "items": "hourlyData",
                     "limit": ["case", [">=", ["get", "size.width"], 400], 7, [">=", ["get", "size.width"], 330], 6, [">=", ["get", "size.width"], 260], 5, 4],
                     "fontSize": 13,
-                    "height": ["max", ["-", ["get", "size.height"], 96], 60],
+                    "height": ["max", ["-", ["get", "size.height"], 110], 60],
                     "fillWidth": true
                 }
             ],

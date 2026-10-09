@@ -1499,8 +1499,10 @@ data class HourlyData(
     val hour: String = "",
     // temperature curve height (0 lowest - 1 highest of the shown hours)
     val curve: Float = 0.5f,
-    val precipFraction: Float = 0f,
-    val precipColor: String = "",
+    // precipitation bars, amount (without unit) and probability like the app hourly item ("" when hidden)
+    val precipBars: List<PrecipBar> = emptyList(),
+    val precipAmount: String = "",
+    val precipProbability: String = "",
     val wind: WidgetChip = WidgetChip(),
 )
 
@@ -1533,6 +1535,17 @@ data class WidgetChip(
     val tint: String = "",
     val barFraction: Float = 0f,
     val barColor: String = "",
+)
+
+/**
+ * A precipitation bar of an hour column: horizontal part (0-1), top as a fraction of the height, #rrggbbaa color
+ */
+@Serializable
+data class PrecipBar(
+    val start: Float = 0f,
+    val end: Float = 1f,
+    val top: Float = 1f,
+    val color: String = "",
 )
 
 @Serializable
