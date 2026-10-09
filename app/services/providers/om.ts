@@ -10,6 +10,7 @@ import { convertWeatherCodeToIcon } from './omIcons';
 import { Forecast } from './openmeteo';
 import { AirQualityCurrently, AirQualityData, CommonAirQualityData, Currently, DailyData, Hourly, MinutelyData, WeatherData } from './weather';
 import { WeatherProvider } from './weatherprovider';
+import { keptDayCount } from '~/utils/dailyTrim';
 // import { Coord, Dailyforecast, Forecast, MFCurrent, MFForecastResult, MFMinutely, MFWarnings, Probabilityforecast } from './meteofrance';
 
 // const mfApiKey = getString('mfApiKey', MF_DEFAULT_KEY);
@@ -565,7 +566,10 @@ export class OMProvider extends WeatherProvider implements AirQualityProvider {
 
         const currentData = result.content.current;
         // const daily = result.daily;
-        const lastDailyIndex = daily.findIndex((d) => d.tempDatas.aqi.count < 3);
+        const dailyCount = keptDayCount(
+            daily.map((d) => d.tempDatas.aqi?.count ?? 0),
+            3
+        );
         const r = {
             time: result.time,
             currently: currentData
@@ -585,7 +589,7 @@ export class OMProvider extends WeatherProvider implements AirQualityProvider {
                   )
                 : {},
             daily: {
-                data: daily.slice(0, lastDailyIndex >= 0 ? lastDailyIndex : daily.length).map((d) =>
+                data: daily.slice(0, dailyCount).map((d) =>
                     aqiDataIconColors({
                         time: d.time,
                         ...Object.keys(d.tempDatas).reduce((acc, val) => {
