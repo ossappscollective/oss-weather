@@ -3,7 +3,7 @@
 
 import { ApplicationSettings, Color, path } from '@nativescript/core';
 import { DATA_INTENSITY, SETTINGS_DATA_INTENSITY, SETTINGS_WEATHER_DATA_LAYOUT, SETTINGS_WEATHER_LOCATION, WEATHER_DATA_LAYOUT } from '~/helpers/constants';
-import { clock_24, formatDate, formatTime, lc } from '~/helpers/locale';
+import { clock_24, formatDate, formatTime, getStartOfDay, lc } from '~/helpers/locale';
 import { WeatherLocation } from '~/services/api';
 import { iconService, iconThemesFolder } from '~/services/icon';
 import { CommonWeatherData, WeatherData } from '~/services/providers/weather';
@@ -12,6 +12,7 @@ import { CommonData, WeatherProps, formatWeatherValue, weatherDataService } from
 import { dataTint, modernDataColor } from '~/utils/designStyle';
 import { curvePositions, rangePositions } from '~/utils/widgetCurve';
 import { widgetChip } from '~/utils/widgetChips';
+import { upcomingDays } from '~/utils/widgetDays';
 import { renderWidgetIcon } from './WidgetIcons';
 import { ForecastData, WeatherWidgetData, WidgetChip, WidgetConfig } from './WidgetTypes';
 import { queryTimezone } from '~/helpers/favorites';
@@ -73,11 +74,14 @@ export class WidgetDataManager {
         if (!weatherData) {
             return;
         }
+        // the saved current location can miss its timezone: fall back to the device one
+        const startOfDay = getStartOfDay(Date.now(), location.timezoneOffset ?? -new Date().getTimezoneOffset()).valueOf();
+        const upcoming = upcomingDays(weatherData.daily?.data ?? [], startOfDay);
         // Format current weather
         const formattedData: WeatherWidgetData = {
             temperature: formatWeatherValue(weatherData.currently, WeatherProps.temperature),
-            temperatureHigh: weatherData.daily?.data?.[0] ? formatWeatherValue(weatherData.daily.data[0], WeatherProps.temperatureMax) : '',
-            temperatureLow: weatherData.daily?.data?.[0] ? formatWeatherValue(weatherData.daily.data[0], WeatherProps.temperatureMin) : '',
+            temperatureHigh: upcoming[0] ? formatWeatherValue(upcoming[0], WeatherProps.temperatureMax) : '',
+            temperatureLow: upcoming[0] ? formatWeatherValue(upcoming[0], WeatherProps.temperatureMin) : '',
             chips: this.chips(weatherData.currently, 'currently'),
             dataLayout: ApplicationSettings.getString(SETTINGS_WEATHER_DATA_LAYOUT, WEATHER_DATA_LAYOUT),
             iconPath: this.getIconPath(weatherData.currently.iconId, weatherData.currently.isDay, config.iconSet),
@@ -111,8 +115,8 @@ export class WidgetDataManager {
         }
 
         // Format daily data (next 7 days)
-        if (weatherData.daily?.data && weatherData.daily.data.length > 0) {
-            const days = weatherData.daily.data.slice(0, 7);
+        if (upcoming.length > 0) {
+            const days = upcoming.slice(0, 7);
             const ranges = rangePositions(
                 days.map((day) => day.temperatureMin),
                 days.map((day) => day.temperatureMax)
@@ -151,8 +155,8 @@ export class WidgetDataManager {
         }
 
         // Add next 4 days from daily
-        if (weatherData.daily?.data) {
-            weatherData.daily.data.slice(1, 5).forEach((day) => {
+        if (upcoming.length) {
+            upcoming.slice(1, 5).forEach((day) => {
                 forecastData.push({
                     dateTime: this.formatDateTime(day.time),
                     temperature: formatWeatherValue(day, WeatherProps.temperature),
