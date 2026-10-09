@@ -5,7 +5,7 @@
     android:minResizeHeight="50dp"
     android:minResizeWidth="50dp"
     android:targetCellWidth="4"
-    android:targetCellHeight="1"
+    android:targetCellHeight="2"
     android:updatePeriodMillis="0"
     android:configure="com.akylas.weather.widgets.WidgetConfActivity"
     android:description="@string/widget.hourly.description"
