@@ -212,7 +212,7 @@ function evaluateMapboxExpression(expr: any, context: string = 'data', usedColor
                 }
                 if (path.startsWith('item.')) {
                     if (path === 'item.iconPath') {
-                        return `\iconService.getIconPath(${path}, true, false, config.iconSet)`;
+                        return `(${path}?.startsWith('/') ? ${path} : iconService.getIconPath(${path}, true, false, config.iconSet))`;
                     }
                     return path;
                 }
@@ -535,7 +535,7 @@ function buildAttribute(widgetName: string, prop: string, value: any, elementPat
     if (Array.isArray(value)) {
         let expr = evaluateMapboxExpression(value, defaultPrefix, usedColors);
         if (expr === 'data.iconPath') {
-            expr = `\iconService.getIconPath(${expr}, true, false, config.iconSet)`;
+            expr = `(${expr}?.startsWith('/') ? ${expr} : iconService.getIconPath(${expr}, true, false, config.iconSet))`;
         }
         if (Array.isArray(attrName)) {
             return attrName.map((attr) => `${attr}={${expr}}`).join(' ');
@@ -547,7 +547,7 @@ function buildAttribute(widgetName: string, prop: string, value: any, elementPat
     if (typeof value === 'string' && hasTemplateBinding(value)) {
         let expr = convertBindingToSvelteExpr(value, defaultPrefix);
         if (value === '{{item.iconPath}}') {
-            expr = `\iconService.getIconPath(${expr}, true, false, config.iconSet)`;
+            expr = `(${expr}?.startsWith('/') ? ${expr} : iconService.getIconPath(${expr}, true, false, config.iconSet))`;
         }
         if (Array.isArray(attrName)) {
             return attrName.map((attr) => `${attr}={${expr}}`).join(' ');
@@ -594,7 +594,7 @@ function buildAttribute(widgetName: string, prop: string, value: any, elementPat
     if (typeof value === 'string') {
         if (value.startsWith('data.') || value.startsWith('item.') || value.startsWith('size.')) {
             if (value === '{{item.iconPath}}') {
-                value = `\iconService.getIconPath(${value}, true, false, config.iconSet)`;
+                value = `(${value}?.startsWith('/') ? ${value} : iconService.getIconPath(${value}, true, false, config.iconSet))`;
             }
             return `${attrName}={${value}}`;
         }
@@ -702,7 +702,8 @@ function generateMarkup(
             case 'scrollView':
                 return null; // Don't render scrollview, will be handled specially
             case 'forEach':
-                return 'collectionview';
+                // a plain {#each}: equal columns in a row, stacked in a column
+                return element.direction === 'horizontal' ? 'gridlayout' : 'stacklayout';
             case 'conditional':
                 return 'fragment';
             case 'clock':
@@ -775,11 +776,8 @@ function generateMarkup(
 
     const attrsArr: string[] = [];
     const seenAttrs = new Set<string>(); // Track attributes to avoid duplicates
+    let forEachItems = '[]';
 
-    if (tag === 'gridlayout') {
-        attrsArr.push('row="auto"');
-        seenAttrs.add('row');
-    }
 
     const attributesToMap = [
         'padding',
@@ -956,25 +954,14 @@ function generateMarkup(
             seenAttrs.add('backgroundColor');
         }
     } else if (elType === 'forEach') {
-        // Handle orientation from direction property for forEach/collectionview
-        if (element.direction && !seenAttrs.has('orientation')) {
-            const orientation = element.direction === 'horizontal' ? 'horizontal' : 'vertical';
-            seenAttrs.add('orientation');
-            attrsArr.push(`orientation="${orientation}"`);
-            seenAttrs.add('colWidth');
-            attrsArr.push(`colWidth="auto"`);
-        }
-
-        // Replace items attribute with sliced version if limit was set
-        if (itemsValue) {
-            const itemsAttrIndex = attrsArr.findIndex((a) => a.startsWith('items='));
-            if (itemsAttrIndex !== -1) {
-                attrsArr[itemsAttrIndex] = `items={${itemsValue}}`;
-            } else {
-                // Items attribute wasn't added yet, add it now
-                attrsArr.push(`items={${itemsValue}}`);
-                seenAttrs.add('items');
-            }
+        // the list for the {#each} block (sliced when limited), not an attribute
+        const itemsAttrIndex = attrsArr.findIndex((attr) => attr.startsWith('items='));
+        const itemsAttr = itemsAttrIndex !== -1 ? attrsArr.splice(itemsAttrIndex, 1)[0].replace(/^items=\{(.*)\}$/s, '$1') : 'undefined';
+        forEachItems = `(${itemsValue ?? itemsAttr} ?? [])`;
+        if (element.direction === 'horizontal') {
+            attrsArr.push(`columns={${forEachItems}.map(() => '*').join(',')}`);
+        } else {
+            attrsArr.push('orientation="vertical"');
         }
     }
 
@@ -1009,6 +996,10 @@ function generateMarkup(
         seenAttrs.add('text');
     }
 
+    // a grid without rows has one * row: in a vertical stack it would take all the remaining height
+    if (tag === 'gridlayout' && !attrsArr.some((attr) => attr.startsWith('rows='))) {
+        attrsArr.push('rows="auto"');
+    }
     const attrStr = attrsArr.length ? ' ' + attrsArr.join(' ') : '';
 
     // Now generate children markup
@@ -1171,6 +1162,9 @@ function generateMarkup(
         return m;
     }
 
+    // a list in a row lays its items out horizontally
+    const rowForEach = (child: BaseLayoutElement) => (elType === 'row' && child.type === 'forEach' && !child.direction ? { ...child, direction: 'horizontal' } : child);
+
     if (hasFlex1Children) {
         // GridLayout mode: assign col/row slots to each child; spacers occupy their slot
         const isRow = elType === 'row';
@@ -1196,7 +1190,7 @@ function generateMarkup(
             }
 
             // Regular child: generate markup and inject col/row slot index
-            let childMarkup = generateMarkup(widgetName, children[i], [...elementPath, `${element.type}${i}`], usedTemplateImport, usedColors, defaultPrefix, defaultColor);
+            let childMarkup = generateMarkup(widgetName, rowForEach(children[i]), [...elementPath, `${element.type}${i}`], usedTemplateImport, usedColors, defaultPrefix, defaultColor);
             if (childMarkup) {
                 childMarkup = addAttrToMarkup(childMarkup, slotAttr, slotIdx);
                 childMarkups.push(childMarkup);
@@ -1216,7 +1210,7 @@ function generateMarkup(
                 continue;
             }
 
-            const childMarkup = generateMarkup(widgetName, children[i], [...elementPath, `${element.type}${i}`], usedTemplateImport, usedColors, defaultPrefix, defaultColor);
+            const childMarkup = generateMarkup(widgetName, rowForEach(children[i]), [...elementPath, `${element.type}${i}`], usedTemplateImport, usedColors, defaultPrefix, defaultColor);
             if (childMarkup) childMarkups.push(childMarkup);
         }
     }
@@ -1245,14 +1239,14 @@ function generateMarkup(
     }
 
     if (elType === 'forEach') {
-        usedTemplateImport.val = true;
-
-        // Generate the inner template with item context
-        const innerTemplate = element.itemTemplate ? generateMarkup(widgetName, element.itemTemplate, [...elementPath, 'itemTemplate'], usedTemplateImport, usedColors, 'item', defaultColor) : '';
-
+        // Generate the inner template with item context, one grid column per item when horizontal
+        let innerTemplate = element.itemTemplate ? generateMarkup(widgetName, element.itemTemplate, [...elementPath, 'itemTemplate'], usedTemplateImport, usedColors, 'item', defaultColor) : '';
+        if (innerTemplate && element.direction === 'horizontal') {
+            innerTemplate = injectAttrIntoMarkup(innerTemplate, 'col={index}');
+        }
         if (innerTemplate) {
             const templateIndent = indent + '    ';
-            childrenMarkup = `\n${templateIndent}<Template let:item>\n${innerTemplate}\n${templateIndent}</Template>\n${indent}`;
+            childrenMarkup = `\n${templateIndent}{#each ${forEachItems} as item, index}\n${innerTemplate}\n${templateIndent}{/each}\n${indent}`;
         }
     } else if (childMarkups.length > 0) {
         childrenMarkup = '\n' + childMarkups.join('\n') + '\n' + indent;

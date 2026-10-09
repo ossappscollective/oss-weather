@@ -28,6 +28,7 @@
     import { NativeViewElementNode } from 'svelte-native/dom';
     import { queryTimezone } from '~/helpers/favorites';
     import { onThemeChanged } from '~/helpers/theme';
+    import { widgetBackground } from 'plugin-widgets/svelte/widgetBackground';
     import { iconService, iconThemesFolder } from '~/services/icon';
 
     // Load sample data helper
@@ -38,8 +39,8 @@
 </script>
 
 <script lang="ts">
-    let { colorOnBackground, colorOnSurface, colorOnSurfaceVariant, colorOutline, colorPrimary, colorSurfaceContainer, colorWidgetBackground } = $colors;
-    $: ({ colorOnBackground, colorOnSurface, colorOnSurfaceVariant, colorOutline, colorPrimary, colorSurfaceContainer, colorWidgetBackground } = $colors);
+    let { colorOnBackground, colorOnSurface, colorOnSurfaceVariant, colorOutline, colorPrimary, colorSurfaceContainer } = $colors;
+    $: ({ colorOnBackground, colorOnSurface, colorOnSurfaceVariant, colorOutline, colorPrimary, colorSurfaceContainer } = $colors);
 
     // Props
     export let widgetClass: string = '';
@@ -404,7 +405,7 @@
         }
     }
     async function clearColor(item, event) {
-        item.color = item.id === 'color' ? colorOnSurface : colorWidgetBackground;
+        item.color = item.id === 'color' ? colorOnSurface : widgetBackground().hex;
         delete config.settings[item.id];
         config = config;
         saveConfig();
@@ -467,7 +468,7 @@
                 type: 'color',
                 id: 'backgroundColor',
                 title: lc('background_color'),
-                color: config.settings?.['backgroundColor'] ?? colorWidgetBackground
+                color: config.settings?.['backgroundColor'] ?? widgetBackground().hex
             },
             {
                 type: 'color',
@@ -676,16 +677,16 @@
     <gridlayout class="pageContent" rows="auto,auto,*">
         <!-- Preview Section -->
         {#if widgetComponent && previewData && previewSize}
-            <!-- modern: the preview sits on a tinted card, like a home screen -->
+            <!-- modern: the preview sits on a neutral card, like a home screen -->
             <gridlayout
-                backgroundColor={modern ? new Color($modernColors.colorModernAccent).setAlpha(36).hex : undefined}
+                backgroundColor={modern ? new Color(colorOnSurface).setAlpha(20).hex : undefined}
                 borderRadius={modern ? 20 : 0}
                 margin={modern ? '8 14 4 14' : 0}
                 padding={modern ? 20 : 0}
                 row={1}>
                 <svelte:component
                     this={widgetComponent}
-                    backgroundColor={config?.settings?.transparent ? '#ffffff00' : (config?.settings?.backgroundColor ?? colorWidgetBackground)}
+                    backgroundColor={config?.settings?.transparent ? '#ffffff00' : (config?.settings?.backgroundColor ?? widgetBackground())}
                     {config}
                     data={actualPreviewData}
                     horizontalAlignment="center"

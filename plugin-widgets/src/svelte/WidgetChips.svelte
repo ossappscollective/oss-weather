@@ -44,7 +44,8 @@
                     borderRadius={(chipHeight + (shown[chipIndex].barFraction > 0 ? 3 : 0)) / 2}
                     columns="auto,auto"
                     marginLeft={index > 0 ? chipSpacing : 0}
-                    padding={`2 ${CHIP_PADDING}`}>
+                    padding={`2 ${CHIP_PADDING}`}
+                    rows="auto">
                     <image height={iconSize} src={shown[chipIndex].iconPath} verticalAlignment="center" width={iconSize} />
                     <stacklayout col={1} marginLeft={ICON_GAP} verticalAlignment="center">
                         <label {color} {fontSize} maxLines={1}>

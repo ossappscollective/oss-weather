@@ -51,14 +51,20 @@ struct SimpleWeatherWithDateWidgetView: View {
                                     }())
                                         .font(.system(size: max(min(((width - 128) / 3.4), min((height * 0.42), 56)), 9), weight: .light))
                                         .foregroundColor(widgetColor)
-                                    Text({
-                                        let f = DateFormatter()
-                                        f.dateStyle = .long
-                                        f.timeStyle = .none
-                                        return f.string(from: Date())
-                                    }())
-                                        .font(.system(size: max(min((width * 0.05), min((height * 0.13), 13)), 10), weight: .regular))
-                                        .foregroundColor(widgetColor)
+                                    if height >= 80 {
+                                        Text({
+                                            let f = DateFormatter()
+                                            f.dateStyle = .long
+                                            f.timeStyle = .none
+                                            return f.string(from: Date())
+                                        }())
+                                            .font(.system(size: max(min((width * 0.05), min((height * 0.13), 13)), 10), weight: .regular))
+                                            .foregroundColor(widgetColor)
+                                    }
+                                    else {
+                                        VStack(alignment: .center, spacing: 0) {
+                                        }
+                                    }
                                     if height >= 130 {
                                         VStack(alignment: .center, spacing: 0) {
                                             Spacer().frame(height: 4)
@@ -379,14 +385,20 @@ struct SimpleWeatherWithDateWidgetView: View {
                                             }())
                                                 .font(.system(size: max(min(((width - 128) / 3.4), min((height * 0.42), 56)), 9), weight: .light))
                                                 .foregroundColor(widgetColor)
-                                            Text({
-                                                let f = DateFormatter()
-                                                f.dateStyle = .long
-                                                f.timeStyle = .none
-                                                return f.string(from: Date())
-                                            }())
-                                                .font(.system(size: max(min((width * 0.05), min((height * 0.13), 13)), 10), weight: .regular))
-                                                .foregroundColor(widgetColor)
+                                            if height >= 80 {
+                                                Text({
+                                                    let f = DateFormatter()
+                                                    f.dateStyle = .long
+                                                    f.timeStyle = .none
+                                                    return f.string(from: Date())
+                                                }())
+                                                    .font(.system(size: max(min((width * 0.05), min((height * 0.13), 13)), 10), weight: .regular))
+                                                    .foregroundColor(widgetColor)
+                                            }
+                                            else {
+                                                VStack(alignment: .center, spacing: 0) {
+                                                }
+                                            }
                                             if height >= 130 {
                                                 VStack(alignment: .center, spacing: 0) {
                                                     Spacer().frame(height: 4)

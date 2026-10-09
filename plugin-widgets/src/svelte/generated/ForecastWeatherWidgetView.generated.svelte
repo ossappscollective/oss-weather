@@ -21,7 +21,7 @@
 
 <gridlayout width={size.width} height={size.height} {...$$restProps} class="widget-container">
     <stacklayout padding={14} orientation="vertical">
-        <gridlayout row="auto" columns="*,auto">
+        <gridlayout columns="*,auto" rows="auto">
             <stacklayout orientation="vertical" col={0} verticalAlignment="top">
                 <label text={data.locationName} fontSize={12} maxLines={1} opacity={0.6} color={widgetColor}></label>
                 <label text={data.temperature} fontSize={Math.min((size.width * 0.15), Math.min((size.height * 0.15), 50))} maxLines={1} fontWeight="300" color={widgetColor}></label>
@@ -32,7 +32,7 @@
                     <label text={data.temperatureHigh} fontSize={14} maxLines={1} fontWeight="500" color={widgetColor} verticalAlignment="center"></label>
                 </stacklayout>
             </stacklayout>
-            <image src={iconService.getIconPath(data.iconPath, true, false, config.iconSet)} width={(Math.min((size.width * 0.26), Math.min((size.height * 0.26), 80)) * 1.3)} height={(Math.min((size.width * 0.26), Math.min((size.height * 0.26), 80)) * 1.3)} visibility={(data.iconPath != null) ? 'visible' : 'collapsed'} col={1} verticalAlignment="top"></image>
+            <image src={(data.iconPath?.startsWith('/') ? data.iconPath : iconService.getIconPath(data.iconPath, true, false, config.iconSet))} width={(Math.min((size.width * 0.26), Math.min((size.height * 0.26), 80)) * 1.3)} height={(Math.min((size.width * 0.26), Math.min((size.height * 0.26), 80)) * 1.3)} visibility={(data.iconPath != null) ? 'visible' : 'collapsed'} col={1} verticalAlignment="top"></image>
         </gridlayout>
         <absolutelayout height={6}></absolutelayout>
         {#if config.settings.showChips !== false}
@@ -44,14 +44,14 @@
         {#if size.height >= 380}
             <stacklayout orientation="vertical">
                 <stacklayout orientation="vertical">
-                        <collectionview items={data.hourlyData?.slice(0, size.width >= 330 ? 6 : 5)}>
-                            <Template let:item>
-                            <stacklayout orientation="vertical">
+                        <gridlayout columns={(data.hourlyData?.slice(0, size.width >= 330 ? 6 : 5) ?? []).map(() => '*').join(',')} rows="auto">
+                            {#each (data.hourlyData?.slice(0, size.width >= 330 ? 6 : 5) ?? []) as item, index}
+                            <stacklayout orientation="vertical" col={index}>
                                 <label text={item.hour} fontSize={11} maxLines={1} fontWeight="500" color={widgetColor} horizontalAlignment="center"></label>
-                                <image src={iconService.getIconPath(item.iconPath, true, false, config.iconSet)} width={20} height={20} horizontalAlignment="center"></image>
+                                <image src={(item.iconPath?.startsWith('/') ? item.iconPath : iconService.getIconPath(item.iconPath, true, false, config.iconSet))} width={20} height={20} horizontalAlignment="center"></image>
                             </stacklayout>
-                            </Template>
-                        </collectionview>
+                            {/each}
+                        </gridlayout>
                     <WidgetHourlyChart fontSize={12} height={80} hours={data.hourlyData} limit={size.width >= 330 ? 6 : 5} color={widgetColor}></WidgetHourlyChart>
                 </stacklayout>
                 <absolutelayout height={8}></absolutelayout>
@@ -59,11 +59,11 @@
         {:else}
             <stacklayout orientation="vertical"></stacklayout>
         {/if}
-        <collectionview items={data.dailyData?.slice(0, size.height >= 380 ? size.height >= 565 ? 6 : size.height >= 522 ? 5 : size.height >= 479 ? 4 : size.height >= 436 ? 3 : size.height >= 393 ? 2 : 1 : size.height >= 356 ? 4 : size.height >= 313 ? 3 : size.height >= 270 ? 2 : 1)}>
-            <Template let:item>
+        <stacklayout orientation="vertical">
+            {#each (data.dailyData?.slice(0, size.height >= 380 ? size.height >= 565 ? 6 : size.height >= 522 ? 5 : size.height >= 479 ? 4 : size.height >= 436 ? 3 : size.height >= 393 ? 2 : 1 : size.height >= 356 ? 4 : size.height >= 313 ? 3 : size.height >= 270 ? 2 : 1) ?? []) as item, index}
             {#if size.width < 250}
-                <gridlayout row="auto" paddingTop={3} paddingBottom={3} columns="auto,6,auto,4,*,auto">
-                    <image src={iconService.getIconPath(item.iconPath, true, false, config.iconSet)} width={22} height={22} col={0} verticalAlignment="center"></image>
+                <gridlayout paddingTop={3} paddingBottom={3} columns="auto,6,auto,4,*,auto" rows="auto">
+                    <image src={(item.iconPath?.startsWith('/') ? item.iconPath : iconService.getIconPath(item.iconPath, true, false, config.iconSet))} width={22} height={22} col={0} verticalAlignment="center"></image>
                     <absolutelayout width={6} col={1} verticalAlignment="center"></absolutelayout>
                     <label text={item.day} fontSize={13} maxLines={1} fontWeight="500" color={widgetColor} col={2} verticalAlignment="center"></label>
                     <absolutelayout width={4} col={3} verticalAlignment="center"></absolutelayout>
@@ -75,8 +75,8 @@
                     </stacklayout>
                 </gridlayout>
             {:else}
-                <gridlayout row="auto" paddingTop={4} paddingBottom={4} columns="auto,8,*,auto,5,auto,5,auto">
-                    <image src={iconService.getIconPath(item.iconPath, true, false, config.iconSet)} width={24} height={24} col={0} verticalAlignment="center"></image>
+                <gridlayout paddingTop={4} paddingBottom={4} columns="auto,8,*,auto,5,auto,5,auto" rows="auto">
+                    <image src={(item.iconPath?.startsWith('/') ? item.iconPath : iconService.getIconPath(item.iconPath, true, false, config.iconSet))} width={24} height={24} col={0} verticalAlignment="center"></image>
                     <absolutelayout width={8} col={1} verticalAlignment="center"></absolutelayout>
                     <stacklayout orientation="vertical" col={2} verticalAlignment="center">
                         <stacklayout orientation="horizontal">
@@ -94,7 +94,7 @@
                     </stacklayout>
                     <label text={item.temperatureLow} fontSize={13} maxLines={1} opacity={0.6} color={widgetColor} col={3} verticalAlignment="center"></label>
                     <absolutelayout width={5} col={4} verticalAlignment="center"></absolutelayout>
-                    <gridlayout row="auto" width={30} height={3} col={5} verticalAlignment="center">
+                    <gridlayout width={30} height={3} rows="auto" col={5} verticalAlignment="center">
                         <stacklayout width={30} height={3} backgroundColor={colorSurfaceVariant} borderRadius={2} orientation="horizontal"></stacklayout>
                         <stacklayout height={3} orientation="horizontal">
                             <absolutelayout width={(item.rangeStart * 30)}></absolutelayout>
@@ -105,7 +105,7 @@
                     <label text={item.temperatureHigh} fontSize={14} maxLines={1} fontWeight="500" width={30} textAlignment="right" color={widgetColor} col={7} verticalAlignment="center"></label>
                 </gridlayout>
             {/if}
-            </Template>
-        </collectionview>
+            {/each}
+        </stacklayout>
     </stacklayout>
 </gridlayout>

@@ -73,11 +73,16 @@
                                 "fontWeight": "light"
                             },
                             {
-                                "type": "date",
-                                "style": "fullDate",
-                                "fontSize": ["max", ["min", ["*", ["get", "size.width"], 0.05], ["min", ["*", ["get", "size.height"], 0.13], 13]], 10],
-                                "maxLines": 1,
-                                "opacity": 0.6
+                                "type": "conditional",
+                                "condition": [">=", ["get", "size.height"], 80],
+                                "then": {
+                                    "type": "date",
+                                    "style": "fullDate",
+                                    "fontSize": ["max", ["min", ["*", ["get", "size.width"], 0.05], ["min", ["*", ["get", "size.height"], 0.13], 13]], 10],
+                                    "maxLines": 1,
+                                    "opacity": 0.6
+                                },
+                                "else": { "type": "column", "children": [] }
                             },
                             {
                                 "type": "conditional",
@@ -541,11 +546,20 @@
                                         "fontWeight": "light"
                                     },
                                     {
-                                        "type": "date",
-                                        "style": "fullDate",
-                                        "fontSize": ["max", ["min", ["*", ["get", "size.width"], 0.05], ["min", ["*", ["get", "size.height"], 0.13], 13]], 10],
-                                        "maxLines": 1,
-                                        "opacity": 0.6
+                                        "type": "conditional",
+                                        "condition": [">=", ["get", "size.height"], 80],
+                                        "then": {
+                                            "type": "date",
+                                            "style": "fullDate",
+                                            "fontSize": [
+                                                "max",
+                                                ["min", ["*", ["get", "size.width"], 0.05], ["min", ["*", ["get", "size.height"], 0.13], 13]],
+                                                10
+                                            ],
+                                            "maxLines": 1,
+                                            "opacity": 0.6
+                                        },
+                                        "else": { "type": "column", "children": [] }
                                     },
                                     {
                                         "type": "conditional",

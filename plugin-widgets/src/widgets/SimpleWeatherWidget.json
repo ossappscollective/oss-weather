@@ -63,7 +63,7 @@
                                     {
                                         "type": "label",
                                         "text": ["get", "temperature"],
-                                        "fontSize": ["min", ["*", ["get", "size.width"], 0.3], ["min", ["*", ["get", "size.height"], 0.16], 58]],
+                                        "fontSize": ["min", ["*", ["get", "size.width"], 0.25], ["min", ["*", ["get", "size.height"], 0.16], 58]],
                                         "maxLines": 1,
                                         "fontWeight": "light"
                                     },
@@ -100,7 +100,7 @@
                             {
                                 "type": "image",
                                 "src": ["get", "iconPath"],
-                                "size": ["*", ["min", ["*", ["get", "size.width"], 0.4], ["min", ["*", ["get", "size.height"], 0.22], 80]], 1.3],
+                                "size": ["*", ["min", ["*", ["get", "size.width"], 0.3], ["min", ["*", ["get", "size.height"], 0.22], 80]], 1.3],
                                 "visibleIf": ["has", "iconPath"]
                             }
                         ],
@@ -176,7 +176,8 @@
                                                     ["min", ["*", ["get", "size.width"], 0.045], ["min", ["*", ["get", "size.height"], 0.13], 13]],
                                                     11
                                                 ],
-                                                "maxLines": 1
+                                                "maxLines": 1,
+                                                "flex": 1
                                             },
                                             { "type": "spacer", "size": 6, "direction": "horizontal" },
                                             {
@@ -217,7 +218,8 @@
                                                 "crossAlignment": "center"
                                             }
                                         ],
-                                        "crossAlignment": "center"
+                                        "crossAlignment": "center",
+                                        "fillWidth": true
                                     }
                                 ],
                                 "flex": 1
@@ -377,7 +379,7 @@
                                             "text": ["get", "temperature"],
                                             "fontSize": [
                                                 "max",
-                                                ["min", ["*", ["get", "size.width"], 0.26], ["min", ["*", ["get", "size.height"], 0.26], 44]],
+                                                ["min", ["*", ["get", "size.width"], 0.24], ["min", ["*", ["get", "size.height"], 0.26], 44]],
                                                 22
                                             ],
                                             "maxLines": 1,
@@ -436,7 +438,7 @@
                                 {
                                     "type": "image",
                                     "src": ["get", "iconPath"],
-                                    "size": ["*", ["min", ["*", ["get", "size.width"], 0.34], ["min", ["*", ["get", "size.height"], 0.45], 64]], 1.3],
+                                    "size": ["*", ["min", ["*", ["get", "size.width"], 0.28], ["min", ["*", ["get", "size.height"], 0.4], 56]], 1.3],
                                     "visibleIf": ["has", "iconPath"]
                                 }
                             ],

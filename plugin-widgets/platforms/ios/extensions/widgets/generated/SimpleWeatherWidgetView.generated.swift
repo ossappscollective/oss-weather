@@ -49,7 +49,7 @@ struct SimpleWeatherWidgetView: View {
                                             .foregroundColor(widgetColor)
                                             .lineLimit(1).opacity(0.6)
                                         Text(data.temperature)
-                                            .font(.system(size: min((width * 0.3), min((height * 0.16), 58)), weight: .light))
+                                            .font(.system(size: min((width * 0.25), min((height * 0.16), 58)), weight: .light))
                                             .foregroundColor(widgetColor)
                                             .lineLimit(1)
                                         Text(data.description)
@@ -69,7 +69,7 @@ struct SimpleWeatherWidgetView: View {
                                         }
                                     }.layoutPriority(1)
                                     if !(data.iconPath ?? "").isEmpty {
-                                        WeatherIconView(data.iconPath, description: data.description, size: (min((width * 0.4), min((height * 0.22), 80)) * 1.3))
+                                        WeatherIconView(data.iconPath, description: data.description, size: (min((width * 0.3), min((height * 0.22), 80)) * 1.3))
                                     }
                                 }.frame(maxWidth: .infinity)
                                 Spacer().frame(height: 8)
@@ -175,7 +175,7 @@ struct SimpleWeatherWidgetView: View {
                                                 Text(data.description)
                                                     .font(.system(size: max(min((width * 0.045), min((height * 0.13), 13)), 11), weight: .regular))
                                                     .foregroundColor(widgetColor)
-                                                    .lineLimit(1)
+                                                    .lineLimit(1).layoutPriority(1)
                                                 Spacer().frame(width: 6)
                                                 HStack(alignment: .center, spacing: 0) {
                                                     Text(data.temperatureLow)
@@ -188,7 +188,7 @@ struct SimpleWeatherWidgetView: View {
                                                         .foregroundColor(widgetColor)
                                                         .lineLimit(1)
                                                 }
-                                            }
+                                            }.frame(maxWidth: .infinity)
                                         }.layoutPriority(1)
                                         Spacer().frame(width: 6)
                                         if entry.config.settings["showChips"] as? Bool != false {
@@ -259,7 +259,7 @@ struct SimpleWeatherWidgetView: View {
                                     HStack(alignment: .top, spacing: 0) {
                                         VStack(alignment: .center, spacing: 0) {
                                             Text(data.temperature)
-                                                .font(.system(size: max(min((width * 0.26), min((height * 0.26), 44)), 22), weight: .light))
+                                                .font(.system(size: max(min((width * 0.24), min((height * 0.26), 44)), 22), weight: .light))
                                                 .foregroundColor(widgetColor)
                                                 .lineLimit(1)
                                             Text(data.description)
@@ -279,7 +279,7 @@ struct SimpleWeatherWidgetView: View {
                                             }
                                         }.layoutPriority(1)
                                         if !(data.iconPath ?? "").isEmpty {
-                                            WeatherIconView(data.iconPath, description: data.description, size: (min((width * 0.34), min((height * 0.45), 64)) * 1.3))
+                                            WeatherIconView(data.iconPath, description: data.description, size: (min((width * 0.28), min((height * 0.4), 56)) * 1.3))
                                         }
                                     }.frame(maxWidth: .infinity)
                                     Spacer().frame(height: 6)

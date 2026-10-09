@@ -151,10 +151,18 @@ fun SimpleWeatherWithDateWidgetContent(config: WidgetConfig, data: WeatherWidget
                 },
                         style = TextStyle(fontSize = (max(min(((size.width.value - 128.0f) / 3.4f), min((size.height.value * 0.42f), 56.0f)), 9.0f) * fontScaleFactor).sp, color = widgetColor, fontWeight = FontWeight.Normal, fontFamily = FontFamily("sans-serif-light"))
                     )
-                    Text(
-                        text = android.text.format.DateFormat.getLongDateFormat(context).format(java.util.Date()),
-                        style = TextStyle(fontSize = (max(min((size.width.value * 0.05f), min((size.height.value * 0.13f), 13.0f)), 10.0f) * fontScaleFactor).sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.6f)))
-                    )
+                    if (size.height.value >= 80) {
+                        Text(
+                            text = android.text.format.DateFormat.getLongDateFormat(context).format(java.util.Date()),
+                            style = TextStyle(fontSize = (max(min((size.width.value * 0.05f), min((size.height.value * 0.13f), 13.0f)), 10.0f) * fontScaleFactor).sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.6f)))
+                        )
+                    }
+                    else {
+                        Column(
+                            modifier = GlanceModifier,
+                        ) {
+                        }
+                    }
                     if (size.height.value >= 130) {
                         Column(
                             modifier = GlanceModifier,
@@ -719,10 +727,18 @@ fun SimpleWeatherWithDateWidgetContent(config: WidgetConfig, data: WeatherWidget
                 },
                                 style = TextStyle(fontSize = (max(min(((size.width.value - 128.0f) / 3.4f), min((size.height.value * 0.42f), 56.0f)), 9.0f) * fontScaleFactor).sp, color = widgetColor, fontWeight = FontWeight.Normal, fontFamily = FontFamily("sans-serif-light"))
                             )
-                            Text(
-                                text = android.text.format.DateFormat.getLongDateFormat(context).format(java.util.Date()),
-                                style = TextStyle(fontSize = (max(min((size.width.value * 0.05f), min((size.height.value * 0.13f), 13.0f)), 10.0f) * fontScaleFactor).sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.6f)))
-                            )
+                            if (size.height.value >= 80) {
+                                Text(
+                                    text = android.text.format.DateFormat.getLongDateFormat(context).format(java.util.Date()),
+                                    style = TextStyle(fontSize = (max(min((size.width.value * 0.05f), min((size.height.value * 0.13f), 13.0f)), 10.0f) * fontScaleFactor).sp, color = ColorProvider(widgetColor.getColor(context).copy(alpha = 0.6f)))
+                                )
+                            }
+                            else {
+                                Column(
+                                    modifier = GlanceModifier,
+                                ) {
+                                }
+                            }
                             if (size.height.value >= 130) {
                                 Column(
                                     modifier = GlanceModifier,

@@ -147,7 +147,7 @@ fun SimpleWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
                         )
                         Text(
                             text = data.temperature,
-                            style = TextStyle(fontSize = (min((size.width.value * 0.3f), min((size.height.value * 0.16f), 58.0f)) * fontScaleFactor).sp, fontWeight = FontWeight.Normal, fontFamily = FontFamily("sans-serif-light"), color = widgetColor),
+                            style = TextStyle(fontSize = (min((size.width.value * 0.25f), min((size.height.value * 0.16f), 58.0f)) * fontScaleFactor).sp, fontWeight = FontWeight.Normal, fontFamily = FontFamily("sans-serif-light"), color = widgetColor),
                             maxLines = 1
                         )
                         Text(
@@ -177,7 +177,7 @@ fun SimpleWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
                             Image(
                                provider = provider,
                                contentDescription = data.iconPath,
-                               modifier = GlanceModifier.size((min((size.width.value * 0.4f), min((size.height.value * 0.22f), 80.0f)) * 1.3f).dp)
+                               modifier = GlanceModifier.size((min((size.width.value * 0.3f), min((size.height.value * 0.22f), 80.0f)) * 1.3f).dp)
                             )
                         }
                     }
@@ -356,10 +356,11 @@ fun SimpleWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
                                 maxLines = 1
                             )
                             Row(
-                                modifier = GlanceModifier,
+                                modifier = GlanceModifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.Vertical.CenterVertically,
                             ) {
                                 Text(
+                                    modifier = GlanceModifier.defaultWeight(),
                                     text = data.description,
                                     style = TextStyle(fontSize = (max(min((size.width.value * 0.045f), min((size.height.value * 0.13f), 13.0f)), 11.0f) * fontScaleFactor).sp, color = widgetColor),
                                     maxLines = 1
@@ -513,7 +514,7 @@ fun SimpleWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
                         ) {
                             Text(
                                 text = data.temperature,
-                                style = TextStyle(fontSize = (max(min((size.width.value * 0.26f), min((size.height.value * 0.26f), 44.0f)), 22.0f) * fontScaleFactor).sp, fontWeight = FontWeight.Normal, fontFamily = FontFamily("sans-serif-light"), color = widgetColor),
+                                style = TextStyle(fontSize = (max(min((size.width.value * 0.24f), min((size.height.value * 0.26f), 44.0f)), 22.0f) * fontScaleFactor).sp, fontWeight = FontWeight.Normal, fontFamily = FontFamily("sans-serif-light"), color = widgetColor),
                                 maxLines = 1
                             )
                             Text(
@@ -543,7 +544,7 @@ fun SimpleWeatherWidgetContent(config: WidgetConfig, data: WeatherWidgetData) {
                                 Image(
                                    provider = provider,
                                    contentDescription = data.iconPath,
-                                   modifier = GlanceModifier.size((min((size.width.value * 0.34f), min((size.height.value * 0.45f), 64.0f)) * 1.3f).dp)
+                                   modifier = GlanceModifier.size((min((size.width.value * 0.28f), min((size.height.value * 0.4f), 56.0f)) * 1.3f).dp)
                                 )
                             }
                         }
