@@ -74,7 +74,7 @@
     "cancel": "Anuluj",
     "center": "środek",
     "chart": "Wykres",
-    "chart_view": "Wykres",
+    "chart_view": "Wykresowy",
     "charts": "wykresy",
     "charts_landscape": "Wyświetlaj wykresy poziomo",
     "charts_portrait_fullscreen": "Wykresy używają pełnej wysokości w orientacji pionowej",
@@ -191,7 +191,7 @@
     "heavy_snow": "Duże opady śniegu",
     "heavy_snow_shower": "Intensywne opady śniegu",
     "here": "tutaj",
-    "hourly": "Godzinowe",
+    "hourly": "Godzinowy",
     "hourly_settings": "ustawienia dotyczące sekcji godzinowej",
     "icon_pack": "zestaw ikon",
     "icons": "ikony",
@@ -476,6 +476,8 @@
     "weather_map_colors": "schemat kolorów mapy pogodowej",
     "weather_map_layer": "domyślna warstwa mapy pogody",
     "weather_map_source": "źródło mapy pogody",
+    "weather_outdated": "Dane pogodowe są nieaktualne",
+    "weather_outdated_desc": "Ostatnia aktualizacja: %s.\nSprawdź połączenie i odśwież stronę.",
     "widget": "Widżet",
     "widget.daily.description": "Tygodniowa prognoza pogody",
     "widget.daily.name": "Prognoza 7-dniowa",
@@ -530,5 +532,5 @@
     "wind_beaufort": "skala wiatru Beauforta",
     "wind_gust": "podmuch wiatru",
     "wind_speed": "prędkość wiatru",
-    "windy_view": "wietrznie"
+    "windy_view": "wietrzny"
 }
