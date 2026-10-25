@@ -553,6 +553,7 @@ export class MFProvider extends WeatherProvider {
                 valueType: 'string',
                 id: 'setting',
                 key: API_KEY_SETTING,
+                onClear: () => MFProvider.setApiKey(null),
                 default: () => MFProvider.apiKey,
                 description: lc('api_key_required'),
                 title: lc('api_key')

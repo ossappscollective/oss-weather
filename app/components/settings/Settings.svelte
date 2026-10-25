@@ -7,6 +7,7 @@
     import { openFilePicker, saveFile } from '@nativescript-community/ui-document-picker';
     import { Label } from '@nativescript-community/ui-label';
     import { showBottomSheet } from '@nativescript-community/ui-bottomsheet/svelte';
+    import { PromptOutcome, promptOutcome } from '~/utils/promptOutcome';
     import { confirm, prompt } from '~/utils/ui/dialogs';
     import { showSnack } from '~/utils/ui/snack';
     import { TextField, TextFieldProperties } from '@nativescript-community/ui-textfield';
@@ -1442,6 +1443,7 @@
                             message: item.useHTML ? item.description : item.full_description || item.description,
                             okButtonText: l('save'),
                             cancelButtonText: l('cancel'),
+                            neutralButtonText: item.onClear ? l('clear') : undefined,
                             textFieldProperties: item.textFieldProperties,
                             autoFocus: true,
                             defaultText: typeof item.rightValue === 'function' ? item.rightValue() : typeof item.default === 'function' ? item.default() : item.default,
@@ -1463,7 +1465,11 @@
                                 : undefined
                         });
                         Utils.dismissSoftInput();
-                        if (result && !!result.result && result.text.length > 0) {
+                        const outcome = promptOutcome(result);
+                        if (outcome === PromptOutcome.Clear) {
+                            item.onClear();
+                            updateItem(item);
+                        } else if (outcome === PromptOutcome.Save) {
                             if (item.id === 'store_setting') {
                                 const store = item.store || getStoreSetting(item.storeKey, item.storeDefault);
                                 if (item.valueType === 'string') {

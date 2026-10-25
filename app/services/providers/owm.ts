@@ -27,6 +27,7 @@ export class OWMProvider extends WeatherProvider {
                 valueType: 'string',
                 id: 'setting',
                 key: API_KEY_SETTING,
+                onClear: () => OWMProvider.setApiKey(null),
                 default: () => OWMProvider.owmApiKey,
                 description: lc('owm_api_key_required_description'),
                 title: lc('owm_api_key')

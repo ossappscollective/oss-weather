@@ -110,6 +110,7 @@ export class AccuWeatherProvider extends WeatherProvider {
                 valueType: 'string',
                 id: 'setting',
                 key: API_KEY_SETTING,
+                onClear: () => AccuWeatherProvider.setApiKey(null),
                 default: () => AccuWeatherProvider.accuWeatherApiKey,
                 description: lc('api_key_required'),
                 title: lc('api_key')
