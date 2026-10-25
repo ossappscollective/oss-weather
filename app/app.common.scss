@@ -156,6 +156,11 @@ page,
     // height: var(--actionBarHeight);
 }
 
+// icons in list templates: a css variable follows the theme, a value from the parent component would not
+.themedIcon {
+    color: var(--colorOnBackground);
+}
+
 .icon-btn,
 .actionBarButton {
     @extend .mdi;

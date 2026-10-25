@@ -1,9 +1,10 @@
-import { Canvas, Paint } from '@nativescript-community/ui-canvas';
+import { Canvas, Paint, Style } from '@nativescript-community/ui-canvas';
 import type { CommonData } from '~/services/weatherData';
 import { ChipsLayout, layoutChips } from '~/utils/chipsLayout';
 import { get } from 'svelte/store';
 import { DesignStyle, cardBackgroundAlpha, dataTextStyle, tintAlpha } from '~/utils/designStyle';
-import { isDarkTheme } from '~/helpers/theme';
+import { isDarkTheme, isEInk } from '~/helpers/theme';
+import { einkChipStyle } from '~/utils/eink';
 import { dataIntensity } from '~/variables';
 import { CHIP_GAP, CHIP_HEIGHT, CHIP_PADDING, DataContentOptions, drawDataContent, measureDataContent } from '~/helpers/dataGrid';
 
@@ -48,19 +49,30 @@ export function drawChips(canvas: Canvas, chips: PreparedChips, left: number, to
         const chipLeft = left + x;
         const chipTop = top + line * (CHIP_HEIGHT + CHIP_GAP) * fontScale;
         // a backgroundColor flags a warning (wind gust): it fills the chip and forces the text color
-        const warningColor = item.backgroundColor ? item.customDrawColor : undefined;
+        let warningColor = item.backgroundColor ? item.customDrawColor : undefined;
 
-        if (item.backgroundColor) {
-            backgroundPaint.setColor(item.backgroundColor);
-        } else if (showIntensity && item.tint) {
-            backgroundPaint.setColor(item.tint.color);
-            backgroundPaint.setAlpha(tintAlpha(item.tint.fraction, isDarkTheme()));
+        if (isEInk) {
+            const einkStyle = einkChipStyle(!!item.backgroundColor, theme.onSurface);
+            const inset = einkStyle.strokeWidth / 2;
+            backgroundPaint.setStyle(Style.STROKE);
+            backgroundPaint.setStrokeWidth(einkStyle.strokeWidth);
+            backgroundPaint.setColor(einkStyle.strokeColor);
+            canvas.drawRoundRect(chipLeft + inset, chipTop + inset, chipLeft + chips.widths[index] - inset, chipTop + chipHeight - inset, chipHeight / 2, chipHeight / 2, backgroundPaint);
+            backgroundPaint.setStyle(Style.FILL);
+            warningColor = einkStyle.textColor;
         } else {
-            // a light tint of the text color, same as the cards: works over any background and theme
-            backgroundPaint.setColor(theme.onSurface);
-            backgroundPaint.setAlpha(cardBackgroundAlpha(isDarkTheme()));
+            if (item.backgroundColor) {
+                backgroundPaint.setColor(item.backgroundColor);
+            } else if (showIntensity && item.tint) {
+                backgroundPaint.setColor(item.tint.color);
+                backgroundPaint.setAlpha(tintAlpha(item.tint.fraction, isDarkTheme()));
+            } else {
+                // a light tint of the text color, same as the cards: works over any background and theme
+                backgroundPaint.setColor(theme.onSurface);
+                backgroundPaint.setAlpha(cardBackgroundAlpha(isDarkTheme()));
+            }
+            canvas.drawRoundRect(chipLeft, chipTop, chipLeft + chips.widths[index], chipTop + chipHeight, chipHeight / 2, chipHeight / 2, backgroundPaint);
         }
-        canvas.drawRoundRect(chipLeft, chipTop, chipLeft + chips.widths[index], chipTop + chipHeight, chipHeight / 2, chipHeight / 2, backgroundPaint);
         drawDataContent(canvas, item, style, theme, contentOptions(item, style, theme, fontScale), chipLeft + CHIP_PADDING * fontScale, chipTop + chipHeight / 2, fontScale, warningColor);
     });
 }

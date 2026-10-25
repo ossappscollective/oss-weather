@@ -1,7 +1,7 @@
 <svelte:options accessors />
 
 <script context="module" lang="ts">
-    import { Align, Canvas, CanvasView, DashPathEffect, LinearGradient, Paint, Path, Rect, RectF } from '@nativescript-community/ui-canvas';
+    import { Align, Canvas, CanvasView, DashPathEffect, LinearGradient, Paint, Path, Rect, RectF, Style } from '@nativescript-community/ui-canvas';
     import { CombinedChart } from '@nativescript-community/ui-chart';
     import { DrawOrder } from '@nativescript-community/ui-chart/charts/CombinedChart';
     import { ScatterShape } from '@nativescript-community/ui-chart/charts/ScatterChart';
@@ -18,6 +18,7 @@
     import type { NativeViewElementNode } from '@nativescript-community/svelte-native/dom';
     import type HourlyPopover__SvelteComponent_ from '~/components/HourlyPopover.svelte';
     import { formatValueToUnit, windIcon } from '~/helpers/formatter';
+    import { getEInkShader } from '~/helpers/einkShader';
     import { formatTime, getLocalTime, lc } from '~/helpers/locale';
     import { isEInk, onThemeChanged } from '~/helpers/theme';
     import type { CommonWeatherData, DailyData, Hourly } from '~/services/providers/weather';
@@ -46,6 +47,10 @@
     import { ValueRange, computeDataRange, getNaturalRange, makeScaler, pickReferenceProp, resolveRange, visibleHoursScale } from '~/utils/chartScale';
     import { generateGradient, loadImage, tempColor } from '~/utils/utils.common';
     import { contentGradientRange, extremaIndexes, highlightHour, nightSpans, plotPadding } from '~/utils/chartLabels';
+
+    const einkBarPaint = new Paint();
+    const einkOutlinePaint = new Paint();
+    einkOutlinePaint.setStyle(Style.STROKE);
 
     const highlightPaint = new Paint();
     highlightPaint.setColor('white');
@@ -361,6 +366,15 @@
                         },
                         drawBar(c: Canvas, e, dataSet, left: number, top: number, right: number, bottom: number, paint: Paint) {
                             const precipProbability = e.precipProbability;
+                            if (isEInk) {
+                                // same pattern and outline as the classic hourly bars, with our own paints: the
+                                // chart paint is reused to draw the labels
+                                einkBarPaint.setShader(getEInkShader());
+                                c.drawRect(left, top, right, bottom, einkBarPaint);
+                                einkOutlinePaint.setColor(colorOnSurface);
+                                c.drawRect(left, top, right, bottom, einkOutlinePaint);
+                                return;
+                            }
                             if ($designStyle === 'modern' && !hasSnowFall && e.precipColor) {
                                 const fill = precipitationFill('modern', precipKind({ precipShowSnow: e.precipShowSnow, mixedRainSnow: e.mixedRainSnow }), e.precipColor, precipProbability);
                                 paint.setColor(fill.color);

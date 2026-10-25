@@ -371,7 +371,10 @@ $modernFontFamily: Inter !default;
 
 // e-ink: no tints, black lines
 .ns-modern.ns-eink {
-    .modernCard,
+    .modernCard {
+        background-color: transparent;
+        border-width: 0;
+    }
     .modernChip,
     .modernGroupRow .modernChip {
         background-color: transparent;

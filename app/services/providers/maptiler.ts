@@ -414,7 +414,7 @@ export class MaptilerProvider extends WeatherProvider {
             ApplicationSettings.remove(API_KEY_SETTING);
         }
     }
-    public requiresApiKey() {
+    public static requiresApiKey() {
         return true;
     }
 

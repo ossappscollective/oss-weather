@@ -1,7 +1,7 @@
 import { Application, Color, ViewBase } from '@nativescript/core';
 import { updateRootCss } from '@shared/utils';
 import { get, writable } from 'svelte/store';
-import { currentRealTheme, isDarkTheme } from '~/helpers/theme';
+import { getRealTheme, isDarkTheme } from '~/helpers/theme';
 import { modernThemeColors } from '~/utils/modernThemeColors';
 import { accentFontWeight, colors, designStyle, fontScale } from '~/variables';
 
@@ -26,7 +26,9 @@ function update() {
     if (!rootViewStyle || !currentColors.colorOnSurface) {
         return;
     }
-    const newColors = modernThemeColors(new Color(currentColors.colorOnSurface).hex, get(currentRealTheme), isDarkTheme());
+    // not the currentRealTheme store: it is set after the colors change
+    const realTheme = getRealTheme();
+    const newColors = modernThemeColors(new Color(currentColors.colorOnSurface).hex, realTheme, isDarkTheme(realTheme));
     Object.keys(newColors).forEach((key) => rootViewStyle.setUnscopedCssVariable('--' + key, newColors[key]));
     // css calc() is disabled (__CSS_USE_CSS_TOOLS__): font sizes come scaled
     Object.keys(MODERN_TEXT_SIZES).forEach((key) => rootViewStyle.setUnscopedCssVariable('--' + key, MODERN_TEXT_SIZES[key] * get(fontScale) + ''));

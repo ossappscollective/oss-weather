@@ -4,7 +4,7 @@ import type { CommonData } from '~/services/weatherData';
 import { centeredBaseline, gridColumnCount, gridMinCellWidth, layoutGrid } from '~/utils/dataGrid';
 import { get } from 'svelte/store';
 import { DesignStyle, dataTextStyle, textFontFamily, tintAlpha } from '~/utils/designStyle';
-import { isDarkTheme } from '~/helpers/theme';
+import { isDarkTheme, isEInk } from '~/helpers/theme';
 import { accentFontWeight, dataIntensity, designStyle } from '~/variables';
 import { splitValueUnit } from '~/utils/valueUnit';
 
@@ -191,7 +191,7 @@ export function drawGrid(canvas: Canvas, grid: PreparedGrid, left: number, top: 
         const { column, row } = grid.cells[index];
         const cellLeft = left + column * cellWidth;
         const centerY = top + row * (options.rowHeight + options.rowGap) * fontScale + rowHeight / 2;
-        if (showIntensity && item.tint) {
+        if (showIntensity && item.tint && !isEInk) {
             // same pill as a chip around the content, spilling left into the card padding so the content keeps its place
             const padding = CHIP_PADDING * fontScale;
             const tintRight = cellLeft + grid.contentWidths[index] + padding;
@@ -202,7 +202,7 @@ export function drawGrid(canvas: Canvas, grid: PreparedGrid, left: number, top: 
         }
         canvas.save();
         canvas.clipRect(cellLeft, centerY - rowHeight / 2, cellLeft + cellWidth - 4 * fontScale, centerY + rowHeight / 2);
-        drawDataContent(canvas, item, style, theme, contentOptions, cellLeft, centerY, fontScale);
+        drawDataContent(canvas, item, style, theme, contentOptions, cellLeft, centerY, fontScale, isEInk ? theme.onSurface : undefined);
         canvas.restore();
     });
 }

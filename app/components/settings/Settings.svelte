@@ -1780,9 +1780,9 @@
                 <ListItemAutoSize columns="auto,*,auto" groupPosition={rowGroupPosition(item)} item={rowItem(item)} mainCol={1} showBottomLine={false} on:tap={(event) => onTap(item, event)}>
                     {#if item.dataIcon}
                         <label
-                            class={modern ? 'modernTile' : ''}
+                            class={modern ? 'modernTile themedIcon' : 'themedIcon'}
                             col={0}
-                            color={item.dataIconColor || colorOnBackground}
+                            color={item.dataIconColor}
                             fontFamily={$fonts[item.dataIcon.fontFamily]}
                             fontSize={modern ? 20 : 22}
                             marginRight={12}
@@ -1806,9 +1806,9 @@
             <Template key="leftIcon" let:item>
                 <ListItemAutoSize columns="auto,*,auto" groupPosition={rowGroupPosition(item)} item={rowItem(item)} mainCol={1} showBottomLine={false} on:tap={(event) => onTap(item, event)}>
                     {#if modern}
-                        <label class="modernTile" col={0} color={MODERN_ICON_COLORS[item.icon] || colorOnBackground} marginRight={12} text={item.icon} verticalAlignment="center" verticalTextAlignment="center" />
+                        <label class="modernTile themedIcon" col={0} color={MODERN_ICON_COLORS[item.icon]} marginRight={12} text={item.icon} verticalAlignment="center" verticalTextAlignment="center" />
                     {:else}
-                        <label col={0} color={colorOnBackground} fontFamily={$fonts.mdi} fontSize={24} padding="0 10 0 0" text={item.icon} verticalAlignment="center" />
+                        <label class="themedIcon" col={0} fontFamily={$fonts.mdi} fontSize={24} padding="0 10 0 0" text={item.icon} verticalAlignment="center" />
                     {/if}
                 </ListItemAutoSize>
             </Template>

@@ -1,14 +1,14 @@
 <script context="module" lang="ts">
     import type { NativeViewElementNode } from '@nativescript-community/svelte-native/dom';
     import { textAttributedString } from '~/utils/ui/attributedString';
-    import { Align, BitmapShader, Canvas, LayoutAlignment, Paint, StaticLayout, TileMode } from '@nativescript-community/ui-canvas';
+    import { Align, Canvas, LayoutAlignment, Paint, StaticLayout } from '@nativescript-community/ui-canvas';
     import { CombinedChart, LineChart } from '@nativescript-community/ui-chart';
     import { LimitLabelPosition, LimitLine } from '@nativescript-community/ui-chart/components/LimitLine';
     import { XAxisPosition } from '@nativescript-community/ui-chart/components/XAxis';
     import { AxisDependency } from '@nativescript-community/ui-chart/components/YAxis';
     import { LineData } from '@nativescript-community/ui-chart/data/LineData';
     import { LineDataSet, Mode } from '@nativescript-community/ui-chart/data/LineDataSet';
-    import { ApplicationSettings, Color, ImageSource, Utils } from '@nativescript/core';
+    import { ApplicationSettings, Color, Utils } from '@nativescript/core';
     import dayjs from 'dayjs';
     import HourlyView from '~/components/HourlyView.svelte';
     import WeatherIcon from '~/components/WeatherIcon.svelte';
@@ -38,6 +38,7 @@
     import { cardBackgroundAlpha, dataTextStyle, headerTextStyle, precipKind, precipitationFill, styledDataIcon, textFontFamily } from '~/utils/designStyle';
     import { getMoonIlluminationPercent } from '~/helpers/moon';
     import { drawChips, prepareChips } from '~/helpers/chips';
+    import { getEInkShader } from '~/helpers/einkShader';
     import { TOP_GRID_OPTIONS, drawCenteredValue, drawGrid, prepareGrid } from '~/helpers/dataGrid';
     import { minutelyAxisLabel, minutelyAxisTicks, minutelyIntensity, minutelySummary } from '~/utils/minutelySummary';
     import HourlyChartView from './HourlyChartView.svelte';
@@ -62,7 +63,6 @@
     const MODERN_MINUTELY_CHART_HEIGHT = 52;
     const MODERN_SUN_LINE_HEIGHT = 30;
     const MODERN_GAP = 12;
-    const einkBmpShader = isEInk ? new BitmapShader(ImageSource.fromFileSync('~/assets/images/pattern.png'), TileMode.REPEAT, TileMode.REPEAT) : null;
 
     const textIconPaint = new Paint();
     textIconPaint.setTextAlign(Align.CENTER);
@@ -264,9 +264,6 @@
                     precipChartSet.drawFilledEnabled = true;
                     precipChartSet.mode = Mode.CUBIC_BEZIER;
                     precipChartSet.cubicIntensity = 0.4;
-                    if (einkBmpShader) {
-                        precipChartSet.fillShader = einkBmpShader;
-                    }
                 } else {
                     precipChartSet.values = data;
                     needsUpdate = true;
@@ -274,6 +271,7 @@
 
                 precipChartSet.setColor(color);
                 precipChartSet.fillColor = color;
+                precipChartSet.fillShader = isEInk ? getEInkShader() : null;
                 precipChartSet.lineWidth = modernStyle ? 1.5 : 1;
                 precipChartSet.fillAlpha = modernStyle ? 90 : 150;
             } else if (precipChartSet && precipChartSet.entryCount > 0) {
@@ -392,6 +390,9 @@
     }
 
     function drawModernCard(canvas: Canvas, left: number, top: number, right: number, bottom: number) {
+        if (isEInk) {
+            return;
+        }
         const radius = MODERN_CARD_RADIUS * $fontScale;
         textIconPaint.setColor(colorOnSurface);
         textIconPaint.setAlpha(cardBackgroundAlpha(isDarkTheme()));

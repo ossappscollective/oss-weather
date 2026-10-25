@@ -1,10 +1,11 @@
 <script context="module" lang="ts">
-    import { Align, BitmapShader, LayoutAlignment, LinearGradient, Paint, Path, StaticLayout, Style, TileMode } from '@nativescript-community/ui-canvas';
-    import { ApplicationSettings, Color, ImageSource } from '@nativescript/core';
+    import { Align, LayoutAlignment, LinearGradient, Paint, Path, StaticLayout, Style } from '@nativescript-community/ui-canvas';
+    import { ApplicationSettings, Color } from '@nativescript/core';
     import { showError } from '@shared/utils/showError';
     import WeatherIcon from '~/components/WeatherIcon.svelte';
     import { DEFAULT_HOURLY_ODD_COLORS, SETTINGS_HOURLY_ODD_COLORS } from '~/helpers/constants';
     import { formatDate, formatTime, getLocalTime, lc } from '~/helpers/locale';
+    import { getEInkShader } from '~/helpers/einkShader';
     import { getCanvas } from '~/helpers/sveltehelpers';
     import { isEInk, theme } from '~/helpers/theme';
     import { prefs } from '~/services/preferences';
@@ -15,9 +16,6 @@
     import { modernDataColor, precipKind, precipitationFill, splitTimePeriod, textFontFamily, windSpeedColor } from '~/utils/designStyle';
     import { splitValueUnit } from '~/utils/valueUnit';
 
-    const einkBmpShader = isEInk ? new BitmapShader(ImageSource.fromFileSync('~/assets/images/pattern.png'), TileMode.REPEAT, TileMode.REPEAT) : null;
-
-    const BOTTOM_INSET = isEInk ? 0 : 10;
     const MODERN_BAR_INSET = 3;
     const MODERN_BAR_RADIUS = 4;
     const MODERN_GUST_COLOR = '#E24B4A';
@@ -94,6 +92,7 @@
             const w = canvas.getWidth();
             const w2 = w / 2;
             const h = canvas.getHeight();
+            const bottomInset = isEInk ? 0 : 10;
             textPaint.setFontWeight('normal');
             const modern = $designStyle === 'modern' && !isEInk;
             // modern bars: inset and rounded, down near the bottom edge (no color band below)
@@ -102,7 +101,7 @@
                     const radius = Math.min(MODERN_BAR_RADIUS * $fontScale, (h - MODERN_BAR_INSET - top) / 2);
                     canvas.drawRoundRect(left + MODERN_BAR_INSET, top, right - MODERN_BAR_INSET, h - MODERN_BAR_INSET, radius, radius, paint);
                 } else {
-                    canvas.drawRect(left, top, right, h - BOTTOM_INSET, paint);
+                    canvas.drawRect(left, top, right, h - bottomInset, paint);
                 }
             };
 
@@ -116,38 +115,38 @@
                 const snowfall = item.snowfall;
                 if (item.mixedRainSnow && rain >= 0.1 && snowfall >= 0.1) {
                     let height = item.rain > 1 ? Math.sqrt(item.rain) : item.rain;
-                    let precipTop = (0.5 + (1 - height / 5) / 2) * (h - BOTTOM_INSET);
+                    let precipTop = (0.5 + (1 - height / 5) / 2) * (h - bottomInset);
                     const rainFill = precipitationFill($designStyle, 'rain', rainColor.hex, precipProbability);
                     paint.setColor(rainFill.color);
                     paint.setAlpha(rainFill.alpha);
                     if (isEInk) {
-                        paint.setShader(einkBmpShader);
-                        canvas.drawRect(0, precipTop, w / 2, h - BOTTOM_INSET, paint);
+                        paint.setShader(getEInkShader());
+                        canvas.drawRect(0, precipTop, w / 2, h - bottomInset, paint);
                         paint.setShader(null);
                         paint.setStyle(Style.STROKE);
                     }
                     drawBar(0, precipTop, w / 2);
 
                     height = item.snowfall > 1 ? Math.sqrt(item.snowfall) : item.snowfall;
-                    precipTop = (0.5 + (1 - height / 5) / 2) * (h - BOTTOM_INSET);
+                    precipTop = (0.5 + (1 - height / 5) / 2) * (h - bottomInset);
                     const snowFill = precipitationFill($designStyle, 'snow', snowColor.hex, precipProbability);
                     paint.setColor(snowFill.color);
                     paint.setAlpha(snowFill.alpha);
                     if (isEInk) {
-                        paint.setShader(einkBmpShader);
-                        canvas.drawRect(w / 2, precipTop, w, h - BOTTOM_INSET, paint);
+                        paint.setShader(getEInkShader());
+                        canvas.drawRect(w / 2, precipTop, w, h - bottomInset, paint);
                         paint.setShader(null);
                         paint.setStyle(Style.STROKE);
                     }
                     drawBar(w / 2, precipTop, w);
                 } else {
-                    const precipTop = (0.5 + (1 - precipitationHeight / 5) / 2) * (h - BOTTOM_INSET);
+                    const precipTop = (0.5 + (1 - precipitationHeight / 5) / 2) * (h - bottomInset);
                     const precipFill = precipitationFill($designStyle, precipKind(item), item.precipColor, precipProbability);
                     paint.setColor(precipFill.color);
                     paint.setAlpha(precipFill.alpha);
                     if (isEInk) {
-                        paint.setShader(einkBmpShader);
-                        canvas.drawRect(0, precipTop, w, h - BOTTOM_INSET, paint);
+                        paint.setShader(getEInkShader());
+                        canvas.drawRect(0, precipTop, w, h - bottomInset, paint);
                         paint.setShader(null);
                         paint.setStyle(Style.STROKE);
                     }
@@ -159,7 +158,7 @@
                 }
             }
             if (($alwaysShowPrecipProb && (precipProbability > 0 || item.precipAccumulation >= 0.1)) || ((precipProbability === -1 || precipProbability > 10) && item.precipAccumulation >= 0.1)) {
-                let deltaY = BOTTOM_INSET + 2;
+                let deltaY = bottomInset + 2;
                 textPaint.setTextSize(10 * $fontScale);
                 textPaint.setColor(colorOnSurface);
                 textPaint.setAlpha(150);
@@ -290,7 +289,7 @@
             }
             paint.setColor(item.color);
             if (!isEInk && !modern) {
-                canvas.drawRect(0, h - BOTTOM_INSET, w, h, paint);
+                canvas.drawRect(0, h - bottomInset, w, h, paint);
             }
 
             // modern: "now" stands out, the other hours are muted

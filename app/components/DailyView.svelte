@@ -195,10 +195,12 @@
             canvas.translate(0, headerHeight);
             if (cardPadding > 0) {
                 // the grid sits in a light card, like in the top view
-                const radius = MODERN_CARD_RADIUS * $fontScale;
-                paint.setColor(colorOnSurface);
-                paint.setAlpha(cardBackgroundAlpha(isDarkTheme()));
-                canvas.drawRoundRect(MODERN_PADDING, 0, w - MODERN_PADDING, blockHeight + 2 * cardPadding, radius, radius, paint);
+                if (!isEInk) {
+                    const radius = MODERN_CARD_RADIUS * $fontScale;
+                    paint.setColor(colorOnSurface);
+                    paint.setAlpha(cardBackgroundAlpha(isDarkTheme()));
+                    canvas.drawRoundRect(MODERN_PADDING, 0, w - MODERN_PADDING, blockHeight + 2 * cardPadding, radius, radius, paint);
+                }
                 drawData(canvas, w, h - headerHeight, MODERN_PADDING, w - MODERN_PADDING, cardPadding);
             } else {
                 drawData(canvas, w, h - headerHeight, MODERN_PADDING, w - MODERN_PADDING, 0);

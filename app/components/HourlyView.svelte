@@ -5,7 +5,7 @@
     import type { NativeViewElementNode } from '@nativescript-community/svelte-native/dom';
     import HourlyItem from '~/components/HourlyItem.svelte';
     import { formatDate } from '~/helpers/locale';
-    import { isEInk, onThemeChanged } from '~/helpers/theme';
+    import { isEInkStore, onThemeChanged } from '~/helpers/theme';
     import { modernColors } from '~/helpers/modernTheme';
     import { iconService } from '~/services/icon';
     import { accentFontWeight, colors, designStyle, fontScale, onUnitsChanged } from '~/variables';
@@ -52,7 +52,7 @@
     }
 </script>
 
-<gridlayout borderBottomColor={colorOutline} borderBottomWidth={isEInk ? 1 : 0} {...$$restProps}>
+<gridlayout borderBottomColor={colorOutline} borderBottomWidth={$isEInkStore ? 1 : 0} {...$$restProps}>
     <collectionview
         bind:this={collectionView}
         id="hourly"

@@ -6,7 +6,7 @@
     import { get } from 'svelte/store';
     import type { WindyItemData } from '~/components/WindyItem.svelte';
     import WindyItem from '~/components/WindyItem.svelte';
-    import { isEInk, onThemeChanged } from '~/helpers/theme';
+    import { isEInkStore, onThemeChanged } from '~/helpers/theme';
     import { modernColors } from '~/helpers/modernTheme';
     import { iconService } from '~/services/icon';
     import type { Hourly } from '~/services/providers/weather';
@@ -188,7 +188,7 @@
     }
 </script>
 
-<gridlayout borderBottomColor={colorOutline} borderBottomWidth={isEInk ? 1 : 0} columns={`${HEADER_WIDTH},*`} {...$$restProps}>
+<gridlayout borderBottomColor={colorOutline} borderBottomWidth={$isEInkStore ? 1 : 0} columns={`${HEADER_WIDTH},*`} {...$$restProps}>
     <canvasview col={0} on:draw={drawHeader} />
 
     <collectionview
