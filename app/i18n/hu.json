@@ -79,7 +79,7 @@
     "charts": "diagramok",
     "charts_landscape": "diagramok megjelenítése mindig fekvő nézetben",
     "charts_portrait_fullscreen": "álló nézetben a diagramok kitölthetik a teljes képernyőt",
-    "charts_settings": "diagromokkal kapcsolatos beállítások",
+    "charts_settings": "diagramokkal kapcsolatos beállítások",
     "chips": "zsetonok",
     "chips_desc": "minden érték egy lekerekített zsetonban",
     "choose_location": "válassz helyszínt",
@@ -110,7 +110,7 @@
     "daily": "naponta",
     "daily_date_format": "napi dátumformátum",
     "daily_date_format_description": "Napok dátumformátuma a fő listanézetben. A dayjs formátum szabályait használja",
-    "daily_date_format_fulldesc": "egyedi formátum használata %1$s. További információk: %2$s",
+    "daily_date_format_fulldesc": "egyedi formátum használva a(z) %1$s. További információk: %2$s",
     "daily_view_data_alignment": "napi adat lista illeszkedése",
     "data": "Adatok",
     "data_intensity": "adatintenzitás megjelenítése",
@@ -352,7 +352,7 @@
     "provider_marine": {
         "meteoconsult": "MétéoConsult",
         "none": "Egyik sem",
-        "title": "Marine Weather szolgáltató"
+        "title": "Tengeri időjárás szolgáltató"
     },
     "providers": "szolgáltatók",
     "providers_settings": "Adatszolgáltatók kiválasztása és kapcsolódó beállítások",
