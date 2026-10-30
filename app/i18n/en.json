@@ -39,6 +39,7 @@
     "animations": "Animations",
     "animations_desc": "animated if the icon set supports it",
     "api_key": "API key",
+    "api_key_invalid": "%1$s rejected the API key, check it in the provider settings",
     "api_key_required": "API key required",
     "app": {
         "name": "OSS Weather"

@@ -436,9 +436,7 @@
             // }
         } catch (err) {
             if (err.statusCode === 403 && providerRequiresApiKey(provider)) {
-                const providerClass = getProviderClass(provider);
-                providerClass.setApiKey(null);
-                askForApiKey(provider);
+                showToast(lc('api_key_invalid', lc(`provider.${provider}`)));
             } else {
                 showError(err, { reportError: err.statusCode === undefined, showAsSnack: PRODUCTION });
             }
