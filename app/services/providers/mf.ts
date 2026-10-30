@@ -11,7 +11,6 @@ import { Alert, Currently, DailyData, Hourly, MinutelyData, WeatherData } from '
 import { ApplicationSettings } from '@nativescript/core';
 import { NB_DAYS_FORECAST, NB_HOURS_FORECAST, NB_MINUTES_FORECAST } from '~/helpers/constants';
 import { prefs } from '~/services/preferences';
-import { isUserApiKey } from '~/utils/apiKey';
 import { getFile } from '@nativescript-community/https';
 import { logRequestAsCurl } from '@shared/utils/curlify';
 
@@ -545,7 +544,7 @@ export class MFProvider extends WeatherProvider {
     }
 
     public static hasApiKey() {
-        return isUserApiKey(MFProvider.apiKey, MF_API_KEY);
+        return !!MFProvider.apiKey && MFProvider.apiKey.length > 0;
     }
 
     public static getApiKey() {
