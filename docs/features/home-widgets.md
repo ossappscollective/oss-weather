@@ -16,7 +16,7 @@ The same six widgets exist on both platforms:
 | Simple Weather | Current weather at a glance | Small, medium |
 | Weather with Clock | A live clock with the current weather | Small, medium |
 | Weather with Date | The date and location with the current weather | Small, medium |
-| Hourly Forecast | The next 24 hours | Medium, large |
+| Hourly Forecast | The next 24 hours, plus the coming days when tall | Medium, large |
 | 7-Day Forecast | The coming days | Medium, large |
 | Detailed Forecast | Current weather and forecasts | Large, extra large |
 
@@ -47,7 +47,7 @@ Open Settings > Widget Settings and tap a widget under its type (on Android the 
 - **Icon pack**
 - **Ignore system font scale**
 - Widget-specific options:
-  - **Show the weather data** (chips): all widgets except Hourly Forecast
+  - **Show the weather data** (chips): all widgets
   - **Bold clock** and **show the hourly forecast**: Weather with Clock and Weather with Date
 
 ### Per widget type

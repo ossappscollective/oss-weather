@@ -4,6 +4,9 @@
     "displayName": "Hourly Forecast",
     "description": "Shows hourly weather forecast with icons and temperatures",
     "defaultPadding": 0,
+    "settings": {
+        "showChips": { "type": "boolean", "default": true, "title": "widget_show_chips" }
+    },
     "color": ["case", ["==", ["get", "config.settings.color"], null], "color.onSurface", ["get", "config.settings.color"]],
     "layout": {
         "type": "conditional",
@@ -89,12 +92,46 @@
                     "fillWidth": true
                 },
                 {
-                    "type": "hourlyChart",
-                    "items": "hourlyData",
-                    "limit": ["case", [">=", ["get", "size.width"], 400], 7, [">=", ["get", "size.width"], 330], 6, [">=", ["get", "size.width"], 260], 5, 4],
-                    "fontSize": 13,
-                    "height": ["max", ["-", ["get", "size.height"], 110], 60],
-                    "fillWidth": true
+                    "type": "conditional",
+                    "condition": [">=", ["get", "size.height"], 300],
+                    "then": {
+                        "type": "hourlyChart",
+                        "items": "hourlyData",
+                        "limit": ["case", [">=", ["get", "size.width"], 400], 7, [">=", ["get", "size.width"], 330], 6, [">=", ["get", "size.width"], 260], 5, 4],
+                        "fontSize": 13,
+                        "height": 100,
+                        "fillWidth": true
+                    },
+                    "else": {
+                        "type": "hourlyChart",
+                        "items": "hourlyData",
+                        "limit": ["case", [">=", ["get", "size.width"], 400], 7, [">=", ["get", "size.width"], 330], 6, [">=", ["get", "size.width"], 260], 5, 4],
+                        "fontSize": 13,
+                        "height": ["max", ["-", ["get", "size.height"], 110], 60],
+                        "fillWidth": true
+                    }
+                },
+                { "type": "spacer", "size": 8, "visibleIf": [">=", ["get", "size.height"], 300] },
+                {
+                    "type": "forEach",
+                    "items": "dailyData",
+                    "limit": [
+                        "case",
+                        [">=", ["get", "size.height"], 475],
+                        6,
+                        [">=", ["get", "size.height"], 432],
+                        5,
+                        [">=", ["get", "size.height"], 389],
+                        4,
+                        [">=", ["get", "size.height"], 346],
+                        3,
+                        [">=", ["get", "size.height"], 303],
+                        2,
+                        [">=", ["get", "size.height"], 300],
+                        1,
+                        0
+                    ],
+                    "itemTemplate": { "type": "template", "name": "dailyRow" }
                 }
             ],
             "fillMaxSize": true,
@@ -182,7 +219,7 @@
     },
     "generatePreviews": true,
     "preview": {
-        "sizes": [{"width": 360, "height": 200}, {"width": 260, "height": 170}, {"width": 300, "height": 100}],
+        "sizes": [{"width": 360, "height": 200}, {"width": 260, "height": 170}, {"width": 300, "height": 100}, {"width": 360, "height": 430}],
         "fakeData": {
             "temperature": "12 °C",
             "locationName": "Paris",
@@ -244,6 +281,50 @@
                     "iconPath": 500,
                     "precipAccumulation": "0.5 mm",
                     "windSpeed": "16 km/h"
+                }
+            ],
+            "dailyData": [
+                {
+                    "day": "Mon",
+                    "iconPath": 800,
+                    "temperatureHigh": "12°",
+                    "temperatureLow": "4°",
+                    "precipAccumulation": "0 mm"
+                },
+                {
+                    "day": "Tue",
+                    "iconPath": 802,
+                    "temperatureHigh": "14°",
+                    "temperatureLow": "6°",
+                    "precipAccumulation": "0 mm"
+                },
+                {
+                    "day": "Wed",
+                    "iconPath": 500,
+                    "temperatureHigh": "10°",
+                    "temperatureLow": "5°",
+                    "precipAccumulation": "0 mm"
+                },
+                {
+                    "day": "Thu",
+                    "iconPath": 802,
+                    "temperatureHigh": "9°",
+                    "temperatureLow": "3°",
+                    "precipAccumulation": "0 mm"
+                },
+                {
+                    "day": "Fri",
+                    "iconPath": 800,
+                    "temperatureHigh": "11°",
+                    "temperatureLow": "4°",
+                    "precipAccumulation": "0 mm"
+                },
+                {
+                    "day": "Sat",
+                    "iconPath": 803,
+                    "temperatureHigh": "15°",
+                    "temperatureLow": "7°",
+                    "precipAccumulation": "0 mm"
                 }
             ]
         }
