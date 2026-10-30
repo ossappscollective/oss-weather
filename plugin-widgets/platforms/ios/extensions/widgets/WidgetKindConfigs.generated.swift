@@ -28,7 +28,9 @@ class WidgetKindConfigs {
                 "showChips": true
             ]
         case "HourlyWeatherWidget":
-            return nil
+            return [
+                "showChips": true
+            ]
         case "SimpleWeatherWidget":
             return [
                 "showChips": true

@@ -58,7 +58,94 @@ struct HourlyWeatherWidgetView: View {
                                     }.layoutPriority(1)
                                 }
                             }.frame(maxWidth: .infinity)
-                            WidgetHourlyChartView(hours: data.hourlyData, limit: width >= 400 ? 7 : width >= 330 ? 6 : width >= 260 ? 5 : 4, color: widgetColor, fontSize: 13).frame(maxWidth: .infinity)
+                            if height >= 300 {
+                                WidgetHourlyChartView(hours: data.hourlyData, limit: width >= 400 ? 7 : width >= 330 ? 6 : width >= 260 ? 5 : 4, color: widgetColor, fontSize: 13).frame(maxWidth: .infinity).frame(height: 100)
+                            }
+                            else {
+                                WidgetHourlyChartView(hours: data.hourlyData, limit: width >= 400 ? 7 : width >= 330 ? 6 : width >= 260 ? 5 : 4, color: widgetColor, fontSize: 13).frame(maxWidth: .infinity)
+                            }
+                            if height >= 300 {
+                                Spacer().frame(height: 8)
+                            }
+                            ForEach(Array(data.dailyData.prefix(height >= 475 ? 6 : height >= 432 ? 5 : height >= 389 ? 4 : height >= 346 ? 3 : height >= 303 ? 2 : height >= 300 ? 1 : 0).enumerated()), id: \.offset) { index, item in
+                                if width < 250 {
+                                    HStack(alignment: .center, spacing: 0) {
+                                        WeatherIconView(item.iconPath, description: data.description, size: 22)
+                                        Spacer().frame(width: 6)
+                                        Text(item.day)
+                                            .font(.system(size: 13, weight: .medium))
+                                            .foregroundColor(widgetColor)
+                                            .lineLimit(1)
+                                        Spacer().frame(width: 4)
+                                        Text(item.date)
+                                            .font(.system(size: 11, weight: .regular))
+                                            .foregroundColor(widgetColor)
+                                            .lineLimit(1).layoutPriority(1).opacity(0.6)
+                                        HStack(alignment: .center, spacing: 0) {
+                                            Text(item.temperatureLow)
+                                                .font(.system(size: 13, weight: .regular))
+                                                .foregroundColor(widgetColor)
+                                                .lineLimit(1).opacity(0.6)
+                                            Spacer().frame(width: 4)
+                                            Text(item.temperatureHigh)
+                                                .font(.system(size: 13, weight: .medium))
+                                                .foregroundColor(widgetColor)
+                                                .lineLimit(1)
+                                        }
+                                    }.frame(maxWidth: .infinity).padding(.vertical, 3)
+                                }
+                                else {
+                                    HStack(alignment: .center, spacing: 0) {
+                                        WeatherIconView(item.iconPath, description: data.description, size: 24)
+                                        Spacer().frame(width: 8)
+                                        VStack(alignment: .center, spacing: 0) {
+                                            HStack(alignment: .center, spacing: 0) {
+                                                Text(item.day)
+                                                    .font(.system(size: 14, weight: .medium))
+                                                    .foregroundColor(widgetColor)
+                                                    .lineLimit(1)
+                                                Spacer().frame(width: 4)
+                                                Text(item.date)
+                                                    .font(.system(size: 12, weight: .regular))
+                                                    .foregroundColor(widgetColor)
+                                                    .lineLimit(1).opacity(0.6)
+                                                Spacer().frame(width: 6)
+                                                if entry.config.settings["showChips"] as? Bool != false {
+                                                    WidgetChipsView(chips: item.chips, color: widgetColor, fontSize: 11, iconSize: 12, spacing: 3, limit: 3, maxWidth: (width - 222), maxRows: 1)
+                                                }
+                                                else {
+                                                    VStack(alignment: .center, spacing: 0) {
+                                                    }
+                                                }
+                                            }
+                                            Text(item.description)
+                                                .font(.system(size: 12, weight: .regular))
+                                                .foregroundColor(widgetColor)
+                                                .lineLimit(1).opacity(0.6)
+                                        }.layoutPriority(1)
+                                        Text(item.temperatureLow)
+                                            .font(.system(size: 13, weight: .regular))
+                                            .foregroundColor(widgetColor)
+                                            .lineLimit(1).opacity(0.6)
+                                        Spacer().frame(width: 5)
+                                        ZStack {
+                                            HStack(alignment: .center, spacing: 0) {
+                                            }.frame(width: 30).frame(height: 3).background(WidgetColorProvider.surfaceVariant).cornerRadius(2)
+                                            HStack(alignment: .center, spacing: 0) {
+                                                Spacer().frame(width: (item.rangeStart * 30))
+                                                HStack(alignment: .center, spacing: 0) {
+                                                }.frame(height: 3).background(Color(hex: "#EF9F27")).cornerRadius(2)
+                                            }.frame(height: 3)
+                                        }.frame(width: 30).frame(height: 3)
+                                        Spacer().frame(width: 5)
+                                        Text(item.temperatureHigh)
+                                            .font(.system(size: 14, weight: .medium))
+                                            .foregroundColor(widgetColor)
+                                            .multilineTextAlignment(.trailing)
+                                            .lineLimit(1).frame(width: 30)
+                                    }.frame(maxWidth: .infinity).padding(.vertical, 4)
+                                }
+                            }
                         }.frame(maxWidth: .infinity, maxHeight: .infinity).padding(.horizontal, 6).padding(.vertical, 10)
                     }
                     else {

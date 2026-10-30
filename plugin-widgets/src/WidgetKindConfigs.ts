@@ -42,7 +42,9 @@ export const WIDGET_KIND_CONFIGS: Record<string, WidgetConfig> = {
         provider: null,
         widgetKind: 'HourlyWeatherWidget',
         iconSet: null,
-        settings: null
+        settings: {
+            "showChips": true
+        }
     },
     'SimpleWeatherWidget': {
         locationName: 'current',
