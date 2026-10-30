@@ -165,6 +165,8 @@ export interface Currently extends CommonWeatherData {
 
     sunriseTime?: number;
     sunsetTime?: number;
+    /** set when the location has a METAR station: observation time, or `failed` when it could not be used */
+    metar?: { icao: string; time?: number; failed?: boolean };
 }
 
 export type AirQualityCurrently = CommonAirQualityData;
