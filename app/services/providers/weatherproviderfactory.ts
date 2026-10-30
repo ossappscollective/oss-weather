@@ -3,7 +3,10 @@ import { createGlobalEventListener, globalObservable } from '@shared/utils/svelt
 import { SETTINGS_PROVIDER, SETTINGS_PROVIDER_AQI, SETTINGS_PROVIDER_MARINE } from '~/helpers/constants';
 import { MarineWeatherProvider } from '~/services/providers/marineweatherprovider';
 import { MeteoConsultProvider } from '~/services/providers/meteoconsult';
+import { WeatherDataType, weatherDataIconColors } from '~/helpers/formatter';
+import { fetchLatestMetar } from '~/services/metar';
 import { WeatherProps, mergeWeatherData, weatherDataService } from '~/services/weatherData';
+import { applyMetarToCurrently } from '~/utils/metar';
 import { WeatherLocation } from '../api';
 import { prefs } from '../preferences';
 import { AccuWeatherAQIProvider, AccuWeatherProvider } from './accuweather';
@@ -151,7 +154,8 @@ function getCacheKey(weatherType: WeatherType, providerId: string, weatherLocati
     const { ignoreCache, ...optionsForKey } = options;
 
     const optionsStr = options ? JSON.stringify(optionsForKey) : '';
-    return `${WEATHER_CACHE_PREFIX}${weatherType === 'main' ? '' : `${weatherType}_`}${providerId}_${coord.lat}_${coord.lon}_${optionsStr}`;
+    const metarStr = weatherType === 'main' && weatherLocation.metarStation ? `_${weatherLocation.metarStation.icao}` : '';
+    return `${WEATHER_CACHE_PREFIX}${weatherType === 'main' ? '' : `${weatherType}_`}${providerId}_${coord.lat}_${coord.lon}_${optionsStr}${metarStr}`;
 }
 
 /**
@@ -245,7 +249,15 @@ export async function getWeather(weatherLocation: WeatherLocation, options?: Get
     }
 
     // Fetch fresh data
-    const data = await provider.getWeather(weatherLocation, options);
+    const station = weatherLocation.metarStation;
+    // a METAR failure must never fail the forecast: it is flagged on `currently` instead
+    const [data, report] = await Promise.all([provider.getWeather(weatherLocation, options), station ? fetchLatestMetar(station.icao).catch(() => null) : null]);
+    if (station && data.currently) {
+        data.currently = applyMetarToCurrently(data.currently, report, station.icao, Date.now(), OMProvider.getWeatherCodeDescription);
+        if (!data.currently.metar.failed) {
+            weatherDataIconColors(data.currently, WeatherDataType.CURRENT, weatherLocation.coord);
+        }
+    }
     // Save to cache
     setCachedWeather('main', providerId, weatherLocation, data, options);
 

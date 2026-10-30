@@ -51,7 +51,7 @@ export async function fetchMetarReports(icao: string, hours = 1) {
     const result = await request<MetarReport[]>({
         url: `${AVIATION_WEATHER_URL}/metar`,
         method: 'GET',
-        timeout: 10000,
+        timeout: 5000,
         queryParams: { ids: icao, format: 'json', hours }
     });
     return Array.isArray(result.content) ? result.content : [];

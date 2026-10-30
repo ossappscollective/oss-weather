@@ -15,6 +15,7 @@ import { Photon, PhotonProperties } from '../../typings/photon';
 import { AqiProviderType, MarineProviderType, ProviderType, WeatherData } from './providers/weather';
 import { WeatherProps } from './weatherData';
 import { OpenMeteoModels } from './providers/om';
+import type { MetarStation } from '~/utils/metarStations';
 
 type HTTPSOptions = https.HttpsRequestOptions;
 
@@ -439,6 +440,7 @@ export interface WeatherLocation {
     omModel?: OpenMeteoModels;
     providerAqi?: AqiProviderType;
     providerMarine?: MarineProviderType;
+    metarStation?: MetarStation;
 }
 const PHOTON_SUPPORTED_LANGUAGES = ['en', 'de', 'fr'];
 
