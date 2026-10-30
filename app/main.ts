@@ -7,7 +7,7 @@ import '~/helpers/defaultColorTheme';
 import { install as installGestures } from '@nativescript-community/gesturehandler';
 import { setGeoLocationKeys } from '@nativescript-community/gps';
 import { svelteNative } from '@nativescript-community/svelte-native';
-import { FrameElement, PageElement, registerElement, registerNativeViewElement } from '@nativescript-community/svelte-native/dom';
+import { FrameElement, NativeElementPropType, PageElement, registerElement, registerNativeViewElement } from '@nativescript-community/svelte-native/dom';
 import { installMixins as installUIMixins } from '@nativescript-community/systemui';
 import { overrideSpanAndFormattedString } from '@nativescript-community/text';
 import SwipeMenuElement from '@nativescript-community/ui-collectionview-swipemenu/svelte';
@@ -88,7 +88,8 @@ try {
     CollectionViewElement.register();
     SwipeMenuElement.register();
     PagerElement.register();
-    registerNativeViewElement('segmentedbar', () => require('@nativescript-community/ui-segmentedbar').SegmentedBar);
+    registerNativeViewElement('segmentedbar', () => require('@nativescript-community/ui-segmentedbar').SegmentedBar, null, { items: NativeElementPropType.Array });
+    registerNativeViewElement('segmentedbaritem', () => require('@nativescript-community/ui-segmentedbar').SegmentedBarItem, 'items');
     if (__IOS__ && PLAY_STORE_BUILD) {
         import('@shared/utils/inapp-purchase').then((r) => r.init());
     }

@@ -1,0 +1,5 @@
+Bug fixes:
+- Translations update from Hosted Weblate (#606)
+- skip provider in swipe cycle when no api key is set (#608)
+- register segmentedbaritem so the color picker opens (#609)
+- Translations update
