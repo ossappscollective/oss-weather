@@ -33,6 +33,18 @@
     let currentSearchText: string;
 
     export let startQuery: string = null;
+    // the page searches cities by default, those props let it search any other kind of place
+    export let title = lc('search_city');
+    export let hint = lc('search');
+    export let search: (query: string) => Promise<any[]> = photonSearch;
+    export let getInfo: (item) => { title: string; lines: string[] } = (item: FavoriteLocation) => ({
+        title: getLocationName(item),
+        lines: [item.sys.state, item.sys.country].filter((text) => !!text)
+    });
+    export let icon = 'mdi-map-marker-circle';
+    export let showFavorite = true;
+    // adds a button removing the current choice: the page then returns null
+    export let clearable = false;
 
     function focus() {
         textField && textField.nativeView.requestFocus();
@@ -63,8 +75,14 @@
                 return;
             }
             loading = true;
-            searchedText = currentSearchText;
-            searchResults = new ObservableArray((await photonSearch(currentSearchText)).map((s) => ({ ...s, isFavorite: isFavorite(s) })));
+            const query = currentSearchText;
+            const results = await search(query);
+            // a newer query was typed meanwhile
+            if (query !== currentSearchText) {
+                return;
+            }
+            searchedText = query;
+            searchResults = new ObservableArray(showFavorite ? results.map((s) => ({ ...s, isFavorite: isFavorite(s) })) : results);
         } catch (err) {
             showError(err);
         } finally {
@@ -118,20 +136,14 @@
         searchedText = null;
         focus();
     }
-    function getRegion(item: FavoriteLocation) {
-        return [item.sys.state, item.sys.country].filter((text) => !!text).join(', ');
+    function getRegion(item) {
+        return getInfo(item).lines.join(', ');
     }
     function getItem(item) {
-        const data = [];
-        if (item.sys.state) {
-            data.push(item.sys.state);
-        }
-        if (item.sys.country) {
-            data.push(item.sys.country);
-        }
+        const info = getInfo(item);
         return {
-            title: getLocationName(item),
-            subtitle: data.join('\n')
+            title: info.title,
+            subtitle: info.lines.join('\n')
         };
     }
 </script>
@@ -139,9 +151,12 @@
 <!-- <frame backgroundColor="transparent"> -->
 <page actionBarHidden={true}>
     <gridlayout class="pageContent" rows="auto,auto,*" on:layoutChanged={onLayoutChange}>
-        <CActionBar modalWindow title={lc('search_city')}>
+        <CActionBar modalWindow {title}>
             {#if !modern}
                 <activityIndicator busy={loading} height={$actionBarButtonHeight} verticalAlignment="middle" visibility={loading ? 'visible' : 'collapse'} width={$actionBarButtonHeight} />
+            {/if}
+            {#if clearable}
+                <mdbutton class="actionBarButton" text="mdi-delete" variant="text" on:tap={() => close(null)} />
             {/if}
         </CActionBar>
         {#if modern}
@@ -153,7 +168,7 @@
                     class="modernSearchInput"
                     col={1}
                     floating="false"
-                    hint={lc('search')}
+                    {hint}
                     returnKeyType="search"
                     text={startQuery}
                     variant="none"
@@ -162,7 +177,7 @@
                 <IconButton col={2} gray={true} isHidden={!currentSearchText} size={40} text="mdi-close" on:tap={clearSearch} />
             </gridlayout>
         {:else}
-            <textfield bind:this={textField} floating="false" hint={lc('search')} returnKeyType="search" row={1} text={startQuery} on:textChange={onTextChange} on:returnPress={searchCity} />
+            <textfield bind:this={textField} floating="false" {hint} returnKeyType="search" row={1} text={startQuery} on:textChange={onTextChange} on:returnPress={searchCity} />
         {/if}
         {#if modern}
             <!-- same indeterminate bar as the main page, then the empty result message -->
@@ -181,31 +196,35 @@
             <Template let:item>
                 {#if modern}
                     <gridlayout class={groupRowClass(resultGroupPosition(item))} columns="auto,*,auto" padding="10 4 10 14" rippleColor={$colors.colorOnSurface} on:tap={() => close(item)}>
-                        <label class="modernMenuIcon modernSecondary" text="mdi-map-marker-circle" verticalAlignment="center" />
+                        <label class="modernMenuIcon modernSecondary" text={icon} verticalAlignment="center" />
                         <stacklayout col={1} verticalAlignment="center">
-                            <label class="modernTitle modernStrong" lineBreak="end" maxLines={2} text={getLocationName(item)} textWrap={true} />
+                            <label class="modernTitle modernStrong" lineBreak="end" maxLines={2} text={getInfo(item).title} textWrap={true} />
                             <label class="modernSubtitle modernEllipsis" text={getRegion(item)} />
                         </stacklayout>
-                        <mdbutton
-                            class="actionBarButton"
-                            col={2}
-                            color={favoriteIconColor(item)}
-                            rippleColor="#EFB644"
-                            text={favoriteIcon(item)}
-                            variant="text"
-                            on:tap={() => toggleItemFavorite(item)} />
+                        {#if showFavorite}
+                            <mdbutton
+                                class="actionBarButton"
+                                col={2}
+                                color={favoriteIconColor(item)}
+                                rippleColor="#EFB644"
+                                text={favoriteIcon(item)}
+                                variant="text"
+                                on:tap={() => toggleItemFavorite(item)} />
+                        {/if}
                     </gridlayout>
                 {:else}
                     <ListItemAutoSize disableCss={false} item={getItem(item)} on:tap={() => close(item)}>
-                        <mdbutton
-                            class="icon-btn"
-                            col={2}
-                            color={favoriteIconColor(item)}
-                            rippleColor="#EFB644"
-                            text={favoriteIcon(item)}
-                            variant="text"
-                            verticalAlignment="top"
-                            on:tap={() => toggleItemFavorite(item)} />
+                        {#if showFavorite}
+                            <mdbutton
+                                class="icon-btn"
+                                col={2}
+                                color={favoriteIconColor(item)}
+                                rippleColor="#EFB644"
+                                text={favoriteIcon(item)}
+                                variant="text"
+                                verticalAlignment="top"
+                                on:tap={() => toggleItemFavorite(item)} />
+                        {/if}
                     </ListItemAutoSize>
                 {/if}
                 <!-- <gridlayout col={1} columns="*,auto" padding="10" paddingLeft={10} rippleColor="#aaa" rows="auto,*" verticalAlignment="middle" on:tap={() => close(item)}>
