@@ -132,26 +132,26 @@
             rightAxis.axisMinimum = 0;
             const gridLinePathEffect = new DashPathEffect([4, 8], 0);
             xAxis.customRenderer = {
-                drawGridLine(canvas: Canvas, axis, rect: RectF, x: number, y: number, axisValue: number, paint: Paint) {
+                drawGridLine(canvas: Canvas, axis, rect: RectF, lineX: number, lineY: number, axisValue: number, paint: Paint) {
                     const hours = getLocalTime(startTimestamp + axisValue * HOUR, timezoneOffset).get('h');
                     // modern: only the day separation
                     if (modern) {
                         if (hours === 0) {
                             paint.setPathEffect(null);
-                            canvas.drawLine(x, rect.bottom, x, rect.top, paint);
+                            canvas.drawLine(lineX, rect.bottom, lineX, rect.top, paint);
                         }
                         return;
                     }
                     if (hours % 4 === 0) {
                         paint.setPathEffect(hours === 0 ? null : gridLinePathEffect);
-                        canvas.drawLine(x, rect.bottom, x, rect.top, paint);
+                        canvas.drawLine(lineX, rect.bottom, lineX, rect.top, paint);
                     }
                 },
-                drawLabel(canvas: Canvas, axis, text, x, y, paint: Paint) {
+                drawLabel(canvas: Canvas, axis, text, labelX, labelY, paint: Paint) {
                     if (text) {
                         const lines = text.split('\n');
                         for (let index = 0; index < lines.length; index++) {
-                            canvas.drawText(lines[index], x, y + index * paint.textSize, paint);
+                            canvas.drawText(lines[index], labelX, labelY + index * paint.textSize, paint);
                         }
                     }
                 }
@@ -283,24 +283,24 @@
             canvas.drawText(text, pillLeft + pillWidth / 2, pillHeight / 2 + 4 * $fontScale, selectionTextPaint);
             for (const item of chartSeries.filter(isShown)) {
                 const entry = nearestEntry(item, highlight.x);
-                const { x, y } = chart.getPixelForValues(entry.hours, entry.value, axisDependency(item));
-                drawPoint(canvas, x, y, item.color);
+                const pixel = chart.getPixelForValues(entry.hours, entry.value, axisDependency(item));
+                drawPoint(canvas, pixel.x, pixel.y, item.color);
             }
             return;
         }
         canvas.drawLine(highlight.drawX, 0, highlight.drawX, canvas.getHeight(), highlightPaint);
         for (const item of chartSeries.filter(isShown)) {
             const entry = nearestEntry(item, highlight.x);
-            const { x, y } = chart.getPixelForValues(entry.hours, entry.value, axisDependency(item));
-            drawPoint(canvas, x, y, item.color);
+            const pixel = chart.getPixelForValues(entry.hours, entry.value, axisDependency(item));
+            drawPoint(canvas, pixel.x, pixel.y, item.color);
         }
     }
 
-    function drawPoint(canvas: Canvas, x: number, y: number, color: string) {
+    function drawPoint(canvas: Canvas, pointX: number, pointY: number, color: string) {
         pointPaint.setColor(colorSurface);
-        canvas.drawCircle(x, y, 4.5, pointPaint);
+        canvas.drawCircle(pointX, pointY, 4.5, pointPaint);
         pointPaint.setColor(color);
-        canvas.drawCircle(x, y, 3, pointPaint);
+        canvas.drawCircle(pointX, pointY, 3, pointPaint);
     }
 
     // card next to the selection line: the values of each shown series (the time too, when there is no pill)
@@ -372,9 +372,9 @@
         labelPaint.setFontWeight($accentFontWeight);
         labelPaint.setColor(colorOnSurface);
         for (const entry of new Set([highest, lowest, entries[entries.length - 1]])) {
-            const { x, y } = chart.getPixelForValues(entry.hours, entry.value, AxisDependency.LEFT);
-            drawPoint(canvas, x, y, temperature.color);
-            canvas.drawText(formatRaw(WeatherProps.temperature, entry.raw), x, entry === lowest && entry !== highest ? y + 18 : y - 8, labelPaint);
+            const pixel = chart.getPixelForValues(entry.hours, entry.value, AxisDependency.LEFT);
+            drawPoint(canvas, pixel.x, pixel.y, temperature.color);
+            canvas.drawText(formatRaw(WeatherProps.temperature, entry.raw), pixel.x, entry === lowest && entry !== highest ? pixel.y + 18 : pixel.y - 8, labelPaint);
         }
     }
 </script>
