@@ -26,8 +26,14 @@ const KMH_PER_KNOT = 1.852;
 const MAGNUS_A = 17.625;
 const MAGNUS_B = 243.04;
 
-const COVER_PERCENT: Record<string, number> = { SKC: 0, CLR: 0, NSC: 0, CAVOK: 0, FEW: 19, SCT: 44, BKN: 75, OVC: 100, OVX: 100 };
-const COVER_WEATHER_CODE: Record<string, number> = { SKC: 0, CLR: 0, NSC: 0, CAVOK: 0, FEW: 1, SCT: 2, BKN: 3, OVC: 3, OVX: 3 };
+// Maps, so that inherited object keys are not taken for cover codes
+const COVER_PERCENT = new Map(Object.entries({ SKC: 0, CLR: 0, NSC: 0, CAVOK: 0, FEW: 19, SCT: 44, BKN: 75, OVC: 100, OVX: 100 }));
+const COVER_WEATHER_CODE = new Map(Object.entries({ SKC: 0, CLR: 0, NSC: 0, CAVOK: 0, FEW: 1, SCT: 2, BKN: 3, OVC: 3, OVX: 3 }));
+
+// the API sends null for the values a station does not report
+function isNumber(value: unknown): value is number {
+    return typeof value === 'number';
+}
 
 export function knotsToKmh(knots: number) {
     return knots * KMH_PER_KNOT;
@@ -39,7 +45,7 @@ export function humidityFromDewpoint(temperature: number, dewpoint: number) {
 }
 
 export function cloudCoverFromCover(cover?: string) {
-    return COVER_PERCENT[cover];
+    return COVER_PERCENT.get(cover);
 }
 
 // WMO codes, so the result can go through the same icon and description mapping as Open-Meteo
@@ -77,7 +83,7 @@ export function weatherCodeFromMetar(cover?: string, wxString?: string) {
     if (wx.includes('FG')) {
         return 45;
     }
-    return COVER_WEATHER_CODE[cover];
+    return COVER_WEATHER_CODE.get(cover);
 }
 
 export function applyMetarToCurrently(currently: Currently, report: MetarReport | null, icao: string, now = Date.now(), describe?: (weatherCode: number) => string): Currently {
@@ -86,27 +92,27 @@ export function applyMetarToCurrently(currently: Currently, report: MetarReport 
         return { ...currently, metar: { icao, failed: true } };
     }
     const result: Currently = { ...currently, metar: { icao, time } };
-    if (report.temp !== undefined) {
+    if (isNumber(report.temp)) {
         result.temperature = report.temp;
         result.usingFeelsLike = false;
     }
-    if (report.dewp !== undefined) {
+    if (isNumber(report.dewp)) {
         result.dewpoint = report.dewp;
-        if (report.temp !== undefined) {
+        if (isNumber(report.temp)) {
             result.relativeHumidity = humidityFromDewpoint(report.temp, report.dewp);
         }
     }
-    if (report.wspd !== undefined) {
+    if (isNumber(report.wspd)) {
         result.windSpeed = knotsToKmh(report.wspd);
     }
-    if (report.wgst !== undefined) {
+    if (isNumber(report.wgst)) {
         result.windGust = knotsToKmh(report.wgst);
     }
-    if (typeof report.wdir === 'number') {
+    if (isNumber(report.wdir)) {
         result.windBearing = report.wdir;
     }
-    const pressure = report.slp ?? report.altim;
-    if (pressure !== undefined) {
+    const pressure = isNumber(report.slp) ? report.slp : report.altim;
+    if (isNumber(pressure)) {
         result.sealevelPressure = pressure;
     }
     const cloudCover = cloudCoverFromCover(report.cover);
@@ -134,11 +140,11 @@ export interface MetarPoint {
 function metarValue(report: MetarReport, prop: MetarSeriesProp) {
     switch (prop) {
         case 'temperature':
-            return report.temp;
+            return isNumber(report.temp) ? report.temp : undefined;
         case 'windSpeed':
-            return report.wspd === undefined ? undefined : knotsToKmh(report.wspd);
+            return isNumber(report.wspd) ? knotsToKmh(report.wspd) : undefined;
         case 'sealevelPressure':
-            return report.slp ?? report.altim;
+            return isNumber(report.slp) ? report.slp : isNumber(report.altim) ? report.altim : undefined;
     }
 }
 

@@ -29,8 +29,9 @@ function baseCurrently(): Currently {
         uvIndex: 3,
         iconId: 804,
         isDay: true,
+        aqi: 0,
         description: 'cloudy'
-    } as Currently;
+    };
 }
 
 describe('knotsToKmh', () => {
@@ -60,6 +61,13 @@ describe('cloudCoverFromCover', () => {
     it('is undefined for unknown cover', () => {
         expect(cloudCoverFromCover(undefined)).toBeUndefined();
         expect(cloudCoverFromCover('???')).toBeUndefined();
+    });
+});
+
+describe('inherited object keys', () => {
+    it('are not cover codes', () => {
+        expect(cloudCoverFromCover('constructor')).toBeUndefined();
+        expect(weatherCodeFromMetar('toString')).toBeUndefined();
     });
 });
 
@@ -122,6 +130,17 @@ describe('applyMetarToCurrently', () => {
         expect(result.metar).toEqual({ icao: 'KJFK', time: OBS_MS });
     });
 
+    it('ignores null values of the API like missing ones', () => {
+        const nullReport: MetarReport = JSON.parse(`{"icaoId":"KJFK","obsTime":${OBS_TIME},"temp":null,"dewp":null,"wdir":null,"wspd":null,"wgst":null,"altim":null,"slp":null,"cover":null}`);
+        const result = applyMetarToCurrently(baseCurrently(), nullReport, 'KJFK', now);
+        expect(result.temperature).toBe(20);
+        expect(result.windSpeed).toBe(5);
+        expect(result.windGust).toBeUndefined();
+        expect(result.windBearing).toBe(90);
+        expect(result.sealevelPressure).toBeUndefined();
+        expect(result.metar).toEqual({ icao: 'KJFK', time: OBS_MS });
+    });
+
     it('flags failure and keeps the provider data when the report is stale', () => {
         const result = applyMetarToCurrently(baseCurrently(), report, 'KJFK', OBS_MS + 3 * 3600 * 1000);
         expect(result.temperature).toBe(20);
@@ -159,6 +178,12 @@ describe('metarSeries', () => {
     });
     it('keeps one point per observation time', () => {
         expect(metarSeries([reports[0], { ...reports[0], temp: 99 }], 'temperature')).toEqual([{ time: 2000000, value: 99 }]);
+    });
+    it('skips null values', () => {
+        const nullReport: MetarReport = JSON.parse('{"icaoId":"KJFK","obsTime":1000,"temp":null,"wspd":null,"altim":null}');
+        expect(metarSeries([nullReport], 'windSpeed')).toEqual([]);
+        expect(metarSeries([nullReport], 'temperature')).toEqual([]);
+        expect(metarSeries([nullReport], 'sealevelPressure')).toEqual([]);
     });
     it('is empty without reports', () => {
         expect(metarSeries([], 'temperature')).toEqual([]);
