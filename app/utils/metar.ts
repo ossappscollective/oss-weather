@@ -152,3 +152,9 @@ export function metarSeries(reports: MetarReport[], prop: MetarSeriesProp): Meta
     }
     return [...points.values()].sort((first, second) => first.time - second.time);
 }
+
+// the indicator tells METAR is behind the shown data: it is dropped once that data is only cached,
+// i.e. the observation is older than the max age
+export function isMetarIndicatorShown(metar: Currently['metar'], now = Date.now()) {
+    return !!metar && !metar.failed && now - metar.time <= METAR_MAX_AGE_MS;
+}

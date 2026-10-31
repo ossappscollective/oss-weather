@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Currently } from '~/services/providers/weather';
-import { MetarReport, applyMetarToCurrently, cloudCoverFromCover, humidityFromDewpoint, knotsToKmh, metarSeries, weatherCodeFromMetar } from './metar';
+import { MetarReport, applyMetarToCurrently, cloudCoverFromCover, humidityFromDewpoint, isMetarIndicatorShown, knotsToKmh, metarSeries, weatherCodeFromMetar } from './metar';
 
 const OBS_TIME = 1793393460;
 const OBS_MS = OBS_TIME * 1000;
@@ -162,5 +162,23 @@ describe('metarSeries', () => {
     });
     it('is empty without reports', () => {
         expect(metarSeries([], 'temperature')).toEqual([]);
+    });
+});
+
+describe('isMetarIndicatorShown', () => {
+    const now = 10 * 3600 * 1000;
+    const HOUR = 3600 * 1000;
+
+    it('shows when a recent observation is used', () => {
+        expect(isMetarIndicatorShown({ icao: 'KJFK', time: now - HOUR }, now)).toBe(true);
+    });
+    it('hides for an observation older than 2h (cached data)', () => {
+        expect(isMetarIndicatorShown({ icao: 'KJFK', time: now - 3 * HOUR }, now)).toBe(false);
+    });
+    it('hides when METAR could not be used', () => {
+        expect(isMetarIndicatorShown({ icao: 'KJFK', failed: true }, now)).toBe(false);
+    });
+    it('hides without a METAR station', () => {
+        expect(isMetarIndicatorShown(undefined, now)).toBe(false);
     });
 });
