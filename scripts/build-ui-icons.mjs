@@ -15,6 +15,7 @@ const STROKE_WIDTH = 2;
 
 // mdi name -> Tabler outline icon, { filled } for a Tabler filled icon, { file } for a local svg
 const ICONS = {
+    airplane: 'plane',
     alert: 'alert-triangle',
     animation: 'sparkles',
     'arrow-left': 'arrow-left',
@@ -73,6 +74,7 @@ const ICONS = {
     play: 'player-play',
     plus: 'plus',
     radar: 'radar',
+    'radio-tower': 'building-broadcast-tower',
     refresh: 'refresh',
     rename: 'pencil',
     restore: 'restore',
