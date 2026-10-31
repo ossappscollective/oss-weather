@@ -159,11 +159,12 @@
 
     onMount(async () => {
         const station = weatherLocation?.metarStation;
-        if (!station) {
+        // the chart only shows on today's page
+        if (!station || !isCurrentDay) {
             return;
         }
         try {
-            metarReports = await fetchMetarReports(station.icao, 24);
+            metarReports = await fetchMetarReports(station.icao, 24, 10000);
         } catch (error) {
             // the observed charts are optional, nothing to show without them
             DEV_LOG && console.error('fetchMetarReports', error);
