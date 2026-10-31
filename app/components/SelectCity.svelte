@@ -69,24 +69,27 @@
     }
 
     async function searchCity() {
+        const query = currentSearchText;
         try {
             clearSearchTimeout();
-            if (!currentSearchText) {
+            if (!query) {
                 return;
             }
             loading = true;
-            const query = currentSearchText;
+            searchedText = query;
             const results = await search(query);
             // a newer query was typed meanwhile
             if (query !== currentSearchText) {
                 return;
             }
-            searchedText = query;
-            searchResults = new ObservableArray(showFavorite ? results.map((s) => ({ ...s, isFavorite: isFavorite(s) })) : results);
+            searchResults = new ObservableArray(showFavorite ? results.map((result) => ({ ...result, isFavorite: isFavorite(result) })) : results);
         } catch (err) {
             showError(err);
         } finally {
-            loading = false;
+            // the loading state belongs to the latest query
+            if (query === currentSearchText) {
+                loading = false;
+            }
         }
     }
 
