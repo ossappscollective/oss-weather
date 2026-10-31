@@ -19,7 +19,7 @@
     import { isDarkTheme, isEInk, onThemeChanged } from '~/helpers/theme';
     import { prefs } from '~/services/preferences';
     import type { Currently, Hourly, MinutelyData } from '~/services/providers/weather';
-    import { WeatherProps, formatWeatherValue, wdPaint, weatherDataService } from '~/services/weatherData';
+    import { WeatherProps, formatWeatherValue, mdiPaint, wdPaint, weatherDataService } from '~/services/weatherData';
     import {
         accentFontWeight,
         colors,
@@ -529,6 +529,9 @@
                 x += paint.measureText(c.icon) + 8 * $fontScale;
             }
         }
+        if (item.metar) {
+            drawMetarIcon(canvas, item.metar, x, sunBaseline + 1, Align.LEFT, 16);
+        }
         textPaint.setTextAlign(Align.RIGHT);
         textPaint.setTextSize(12 * $fontScale);
         textPaint.setColor(colorOnSurfaceVariant);
@@ -656,8 +659,19 @@
                 iconRight += 24 * $fontScale;
             }
         }
+        if (item.metar) {
+            drawMetarIcon(canvas, item.metar, w - iconRight, h - iconsBottom, Align.RIGHT);
+        }
         canvas.clipRect(0, 0, w - weatherIconSize * (2 - $fontScale), h);
         drawData(canvas, w, w2, hasPrecip ? 45 * $fontScale : $topViewHeight / 2 - 20 * $fontScale, w - weatherIconSize * (2 - $fontScale));
+    }
+
+    // an airplane tells the shown conditions come from a METAR station, crossed out when it could not be used
+    function drawMetarIcon(canvas: Canvas, metar: Item['metar'], x: number, y: number, align: Align, size = 20) {
+        mdiPaint.setTextAlign(align);
+        mdiPaint.setTextSize(size * $fontScale);
+        mdiPaint.setColor(metar.failed ? $colors.colorError : $colors.colorOnSurface);
+        canvas.drawText(metar.failed ? 'mdi-airplane-off' : 'mdi-airplane', x, y, mdiPaint);
     }
 
     function drawData(canvas: Canvas, w: number, w2: number, iconsTop: number, clipRight: number) {

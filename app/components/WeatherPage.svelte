@@ -48,6 +48,7 @@
         queryTimezone,
         renameFavorite,
         setFavoriteAqiProvider,
+        setFavoriteMetarStation,
         setFavoriteMarineProvider,
         setFavoriteOMProviderModel,
         setFavoriteProvider,
@@ -91,6 +92,7 @@
     import { groupPosition } from '~/utils/settingsGroups';
     import { groupRowClass } from '~/utils/groupClass';
     import { timeDifferenceLabel } from '~/utils/timeDifference';
+    import type { MetarStation } from '~/utils/metarStations';
     import IconButton from './common/IconButton.svelte';
     import { WeatherProvider } from '~/services/providers/weatherprovider';
     import { isLibreWXRSource } from '~/services/providers/librewxr';
@@ -1126,6 +1128,12 @@
                     name: lc('provider_marine.title')
                 },
                 {
+                    icon: 'mdi-airplane',
+                    id: 'metar_station',
+                    subtitle: favItem?.metarStation ? `${favItem.metarStation.name} (${favItem.metarStation.icao})` : lc('metar_station_none'),
+                    name: lc('metar_station')
+                },
+                {
                     icon: 'mdi-chart-bar',
                     id: 'compare',
                     name: lc('compare_models')
@@ -1227,6 +1235,14 @@
                                     break;
                                 case 'duplicate':
                                     await duplicateFavorite(favItem);
+                                    break;
+                                case 'metar_station':
+                                    const MetarStationSearch = (await import('~/components/MetarStationSearch.svelte')).default;
+                                    const station = await showModal<MetarStation | null, any>({ page: MetarStationSearch, animated: true, fullscreen: true, props: { hasStation: !!favItem.metarStation } });
+                                    // undefined is a cancel, null removes the station
+                                    if (station !== undefined) {
+                                        await setFavoriteMetarStation(favItem, station ?? undefined);
+                                    }
                                     break;
                                 case 'rename':
                                     result = await prompt({
