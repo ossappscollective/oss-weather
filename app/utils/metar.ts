@@ -122,3 +122,33 @@ export function applyMetarToCurrently(currently: Currently, report: MetarReport 
     }
     return result;
 }
+
+export type MetarSeriesProp = 'temperature' | 'windSpeed' | 'sealevelPressure';
+
+export interface MetarPoint {
+    /** milliseconds */
+    time: number;
+    value: number;
+}
+
+function metarValue(report: MetarReport, prop: MetarSeriesProp) {
+    switch (prop) {
+        case 'temperature':
+            return report.temp;
+        case 'windSpeed':
+            return report.wspd === undefined ? undefined : knotsToKmh(report.wspd);
+        case 'sealevelPressure':
+            return report.slp ?? report.altim;
+    }
+}
+
+export function metarSeries(reports: MetarReport[], prop: MetarSeriesProp): MetarPoint[] {
+    const points = new Map<number, MetarPoint>();
+    for (const report of reports) {
+        const value = metarValue(report, prop);
+        if (value !== undefined) {
+            points.set(report.obsTime, { time: report.obsTime * 1000, value });
+        }
+    }
+    return [...points.values()].sort((first, second) => first.time - second.time);
+}

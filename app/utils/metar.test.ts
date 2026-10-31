@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Currently } from '~/services/providers/weather';
-import { MetarReport, applyMetarToCurrently, cloudCoverFromCover, humidityFromDewpoint, knotsToKmh, weatherCodeFromMetar } from './metar';
+import { MetarReport, applyMetarToCurrently, cloudCoverFromCover, humidityFromDewpoint, knotsToKmh, metarSeries, weatherCodeFromMetar } from './metar';
 
 const OBS_TIME = 1793393460;
 const OBS_MS = OBS_TIME * 1000;
@@ -132,5 +132,35 @@ describe('applyMetarToCurrently', () => {
         const result = applyMetarToCurrently(baseCurrently(), null, 'KJFK', now);
         expect(result.temperature).toBe(20);
         expect(result.metar).toEqual({ icao: 'KJFK', failed: true });
+    });
+});
+
+describe('metarSeries', () => {
+    const reports: MetarReport[] = [
+        { icaoId: 'KJFK', obsTime: 2000, temp: 12, wspd: 10, altim: 1012, slp: 1013.2 },
+        { icaoId: 'KJFK', obsTime: 1000, temp: 10, wspd: 20, altim: 1010 },
+        { icaoId: 'KJFK', obsTime: 3000 }
+    ];
+
+    it('sorts by time and skips reports without the value', () => {
+        expect(metarSeries(reports, 'temperature')).toEqual([
+            { time: 1000000, value: 10 },
+            { time: 2000000, value: 12 }
+        ]);
+    });
+    it('converts wind to km/h', () => {
+        expect(metarSeries(reports, 'windSpeed')[0].value).toBeCloseTo(37.04, 2);
+    });
+    it('prefers sea level pressure over the altimeter', () => {
+        expect(metarSeries(reports, 'sealevelPressure')).toEqual([
+            { time: 1000000, value: 1010 },
+            { time: 2000000, value: 1013.2 }
+        ]);
+    });
+    it('keeps one point per observation time', () => {
+        expect(metarSeries([reports[0], { ...reports[0], temp: 99 }], 'temperature')).toEqual([{ time: 2000000, value: 99 }]);
+    });
+    it('is empty without reports', () => {
+        expect(metarSeries([], 'temperature')).toEqual([]);
     });
 });
