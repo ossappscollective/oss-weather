@@ -39,6 +39,7 @@
     "animations": "Animacje",
     "animations_desc": "Animowane, jeśli obsługiwane przez zestaw ikon",
     "api_key": "Klucz API",
+    "api_key_invalid": "%1$s odrzucił klucz API – sprawdź go w ustawieniach dostawcy",
     "api_key_required": "Wymagany jest klucz API",
     "app": {
         "name": "Pogoda OSS"
