@@ -9,6 +9,7 @@ import { AqiProviderType, MarineProviderType, ProviderType } from '~/services/pr
 import { SETTINGS_FAVORITES } from './constants';
 import { OpenMeteoModels } from '~/services/providers/om';
 import { confirm } from '~/utils/ui/dialogs';
+import type { MetarStation } from '~/utils/metarStations';
 import { l, lc } from '@nativescript-community/l';
 
 export const EVENT_FAVORITE = 'favorite';
@@ -146,6 +147,16 @@ export async function setFavoriteMarineProvider(item: FavoriteLocation, provider
     const index = favoritesKeys.indexOf(key);
     if (index !== -1) {
         item.providerMarine = provider;
+        updateOnSettingChanged = false;
+        favorites.setItem(index, item);
+        globalObservable.notify({ eventName: EVENT_FAVORITE, data: item });
+    }
+}
+export async function setFavoriteMetarStation(item: FavoriteLocation, station: MetarStation | undefined) {
+    const key = getFavoriteKey(item);
+    const index = favoritesKeys.indexOf(key);
+    if (index !== -1) {
+        item.metarStation = station;
         updateOnSettingChanged = false;
         favorites.setItem(index, item);
         globalObservable.notify({ eventName: EVENT_FAVORITE, data: item });
