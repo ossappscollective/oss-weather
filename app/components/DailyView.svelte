@@ -12,6 +12,7 @@
     import { cardBackgroundAlpha, dataTextStyle, headerTextStyle, textFontFamily } from '~/utils/designStyle';
     import { drawChips, prepareChips } from '~/helpers/chips';
     import { chipsAlignment } from '~/utils/chipsLayout';
+    import { CLASSIC_DEFAULT_BLOCK_HEIGHT, classicDataRow } from '~/utils/dailyRow';
     import { rangeBarSpan } from '~/utils/dataGrid';
     import { DAILY_GRID_OPTIONS, drawCenteredValue, drawGrid, prepareGrid } from '~/helpers/dataGrid';
 
@@ -23,9 +24,6 @@
     const PADDING_LEFT = 7;
     const ICON_WIDTH = 55;
     const DATA_LEFT = 60;
-    const CHIPS_UNDER_HEADER_TOP = 32;
-    // keeps the bottom left free for the beaufort and small icons
-    const CHIPS_UNDER_HEADER_BOTTOM = 26;
 
     // modern layout: header (icon | day + condition | low, range bar, high), data below it
     const MODERN_PADDING = 16;
@@ -82,10 +80,9 @@
         textIconSubPaint.setFontFamily(fontFamily);
     }
     $: modern = $designStyle === 'modern';
-    // with the date inline next to the day, the left column is free and chips go under the header
     // modern: only the grid sits in a card, chips already have their own background
     $: cardPadding = modern && $weatherDataLayout === 'grid' ? MODERN_CARD_PADDING * $fontScale : 0;
-    $: chipsLeft = modern ? MODERN_PADDING + cardPadding : header.dateInline ? PADDING_LEFT : DATA_LEFT * $fontScale;
+    $: chipsLeft = modern ? MODERN_PADDING + cardPadding : DATA_LEFT * $fontScale;
     $: blockWidth = modern ? $windowSize.width - 2 * (MODERN_PADDING + cardPadding) : $windowSize.width - chipsLeft - ICON_WIDTH * $fontScale - 16;
     $: chipsAlign = chipsAlignment($dailyDataAlignment);
 
@@ -97,11 +94,9 @@
     $: grid = $weatherDataLayout === 'grid' ? prepareGrid(blockItems, blockWidth, DAILY_GRID_OPTIONS, $designStyle, chipsTheme, $fontScale) : null;
     $: blockHeight = chips?.height ?? grid?.height;
     $: modernDataHeight = blockHeight !== undefined ? blockHeight + 2 * cardPadding + 12 * $fontScale : iconsData.length ? MODERN_BLOCK_HEIGHT * $fontScale : 4 * $fontScale;
-    $: rowHeight = modern
-        ? MODERN_HEADER_HEIGHT * $fontScale + modernDataHeight
-        : blockHeight !== undefined
-          ? Math.max(100 * $fontScale, blockHeight + (header.dateInline ? (CHIPS_UNDER_HEADER_TOP + CHIPS_UNDER_HEADER_BOTTOM) * $fontScale : 16 * $fontScale))
-          : 100 * $fontScale;
+    $: classicBlockHeight = blockHeight ?? (iconsData.length ? CLASSIC_DEFAULT_BLOCK_HEIGHT * $fontScale : undefined);
+    $: classicRow = classicBlockHeight !== undefined ? classicDataRow(classicBlockHeight, $fontScale) : undefined;
+    $: rowHeight = modern ? MODERN_HEADER_HEIGHT * $fontScale + modernDataHeight : (classicRow?.rowHeight ?? 100 * $fontScale);
 
     function ellipsize(text: string, maxWidth: number) {
         if (textPaint.measureText(text) <= maxWidth) {
@@ -320,7 +315,7 @@
             h,
             blockHeight !== undefined ? chipsLeft : DATA_LEFT * $fontScale,
             w - ICON_WIDTH * $fontScale - 10,
-            header.dateInline ? CHIPS_UNDER_HEADER_TOP * $fontScale : (h - (blockHeight ?? 0)) / 2
+            classicRow?.blockTop ?? h / 2
         );
     }
 
@@ -344,7 +339,7 @@
             default:
             case 'default': {
                 // modern: right under the header instead of centered
-                const iconsTop = modern ? -MODERN_BLOCK_LIFT * $fontScale : h / 2 - 24 * $fontScale;
+                const iconsTop = modern ? -MODERN_BLOCK_LIFT * $fontScale : blockTop;
                 for (let index = 0; index < centeredItemsToDraw.length; index++) {
                     const c = centeredItemsToDraw[index];
 
