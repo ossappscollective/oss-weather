@@ -1,6 +1,6 @@
-import { AlertSeverity } from './alerts';
+import { AlertSeverity } from '~/services/providers/alerts';
 import type { Alert as OWMAlert } from './openweathermap';
-import type { Alert } from './weather';
+import type { Alert } from '~/services/providers/weather';
 
 /**
  * One Call alert mapping. Kept out of `owm.ts` so it stays unit testable.
