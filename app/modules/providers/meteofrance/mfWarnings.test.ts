@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { AlertSeverity, colorFromSeverity } from './alerts';
+import { AlertSeverity, colorFromSeverity } from '~/services/providers/alerts';
 import { MFWarningLabels, buildAlertsFromWarnings, buildOverseasAlerts, getMfDomain } from './mfWarnings';
 import type { MFWarningDictionary, MFWarnings, MFWarningsOverseas } from './meteofrance';
 

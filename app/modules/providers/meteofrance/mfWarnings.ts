@@ -1,6 +1,6 @@
-import { AlertSeverity, colorFromSeverity, sortAlerts } from './alerts';
+import { AlertSeverity, colorFromSeverity, sortAlerts } from '~/services/providers/alerts';
 import type { MFWarningDictionary, MFWarningText, MFWarnings, MFWarningsOverseas } from './meteofrance';
-import type { Alert } from './weather';
+import type { Alert } from '~/services/providers/weather';
 
 /**
  * Météo France vigilance mapping.
