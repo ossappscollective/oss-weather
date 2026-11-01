@@ -19,7 +19,8 @@
     import { isDarkTheme, isEInk, onThemeChanged } from '~/helpers/theme';
     import { prefs } from '~/services/preferences';
     import type { Currently, Hourly, MinutelyData } from '~/services/providers/weather';
-    import { WeatherProps, formatWeatherValue, wdPaint, weatherDataService } from '~/services/weatherData';
+    import { isMetarIndicatorShown } from '~/utils/metar';
+    import { WeatherProps, formatWeatherValue, mdiPaint, wdPaint, weatherDataService } from '~/services/weatherData';
     import {
         accentFontWeight,
         colors,
@@ -529,6 +530,9 @@
                 x += paint.measureText(c.icon) + 8 * $fontScale;
             }
         }
+        if (isMetarIndicatorShown(item.metar)) {
+            drawMetarIcon(canvas, x, sunBaseline + 1, Align.LEFT, 16);
+        }
         textPaint.setTextAlign(Align.RIGHT);
         textPaint.setTextSize(12 * $fontScale);
         textPaint.setColor(colorOnSurfaceVariant);
@@ -656,8 +660,19 @@
                 iconRight += 24 * $fontScale;
             }
         }
+        if (isMetarIndicatorShown(item.metar)) {
+            drawMetarIcon(canvas, w - iconRight, h - iconsBottom, Align.RIGHT);
+        }
         canvas.clipRect(0, 0, w - weatherIconSize * (2 - $fontScale), h);
         drawData(canvas, w, w2, hasPrecip ? 45 * $fontScale : $topViewHeight / 2 - 20 * $fontScale, w - weatherIconSize * (2 - $fontScale));
+    }
+
+    // tells the shown conditions come from a METAR station
+    function drawMetarIcon(canvas: Canvas, x: number, y: number, align: Align, size = 20) {
+        mdiPaint.setTextAlign(align);
+        mdiPaint.setTextSize(size * $fontScale);
+        mdiPaint.setColor($colors.colorOnSurface);
+        canvas.drawText('mdi-radio-tower', x, y, mdiPaint);
     }
 
     function drawData(canvas: Canvas, w: number, w2: number, iconsTop: number, clipRight: number) {

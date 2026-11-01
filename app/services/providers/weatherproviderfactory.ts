@@ -3,7 +3,10 @@ import { createGlobalEventListener, globalObservable } from '@shared/utils/svelt
 import { SETTINGS_PROVIDER, SETTINGS_PROVIDER_AQI, SETTINGS_PROVIDER_MARINE } from '~/helpers/constants';
 import { MarineWeatherProvider } from '~/services/providers/marineweatherprovider';
 import { MeteoConsultProvider } from '~/services/providers/meteoconsult';
+import { WeatherDataType, weatherDataIconColors } from '~/helpers/formatter';
+import { fetchLatestMetar } from '~/services/metar';
 import { WeatherProps, mergeWeatherData, weatherDataService } from '~/services/weatherData';
+import { MetarReport, applyMetarToCurrently } from '~/utils/metar';
 import { WeatherLocation } from '../api';
 import { prefs } from '../preferences';
 import { AccuWeatherAQIProvider, AccuWeatherProvider } from './accuweather';
@@ -12,7 +15,7 @@ import { AtmoProvider } from './atmo';
 import { MFProvider } from './mf';
 import { OMProvider } from './om';
 import { OWMProvider } from './owm';
-import { AirQualityData, AqiProviderType, MarineProviderType, ProviderType, WeatherData } from './weather';
+import { AirQualityData, AqiProviderType, Currently, MarineProviderType, ProviderType, WeatherData } from './weather';
 import { GetWeatherOptions, WeatherProvider } from './weatherprovider';
 
 export enum Providers {
@@ -151,7 +154,8 @@ function getCacheKey(weatherType: WeatherType, providerId: string, weatherLocati
     const { ignoreCache, ...optionsForKey } = options;
 
     const optionsStr = options ? JSON.stringify(optionsForKey) : '';
-    return `${WEATHER_CACHE_PREFIX}${weatherType === 'main' ? '' : `${weatherType}_`}${providerId}_${coord.lat}_${coord.lon}_${optionsStr}`;
+    const metarStr = weatherType === 'main' && weatherLocation.metarStation ? `_${weatherLocation.metarStation.icao}` : '';
+    return `${WEATHER_CACHE_PREFIX}${weatherType === 'main' ? '' : `${weatherType}_`}${providerId}_${coord.lat}_${coord.lon}_${optionsStr}${metarStr}`;
 }
 
 /**
@@ -233,6 +237,17 @@ export function clearAllWeatherCaches(): void {
     }
 }
 
+// a METAR problem must never fail the forecast: it is flagged on `currently` instead
+function overlayMetar(currently: Currently, report: MetarReport | null, icao: string, weatherLocation: WeatherLocation) {
+    try {
+        const result = applyMetarToCurrently(currently, report, icao, Date.now(), OMProvider.getWeatherCodeDescription);
+        return result.metar.failed ? result : weatherDataIconColors(result, WeatherDataType.CURRENT, weatherLocation.coord);
+    } catch (error) {
+        console.error('overlayMetar', error);
+        return { ...currently, metar: { icao, failed: true } };
+    }
+}
+
 export async function getWeather(weatherLocation: WeatherLocation, options?: GetWeatherOptions & { ignoreCache?: boolean }, providerType?: ProviderType) {
     const provider = providerType ? getProviderForType(providerType) : getWeatherProvider();
     const providerId = provider.id;
@@ -245,7 +260,11 @@ export async function getWeather(weatherLocation: WeatherLocation, options?: Get
     }
 
     // Fetch fresh data
-    const data = await provider.getWeather(weatherLocation, options);
+    const station = weatherLocation.metarStation;
+    const [data, report] = await Promise.all([provider.getWeather(weatherLocation, options), station ? fetchLatestMetar(station.icao).catch(() => null) : null]);
+    if (station && data.currently) {
+        data.currently = overlayMetar(data.currently, report, station.icao, weatherLocation);
+    }
     // Save to cache
     setCachedWeather('main', providerId, weatherLocation, data, options);
 

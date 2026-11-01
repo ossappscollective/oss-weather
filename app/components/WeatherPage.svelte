@@ -48,6 +48,7 @@
         queryTimezone,
         renameFavorite,
         setFavoriteAqiProvider,
+        setFavoriteMetarStation,
         setFavoriteMarineProvider,
         setFavoriteOMProviderModel,
         setFavoriteProvider,
@@ -91,6 +92,8 @@
     import { groupPosition } from '~/utils/settingsGroups';
     import { groupRowClass } from '~/utils/groupClass';
     import { timeDifferenceLabel } from '~/utils/timeDifference';
+    import type { MetarStation } from '~/utils/metarStations';
+    import { searchStations } from '~/services/metar';
     import IconButton from './common/IconButton.svelte';
     import { WeatherProvider } from '~/services/providers/weatherprovider';
     import { isLibreWXRSource } from '~/services/providers/librewxr';
@@ -148,12 +151,12 @@
     let page: NativeViewElementNode<Page>;
     // modern menus: provider values on the right (long ones stay under the title), colored provider
     // icons, groups separated by a line
-    const MODERN_MENU_ICON_COLORS = { provider: '#378ADD', om_model: '#888780', provider_aqi: '#97C459', provider_marine: '#378ADD' };
+    const MODERN_MENU_ICON_COLORS = { provider: '#378ADD', om_model: '#888780', provider_aqi: '#97C459', provider_marine: '#378ADD', metar_station: '#378ADD' };
     const MODERN_MENU_MAX_RIGHT_VALUE = 14;
     // short titles so that the value fits next to them
     const MODERN_MENU_SHORT_NAMES = { provider_marine: () => lc('marine_provider'), provider_aqi: () => lc('air_quality'), om_model: () => lc('model') };
     // modern: views first, then location settings, then the app settings
-    const MODERN_MENU_ORDER = ['refresh', 'chart', 'compare', 'map', 'meteo_blue', 'provider_marine', 'bra', 'select_map', 'gps_location', 'preferences'];
+    const MODERN_MENU_ORDER = ['refresh', 'chart', 'compare', 'map', 'meteo_blue', 'provider_marine', 'metar_station', 'bra', 'select_map', 'gps_location', 'preferences'];
     function modernMenuOptions(options: any[], groupStartIds: string[]) {
         if (!modern) {
             return options;
@@ -235,6 +238,12 @@
                             id: 'provider_marine',
                             subtitle: lc('provider_marine.' + (weatherLocation?.providerMarine ?? 'none')),
                             name: lc('provider_marine.title')
+                        },
+                        {
+                            icon: 'mdi-airplane',
+                            id: 'metar_station',
+                            subtitle: weatherLocation?.metarStation ? `${weatherLocation.metarStation.name} (${weatherLocation.metarStation.icao})` : lc('metar_station_none'),
+                            name: lc('metar_station')
                         }
                     ] as any)
                 );
@@ -291,6 +300,9 @@
                                     break;
                                 case 'provider_marine':
                                     await selectMarineProvider(weatherLocation);
+                                    break;
+                                case 'metar_station':
+                                    await selectMetarStation(weatherLocation);
                                     break;
                                 case 'bra':
                                     DEV_LOG && console.log('finding bra');
@@ -869,6 +881,28 @@
         }
     }
 
+    async function selectMetarStation(location: WeatherLocation) {
+        const SelectCity = (await import('~/components/SelectCity.svelte')).default;
+        const station = await showModal<MetarStation | null, any>({
+            page: SelectCity,
+            animated: true,
+            fullscreen: true,
+            props: {
+                title: lc('metar_station'),
+                hint: lc('metar_station_hint'),
+                search: searchStations,
+                getInfo: (item: MetarStation) => ({ title: `${item.name} (${item.icao})`, lines: [item.country].filter((text) => !!text) }),
+                icon: 'mdi-airplane',
+                showFavorite: false,
+                clearable: !!location.metarStation
+            }
+        });
+        // undefined is a cancel, null removes the station
+        if (station !== undefined) {
+            setWeatherLocationMetarStation(station ?? undefined, location);
+        }
+    }
+
     // function swipeMenuTranslationFunction(side, width, value, delta, progress) {
     //     const result = {
     //         mainContent: {
@@ -933,6 +967,16 @@
         saveWeatherLocation();
         if (isFavorite(location)) {
             setFavoriteMarineProvider(location, provider);
+        } else if (isCurrentLocation(location)) {
+            refreshWeather();
+        }
+    }
+
+    function setWeatherLocationMetarStation(station: MetarStation | undefined, location: WeatherLocation = weatherLocation) {
+        location.metarStation = station;
+        saveWeatherLocation();
+        if (isFavorite(location)) {
+            setFavoriteMetarStation(location, station);
         } else if (isCurrentLocation(location)) {
             refreshWeather();
         }
@@ -1126,6 +1170,12 @@
                     name: lc('provider_marine.title')
                 },
                 {
+                    icon: 'mdi-airplane',
+                    id: 'metar_station',
+                    subtitle: favItem?.metarStation ? `${favItem.metarStation.name} (${favItem.metarStation.icao})` : lc('metar_station_none'),
+                    name: lc('metar_station')
+                },
+                {
                     icon: 'mdi-chart-bar',
                     id: 'compare',
                     name: lc('compare_models')
@@ -1227,6 +1277,9 @@
                                     break;
                                 case 'duplicate':
                                     await duplicateFavorite(favItem);
+                                    break;
+                                case 'metar_station':
+                                    await selectMetarStation(favItem);
                                     break;
                                 case 'rename':
                                     result = await prompt({
