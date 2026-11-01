@@ -1,10 +1,10 @@
 import { ApplicationSettings } from '@akylas/nativescript';
-import { WeatherLocation, request } from '../api';
-import { AirQualityProvider } from './airqualityprovider';
-import { prefs } from '../preferences';
+import { WeatherLocation, request } from '~/services/api';
+import { AirQualityProvider } from '~/services/providers/airqualityprovider';
+import { prefs } from '~/services/preferences';
 import dayjs from 'dayjs';
-import { AirQualityData, CommonAirQualityData, Hourly } from './weather';
-import { Pollutants, prepareAirQualityData } from '../airQualityData';
+import { AirQualityData, CommonAirQualityData, Hourly } from '~/services/providers/weather';
+import { Pollutants, prepareAirQualityData } from '~/services/airQualityData';
 import { aqiDataIconColors } from '~/helpers/formatter';
 import { lc } from '@nativescript-community/l';
 
