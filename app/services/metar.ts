@@ -4,7 +4,7 @@ import { MetarStation, StationInfo, bboxAround, isStationCode, sortByDistance, s
 import { request } from './api';
 
 const AVIATION_WEATHER_URL = 'https://aviationweather.gov/api/data';
-const PHOTON_AERODROME_LIMIT = 8;
+const PHOTON_AERODROME_LIMIT = 5;
 // a missed hourly report must not make the latest one unusable: look back further than the max age
 const LATEST_METAR_HOURS = 3;
 // the forecast waits for it, so it fails fast
