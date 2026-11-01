@@ -65,24 +65,22 @@
     import { OpenMeteoModels, getOMPreferredModel } from '~/services/providers/om';
     import type { AirQualityData, AqiProviderType, DailyData, Hourly, MarineProviderType, ProviderType, WeatherData } from '~/services/providers/weather';
     import {
-        MarineProviders,
-        Providers,
-        ProvidersClasses,
-        aqi_providers,
         getAirQuality,
         getAqiProvider,
+        getAqiProviderKeys,
         getAqiProviderType,
         getCachedWeather,
         getFullCachedWeather,
         getMarineProvider,
+        getMarineProviderKeys,
         getMarineWeather,
         getProviderClass,
         getProviderType,
         getWeather,
         getWeatherProvider,
+        getWeatherProviderKeys,
         onProviderChanged,
-        providerRequiresApiKey,
-        providers
+        providerRequiresApiKey
     } from '~/services/providers/weatherproviderfactory';
     import { WeatherProps, mergeWeatherData, onWeatherDataChanged, weatherDataService } from '~/services/weatherData';
     import { parseUrlQueryParameters } from '~/utils/http';
@@ -573,7 +571,7 @@
         return manualRefreshWeather();
     }
 
-    async function askForApiKey(provider: Providers | 'maptiler', shouldRefreshWeather = true) {
+    async function askForApiKey(provider: ProviderType | 'maptiler', shouldRefreshWeather = true) {
         try {
             const ApiKeysBottomSheet = (await import('~/components/APIKeysBottomSheet.svelte')).default;
             const result: boolean = await showBottomSheet({
@@ -839,7 +837,7 @@
 
     async function selectProvider(location: WeatherLocation) {
         const value = await selectValue<ProviderType>(
-            providers.map((t) => ({ data: t, title: lc('provider.' + t) })),
+            getWeatherProviderKeys().map((t) => ({ data: t, title: lc('provider.' + t) })),
             location.provider || getProviderType(),
             { title: lc('provider.title') }
         );
@@ -860,7 +858,7 @@
 
     async function selectProviderAQI(location: WeatherLocation) {
         const value = await selectValue<AqiProviderType>(
-            aqi_providers.map((t) => ({ data: t, title: lc('provider_aqi.' + t) })),
+            getAqiProviderKeys().map((t) => ({ data: t, title: lc('provider_aqi.' + t) })),
             location.providerAqi || getAqiProviderType(),
             { title: lc('provider_aqi.title') }
         );
@@ -872,7 +870,7 @@
     async function selectMarineProvider(location: WeatherLocation) {
         const marineProviders: { data: MarineProviderType; title: string }[] = [
             { data: null, title: lc('provider_marine.none') },
-            { data: MarineProviders.MeteoConsult, title: lc('provider_marine.meteoconsult') }
+            ...getMarineProviderKeys().map((t) => ({ data: t, title: lc('provider_marine.' + t) }))
         ];
         const current: MarineProviderType = location.providerMarine ?? null;
         const value = await selectValue<MarineProviderType>(marineProviders, current, { title: lc('provider_marine.title') });
@@ -985,11 +983,12 @@
     const onSwipe = (e) => {
         const enabled = ApplicationSettings.getBoolean(SETTINGS_SWIPE_ACTION_BAR_PROVIDER, SWIPE_ACTION_BAR_PROVIDER);
         if (enabled && weatherLocation) {
+            const providers = getWeatherProviderKeys();
             const currentProviderIndex = providers.indexOf(provider);
             const delta = e.direction === 1 ? -1 : 1;
             let nextProviderIndex = currentProviderIndex;
             let newProvider;
-            let providerClass: ProvidersClasses;
+            let providerClass: ReturnType<typeof getProviderClass>;
             function updateNextProvider() {
                 nextProviderIndex = nextProviderIndex + delta;
                 if (nextProviderIndex < 0) {

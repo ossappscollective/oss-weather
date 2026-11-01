@@ -11,7 +11,7 @@
     import { lc } from '~/helpers/locale';
     import { WeatherLocation, geocodeAddress } from '~/services/api';
     import { OpenMeteoModels } from '~/services/providers/om';
-    import { getProviderType, providers } from '~/services/providers/weatherproviderfactory';
+    import { getProviderType, getWeatherProviderKeys } from '~/services/providers/weatherproviderfactory';
     import { hideLoading, selectValue, showPopoverMenu } from '~/utils/ui';
     import { actionBarHeight, colors, designStyle, fontScale, fonts, onFontScaleChanged, windowInset } from '~/variables';
     import { groupPosition } from '~/utils/settingsGroups';
@@ -209,7 +209,7 @@
         try {
             const result = await selectValue(
                 [{ title: lc('auto'), data: null }].concat(
-                    providers.map((p) => ({
+                    getWeatherProviderKeys().map((p) => ({
                         title: lc('provider.' + p),
                         data: p
                     }))

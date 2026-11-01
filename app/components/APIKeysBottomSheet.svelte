@@ -3,11 +3,12 @@
     import { debounce } from '@nativescript/core/utils';
     import { l, lc } from '~/helpers/locale';
     import { MaptilerProvider } from '~/services/providers/maptiler';
-    import { Providers, getProviderClass } from '~/services/providers/weatherproviderfactory';
+    import type { ProviderType } from '~/services/providers/weather';
+    import { getProviderClass } from '~/services/providers/weatherproviderfactory';
     import { openLink } from '~/utils/ui';
 
     let canClose = false;
-    export let provider: Providers | 'maptiler';
+    export let provider: ProviderType | 'maptiler';
     const providerClass = provider === 'maptiler' ? MaptilerProvider : getProviderClass(provider);
     let apiKey = providerClass.getApiKey();
 

@@ -85,7 +85,7 @@
     import { iconService } from '~/services/icon';
     import { getLibreWXRSettings, getWeatherMapSourceSetting } from '~/services/providers/librewxr';
     import { MaptilerProvider, getWeatherMapSettings } from '~/services/providers/maptiler';
-    import { aqi_providers, getAqiProviderType, getProviderSettins, getProviderType, providers } from '~/services/providers/weatherproviderfactory';
+    import { getAqiProviderKeys, getAqiProviderType, getProviderSettins, getProviderType, getWeatherProviderKeys } from '~/services/providers/weatherproviderfactory';
     import { AVAILABLE_WEATHER_DATA, AVAILABLE_WEATHER_DATA_MAIN_HOURLY, WeatherProps, getWeatherDataIcon, getWeatherDataTitle, weatherDataService } from '~/services/weatherData';
     import { confirmRestartApp, createView, getDateFormatHTMLArgs, hideLoading, openLink, selectValue, showLoading, showSliderPopover } from '~/utils/ui';
     import {
@@ -526,7 +526,7 @@
                             description: () => lc('provider.' + getProviderType()),
                             title: lc('provider.title'),
                             currentValue: getProviderType,
-                            values: providers.map((t) => ({ value: t, title: lc('provider.' + t) }))
+                            values: getWeatherProviderKeys().map((t) => ({ value: t, title: lc('provider.' + t) }))
                         },
                         {
                             key: SETTINGS_PROVIDER_AQI,
@@ -535,7 +535,7 @@
                             description: () => lc('provider_aqi.' + getAqiProviderType()),
                             title: lc('provider_aqi.title'),
                             currentValue: getAqiProviderType,
-                            values: aqi_providers.map((t) => ({ value: t, title: lc('provider_aqi.' + t) }))
+                            values: getAqiProviderKeys().map((t) => ({ value: t, title: lc('provider_aqi.' + t) }))
                         },
                         {
                             key: 'forecast_nb_days',
@@ -573,7 +573,7 @@
                             value: ApplicationSettings.getBoolean(SETTINGS_METEOBLUE_ENABLED, METEOBLUE_ENABLED)
                         }
                     ] as any[];
-                    providers.sort().forEach((provider) => {
+                    [...getWeatherProviderKeys()].sort().forEach((provider) => {
                         const providerSettings = getProviderSettins(provider);
                         if (providerSettings?.length) {
                             options.push(
