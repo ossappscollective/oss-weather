@@ -1,8 +1,8 @@
 import { ApplicationSettings } from '@nativescript/core';
 import dayjs from 'dayjs';
-import { WeatherLocation, request } from '../api';
-import { Daily, Tide, WeatherData } from './weather';
-import { DailyData, Hourly } from './weather';
+import { WeatherLocation, request } from '~/services/api';
+import { Daily, Tide, WeatherData } from '~/services/providers/weather';
+import { DailyData, Hourly } from '~/services/providers/weather';
 import { MarineWeatherProvider } from '~/services/providers/marineweatherprovider';
 import { GetWeatherOptions } from '~/services/providers/weatherprovider';
 
