@@ -10,7 +10,7 @@
     import ListItemAutoSize from '~/components/common/ListItemAutoSize.svelte';
     import { lc } from '~/helpers/locale';
     import { WeatherLocation, geocodeAddress } from '~/services/api';
-    import { OpenMeteoModels } from '~/services/providers/om';
+    import { OpenMeteoModels } from '~/modules/providers/openmeteo/om';
     import { getProviderType, getWeatherProviderKeys } from '~/services/providers/weatherproviderfactory';
     import { hideLoading, selectValue, showPopoverMenu } from '~/utils/ui';
     import { actionBarHeight, colors, designStyle, fontScale, fonts, onFontScaleChanged, windowInset } from '~/variables';

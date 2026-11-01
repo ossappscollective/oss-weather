@@ -7,7 +7,7 @@ import { globalObservable } from '@shared/utils/svelte/ui';
 import PolygonLookup from 'polygon-lookup';
 import { AqiProviderType, MarineProviderType, ProviderType } from '~/services/providers/weather';
 import { SETTINGS_FAVORITES } from './constants';
-import { OpenMeteoModels } from '~/services/providers/om';
+import { OpenMeteoModels } from '~/modules/providers/openmeteo/om';
 import { confirm } from '~/utils/ui/dialogs';
 import type { MetarStation } from '~/utils/metarStations';
 import { l, lc } from '@nativescript-community/l';

@@ -9,7 +9,7 @@ import { WeatherProps, mergeWeatherData, weatherDataService } from '~/services/w
 import { MetarReport, applyMetarToCurrently } from '~/utils/metar';
 import { WeatherLocation } from '../api';
 import { prefs } from '../preferences';
-import { OMProvider } from './om';
+import { OMProvider } from '~/modules/providers/openmeteo/om';
 import { AirQualityProvider } from './airqualityprovider';
 import { AirQualityData, AqiProviderType, Currently, MarineProviderType, ProviderType, WeatherData } from './weather';
 import { GetWeatherOptions, WeatherProvider } from './weatherprovider';

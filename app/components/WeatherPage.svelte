@@ -62,7 +62,7 @@
     import { gadgetbridgeService } from '~/services/gadgetbridge';
     import { onIconPackChanged } from '~/services/icon';
     import { MFProvider } from '~/services/providers/mf';
-    import { OpenMeteoModels, getOMPreferredModel } from '~/services/providers/om';
+    import { OpenMeteoModels, getOMPreferredModel } from '~/modules/providers/openmeteo/om';
     import type { AirQualityData, AqiProviderType, DailyData, Hourly, MarineProviderType, ProviderType, WeatherData } from '~/services/providers/weather';
     import {
         getAirQuality,
