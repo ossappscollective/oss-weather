@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { contentGradientRange, extremaIndexes, gridLineKind, highlightHour, isChartedKey, nightSpans, plotPadding } from './chartLabels';
+import { contentGradientRange, extremaIndexes, gridLineKind, highlightHour, highlightedAlpha, isChartedKey, nightSpans, plotPadding } from './chartLabels';
 
 describe('extremaIndexes', () => {
     it('keeps the ends and every local high and low', () => {
@@ -123,5 +123,24 @@ describe('isChartedKey', () => {
 
     it('drops the precipitation rows when the chart shows none', () => {
         expect(isChartedKey('snowfall', ['temperature'])).toBe(false);
+    });
+});
+
+describe('highlightedAlpha', () => {
+    it('keeps the alpha of a bar that is not highlighted', () => {
+        expect(highlightedAlpha(100, false)).toBe(100);
+    });
+
+    it('makes a highlighted bar more opaque', () => {
+        expect(highlightedAlpha(100, true)).toBe(160);
+    });
+
+    it('never goes over fully opaque', () => {
+        expect(highlightedAlpha(200, true)).toBe(255);
+        expect(highlightedAlpha(255, true)).toBe(255);
+    });
+
+    it('keeps a transparent bar transparent', () => {
+        expect(highlightedAlpha(0, true)).toBe(0);
     });
 });

@@ -96,3 +96,10 @@ export function isChartedKey(key: string, chartedKeys: string[]): boolean {
     }
     return PRECIPITATION_KEYS.indexOf(key) !== -1 && PRECIPITATION_KEYS.some((precipitationKey) => chartedKeys.indexOf(precipitationKey) !== -1);
 }
+
+// a highlighted bar gets 60% more opacity instead of a dot
+const HIGHLIGHT_ALPHA_FACTOR = 1.6;
+
+export function highlightedAlpha(alpha: number, highlighted: boolean): number {
+    return highlighted ? Math.min(255, Math.round(alpha * HIGHLIGHT_ALPHA_FACTOR)) : alpha;
+}

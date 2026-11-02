@@ -44,6 +44,8 @@
     export let highlightCard: (highlights: Highlight[], chart: CombinedChart) => HighlightCardContent = null;
     // the series with a dot and in the card
     export let highlightFilter: (dataSet: any) => boolean = (dataSet) => dataSet.visible !== false;
+    // false for the series highlighted another way than with a dot (bars the chart draws more opaque...)
+    export let highlightDot: (dataSet: any) => boolean = () => true;
     // color of the dot of a series, its line color by default (a series can be colored per point)
     export let highlightColor: (dataSet: any, highlight: Highlight) => string = null;
     export let highlightPerDrag = false;
@@ -155,7 +157,7 @@
             highlightLinePaint.setAlpha(120);
             canvas.drawLine(highlight.drawX, content.top, highlight.drawX, content.bottom, highlightLinePaint);
         }
-        if (!highlightFilter(set)) {
+        if (!highlightFilter(set) || !highlightDot(set)) {
             return;
         }
         highlightDotPaint.setColor(modern ? $modernColors.colorModernCard : colorSurface);
