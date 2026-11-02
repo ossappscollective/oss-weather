@@ -273,7 +273,6 @@ export class MeteoConsultProvider extends MarineWeatherProvider {
             hourly: hourlyData
         };
         r.hourly = hourlyData;
-        DEV_LOG && console.log('getMarineWeather', JSON.stringify(r));
         return r;
     }
 }
