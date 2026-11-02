@@ -1,7 +1,7 @@
 <svelte:options accessors />
 
 <script context="module" lang="ts">
-    import { Align, Canvas, CanvasView, DashPathEffect, LinearGradient, Paint, Path, Rect, RectF, Style } from '@nativescript-community/ui-canvas';
+    import { Align, Canvas, LinearGradient, Paint, Path, Rect, RectF, Style } from '@nativescript-community/ui-canvas';
     import { CombinedChart } from '@nativescript-community/ui-chart';
     import { DrawOrder } from '@nativescript-community/ui-chart/charts/CombinedChart';
     import { ScatterShape } from '@nativescript-community/ui-chart/charts/ScatterChart';
@@ -13,10 +13,9 @@
     import { ScatterData } from '@nativescript-community/ui-chart/data/ScatterData';
     import { ScatterDataSet } from '@nativescript-community/ui-chart/data/ScatterDataSet';
     import { Highlight } from '@nativescript-community/ui-chart/highlight/Highlight';
-    import { Application, Color, CoreTypes, EventData, ImageSource, ObservableArray, OrientationChangedEventData, Utils } from '@nativescript/core';
+    import { Application, Color, ImageSource, ObservableArray, OrientationChangedEventData } from '@nativescript/core';
     import { showError } from '@shared/utils/showError';
     import type { NativeViewElementNode } from '@nativescript-community/svelte-native/dom';
-    import type HourlyPopover__SvelteComponent_ from '~/components/HourlyPopover.svelte';
     import { formatValueToUnit, windIcon } from '~/helpers/formatter';
     import { getEInkShader } from '~/helpers/einkShader';
     import { formatTime, getLocalTime, lc } from '~/helpers/locale';
@@ -29,36 +28,18 @@
     import { BarData } from '@nativescript-community/ui-chart/data/BarData';
     import { BarDataSet } from '@nativescript-community/ui-chart/data/BarDataSet';
     import { Entry } from '@nativescript-community/ui-chart/data/Entry';
-    import { Utils as ChartUtils } from '@nativescript-community/ui-chart/utils/Utils';
     import { onDestroy, onMount } from 'svelte';
     import { iconService } from '~/services/icon';
-    import {
-        WeatherProps,
-        appPaint,
-        convertWeatherValueToUnit,
-        defaultPropUnit,
-        getWeatherDataColor,
-        getWeatherDataTitle,
-        propToUnit,
-        showHourlyPopover,
-        wdPaint,
-        weatherDataService
-    } from '~/services/weatherData';
+    import { WeatherProps, appPaint, convertWeatherValueToUnit, defaultPropUnit, getWeatherDataColor, getWeatherDataTitle, propToUnit, wdPaint, weatherDataService } from '~/services/weatherData';
     import { ValueRange, computeDataRange, getNaturalRange, makeScaler, pickReferenceProp, resolveRange, visibleHoursScale } from '~/utils/chartScale';
     import { generateGradient, loadImage, tempColor } from '~/utils/utils.common';
     import { contentGradientRange, extremaIndexes, highlightHour, nightSpans, plotPadding } from '~/utils/chartLabels';
-    import { MODERN_NOW_COLOR, createTimeAxisRenderer, drawNightShading } from '~/utils/chartDraw';
+    import BaseChart from '~/components/common/BaseChart.svelte';
+    import { hourlyCardContent } from '~/utils/hourlyCard';
 
     const einkBarPaint = new Paint();
     const einkOutlinePaint = new Paint();
     einkOutlinePaint.setStyle(Style.STROKE);
-
-    const highlightPaint = new Paint();
-    highlightPaint.setColor('white');
-    highlightPaint.setStrokeWidth(2);
-    highlightPaint.setPathEffect(new DashPathEffect([3, 3], 0));
-    highlightPaint.setTextAlign(Align.LEFT);
-    highlightPaint.setTextSize(10);
 
     const LINE_WIDTH = 2;
 
@@ -73,11 +54,7 @@
     const dayLabelPaint = new Paint();
     dayLabelPaint.setTextAlign(Align.LEFT);
     const pointPaint = new Paint();
-    const selectionPaint = new Paint();
-    selectionPaint.setStrokeWidth(1.5);
-    const selectionTextPaint = new Paint();
-    selectionTextPaint.setTextAlign(Align.CENTER);
-    let classicAxes: { leftLabels: boolean; rightLabels: boolean; leftLine: boolean; rightLine: boolean; xLineColor: string };
+    let classicAxes: { leftLabels: boolean; rightLabels: boolean; leftLine: boolean; rightLine: boolean };
 
     const CHART_TYPE = {
         [WeatherProps.precipAccumulation]: 'precipitationchart',
@@ -88,10 +65,10 @@
     // iconId and windBearing are fake sets pinned to the right axis, cloudCover already rescales
     // itself through `ignoreForMinMax` and the `drawFill` custom renderer
     const NOT_SCALED: WeatherProps[] = [WeatherProps.iconId, WeatherProps.windBearing, WeatherProps.cloudCover];
+    const NOT_HIGHLIGHTED: string[] = NOT_SCALED;
 </script>
 
 <script lang="ts">
-    import { ComponentInstanceInfo } from '~/utils/ui';
     import { PROVIDER_PADDING } from '~/helpers/constants';
 
     let { colorOnSurface, colorOnSurfaceVariant, colorOutline, colorSurface, colorSurfaceContainer } = $colors;
@@ -119,7 +96,6 @@
     export let startTime: number = null;
 
     let chartView: NativeViewElementNode<CombinedChart>;
-    let highlightCanvas: NativeViewElementNode<CanvasView>;
 
     let temperatureData: ValueRange;
     // plotted raw, so the left axis describes it. Every other line metric is remapped into its range
@@ -134,9 +110,7 @@
     export let chartInitialized = false;
     // the first frames lack the plot padding and the gradient: stay hidden until they are applied
     let chartReady = false;
-    let highlightedItem: CommonWeatherData;
-    let highlightedMargin: string;
-    let highlightedAlignment: CoreTypes.HorizontalAlignmentType;
+    let nowHours: number = null;
 
     export function getChart() {
         return chartView?.nativeElement;
@@ -213,6 +187,155 @@
         return scaledKeys;
     }
 
+    const hourlyRenderer = {
+        drawFill(canvas: Canvas, dataSet: LineDataSet, spline: Path, trans: any, min: number, max: number, superMethod: Function) {
+            const chart = chartView.nativeView;
+            if (dataSet.label === WeatherProps.cloudCover && $designStyle === 'modern') {
+                // rounded bars like the rain ones, 100% reaching the top padding of the lines
+                const contentRect = chart.viewPortHandler.contentRect;
+                const maxHeight = contentRect.height() - modernTopPadding();
+                const hourWidth = chart.getPixelForValues(1, 0, AxisDependency.LEFT).x - chart.getPixelForValues(0, 0, AxisDependency.LEFT).x;
+                const halfWidth = (hourWidth * barWidth) / 2 - 1;
+                const radius = Math.min(MODERN_BAR_RADIUS, halfWidth);
+                cloudPaint.setColor(modernDataColor(WeatherProps.cloudCover));
+                cloudPaint.setAlpha(MODERN_CLOUD_ALPHA);
+                for (let index = 0; index < dataSet.entryCount; index++) {
+                    const entry = dataSet.getEntryForIndex(index);
+                    if (entry.deltaHours < min - 1 || entry.deltaHours > max + 1 || !(entry.cloudCover > 0)) {
+                        continue;
+                    }
+                    const x = chart.getPixelForValues(entry.deltaHours, 0, AxisDependency.LEFT).x;
+                    const top = contentRect.bottom - (Math.min(100, entry.cloudCover) / 100) * maxHeight;
+                    canvas.drawRoundRect(x - halfWidth, top, x + halfWidth, contentRect.bottom, radius, radius, cloudPaint);
+                }
+            } else if (dataSet.label === WeatherProps.cloudCover) {
+                const scale = chart.yChartMax / 100;
+                canvas.save();
+                canvas.scale(1, scale, 0, chart.viewPortHandler.contentRect.bottom);
+                superMethod();
+                canvas.restore();
+            } else {
+                superMethod();
+            }
+        },
+        drawIcon(canvas: Canvas, chart: CombinedChart, dataSet, dataSetIndex, entry, entryIndex, icon: any, x: number, y: number) {
+            const date = getLocalTime(startTimestamp + entry['deltaHours'] * 3600 * 1000, timezoneOffset);
+            const scaleX = chart.viewPortHandler.scaleX;
+            const hour = date.valueOf() / (3600 * 1000);
+            const modulo = Math.max(Math.round(timeRange / (scaleX * 10)), 1);
+            if (dataSet.label === WeatherProps.iconId) {
+                const imageSource = icon as ImageSource;
+                const iconSize = 30;
+                const padding = iconService.usingProvider ? PROVIDER_PADDING : 0;
+                if ((icon && Math.abs(hour - lastIconHour) >= modulo) || (lastIconHour === undefined && hour % modulo === 0)) {
+                    const drawOffsetX = x - iconSize / 2;
+                    const drawOffsetY = 0;
+                    canvas.drawBitmap(
+                        imageSource,
+                        new Rect(0, 0, imageSource.width, imageSource.height),
+                        new RectF(drawOffsetX + padding, drawOffsetY + padding, drawOffsetX + iconSize - 2 * padding, drawOffsetY + iconSize - 2 * padding),
+                        null
+                    );
+                    lastIconHour = hour;
+                }
+            } else if (dataSet.label === WeatherProps.windBearing) {
+                if (Math.abs(hour - lastWindIconHour) >= modulo || (lastWindIconHour === undefined && hour % modulo === 0)) {
+                    const item = entry as Hourly | DailyData;
+                    const drawOffsetY = 40;
+                    if ($designStyle === 'modern') {
+                        // Tabler arrow from the data icon font, colored by speed
+                        wdPaint.setTextAlign(Align.CENTER);
+                        wdPaint.setTextSize(12);
+                        wdPaint.setColor(isEInk ? dataSet.color : windSpeedColor(item.windSpeed, modernDataColor(WeatherProps.windBearing) ?? colorOnSurface));
+                        canvas.drawText(styledDataIcon('modern', { fontFamily: 'app', icon: icon as string }).icon, x, drawOffsetY, wdPaint);
+                    } else {
+                        appPaint.setTextSize(10);
+                        appPaint.color = !isEInk ? (item.windSpeed >= 70 ? '#ff0353' : item.windSpeed > 40 ? '#FFBC03' : dataSet.color) : dataSet.color;
+                        canvas.drawText(icon as string, x, drawOffsetY, appPaint);
+                    }
+                    lastWindIconHour = hour;
+                }
+            }
+        },
+        drawValue(c: Canvas, chart, dataSet, dataSetIndex: number, entry, entryIndex: number, valueText: string, x: number, y: number, color: string | Color, paint: Paint) {
+            // the label keeps the real prop even when the set is plotted from a scaled one
+            const yProperty = dataSet.label;
+            const value = entry as CommonWeatherData;
+            if ($designStyle === 'modern' && yProperty !== WeatherProps.temperature) {
+                return;
+            }
+            if (valuesToDraw.indexOf(entryIndex) !== -1) {
+                const prevValue: CommonWeatherData = entryIndex > 0 ? dataSet.getEntryForIndex(entryIndex - 1) : null;
+                // const nextValue: CommonWeatherData = entryIndex < dataSet.entryCount - 1 ? dataSet.getEntryForIndex(entryIndex + 1) : null;
+                const current = convertWeatherValueToUnit(value, yProperty as WeatherProps);
+                // const next = nextValue ? convertWeatherValueToUnit(nextValue, yProperty as WeatherProps) : null;
+                const prev = prevValue ? convertWeatherValueToUnit(prevValue, yProperty as WeatherProps) : null;
+                const showUnder = prev && current[0] < prev[0];
+                if ($designStyle === 'modern') {
+                    // value labels sit 3.5px above their point when circles are off
+                    const pointY = y + 3.5;
+                    // same scale and raw (celsius) value as the line gradient (generateGradient uses -20..30)
+                    pointPaint.setColor(colorSurface);
+                    c.drawCircle(x, pointY, 4.5, pointPaint);
+                    pointPaint.setColor(tempColor(value.temperature, -20, 30));
+                    c.drawCircle(x, pointY, 3, pointPaint);
+                    paint.setFontWeight($accentFontWeight);
+                    paint.setColor(colorOnSurface);
+                    c.drawText(current.join(''), x, showUnder ? pointY + 16 : y - 4, paint);
+                    paint.setFontWeight('normal');
+                    return;
+                }
+                paint.setColor(color);
+                c.drawText(current.join(''), x, y + (showUnder ? 14 : 0), paint);
+            }
+        },
+        drawBar(c: Canvas, e, dataSet, left: number, top: number, right: number, bottom: number, paint: Paint) {
+            const chart = chartView.nativeView;
+            const precipProbability = e.precipProbability;
+            if (isEInk) {
+                // same pattern and outline as the classic hourly bars, with our own paints: the
+                // chart paint is reused to draw the labels
+                einkBarPaint.setShader(getEInkShader());
+                c.drawRect(left, top, right, bottom, einkBarPaint);
+                einkOutlinePaint.setColor(colorOnSurface);
+                c.drawRect(left, top, right, bottom, einkOutlinePaint);
+                return;
+            }
+            if ($designStyle === 'modern' && !hasSnowFall && e.precipColor) {
+                const fill = precipitationFill('modern', precipKind({ precipShowSnow: e.precipShowSnow, mixedRainSnow: e.mixedRainSnow }), e.precipColor, precipProbability);
+                paint.setColor(fill.color);
+                paint.setAlpha(fill.alpha);
+                const radius = Math.min(MODERN_BAR_RADIUS, (right - left) / 2, (bottom - top) / 2);
+                c.drawRoundRect(left + 1, top, right - 1, bottom, radius, radius, paint);
+                return;
+            }
+            if ($designStyle === 'modern' && hasSnowFall) {
+                // stacked rain and snow (colors from the set): only the top of the stack is rounded
+                paint.setAlpha(precipitationFill('modern', 'rain', '', precipProbability).alpha);
+                const total = (e.yVals ?? []).reduce((sum, value) => sum + value, 0);
+                if (Math.abs(chart.getPixelForValues(e.deltaHours, total, AxisDependency.RIGHT).y - top) < 1) {
+                    const radius = Math.min(MODERN_BAR_RADIUS, (right - left) / 2, bottom - top);
+                    // rounded on top only: the bottom corners are clipped away
+                    c.save();
+                    c.clipRect(left, top, right, bottom);
+                    c.drawRoundRect(left + 1, top, right - 1, bottom + radius, radius, radius, paint);
+                    c.restore();
+                } else {
+                    c.drawRect(left + 1, top, right - 1, bottom, paint);
+                }
+                return;
+            }
+            paint.setAlpha(precipProbability === -1 ? 125 : precipProbability * 2.55);
+            if (hasSnowFall) {
+                c.drawRect(left + 1, top + 1, right - 0.5, bottom - 0.5, paint);
+            } else if (e.precipColor) {
+                paint.setColor(e.precipColor);
+                paint.setAlpha(precipProbability === -1 ? 125 : precipProbability * 2.55);
+                c.drawRect(left, top, right, bottom, paint);
+            }
+        }
+    };
+
     function updateLineChart(setData = true) {
         try {
             const chart = chartView?.nativeView;
@@ -225,29 +348,21 @@
                     chartInitialized = true;
                     rightAxis.enabled = true;
                     rightAxis.drawGridLines = false;
-                    // leftAxis.textColor = rightAxis.textColor = xAxis.textColor = highlightPaint.color = labelPaint.color = colorOnSurface;
-                    leftAxis.textColor = rightAxis.textColor = xAxis.textColor = highlightPaint.color = colorOnSurface;
-                    leftAxis.gridColor = rightAxis.gridColor = xAxis.gridColor = colorOnSurfaceVariant + '33';
                     chart.minOffset = -100;
                     chart.clipValuesToContent = false;
                     chart.disableScrollEnabled = false;
                     // modern: the plot starts under the icons and wind arrows (drawn up to 40), so lines never cross them
                     chart.setExtraOffsets(0, $designStyle === 'modern' ? 46 : 30, 0, 0);
-                    chart.highlightsFilterByAxis = false;
-                    chart.highlightPerTapEnabled = true;
-                    chart.highlightPerDragEnabled = true;
                     chart.pinchZoomEnabled = true;
                     chart.dragEnabled = true;
                     chart.scaleXEnabled = true;
                     chart.scaleYEnabled = false;
                     chart.autoScaleMinMaxEnabled = false;
                     xAxis.enabled = true;
-                    xAxis.textSize = 10 * $fontScale;
                     xAxis.labelTextAlign = Align.CENTER;
                     xAxis.ensureLastLabel = true;
                     xAxis.avoidFirstLastClipping = false;
                     xAxis.position = XAxisPosition.BOTTOM;
-                    xAxis.yOffset = 12;
                     xAxis.axisMinimum = -1.5;
                     leftAxis.spaceBottom = rightAxis.spaceBottom = 5;
                     leftAxis.spaceTop = rightAxis.spaceTop = 5;
@@ -262,188 +377,12 @@
                                 : value + ''
                     };
                     chart.data = combinedChartData;
-                    chart.customRenderer = {
-                        drawFill(canvas: Canvas, dataSet: LineDataSet, spline: Path, trans: any, min: number, max: number, superMethod: Function) {
-                            if (dataSet.label === WeatherProps.cloudCover && $designStyle === 'modern') {
-                                // rounded bars like the rain ones, 100% reaching the top padding of the lines
-                                const contentRect = chart.viewPortHandler.contentRect;
-                                const maxHeight = contentRect.height() - modernTopPadding();
-                                const hourWidth = chart.getPixelForValues(1, 0, AxisDependency.LEFT).x - chart.getPixelForValues(0, 0, AxisDependency.LEFT).x;
-                                const halfWidth = (hourWidth * barWidth) / 2 - 1;
-                                const radius = Math.min(MODERN_BAR_RADIUS, halfWidth);
-                                cloudPaint.setColor(modernDataColor(WeatherProps.cloudCover));
-                                cloudPaint.setAlpha(MODERN_CLOUD_ALPHA);
-                                for (let index = 0; index < dataSet.entryCount; index++) {
-                                    const entry = dataSet.getEntryForIndex(index);
-                                    if (entry.deltaHours < min - 1 || entry.deltaHours > max + 1 || !(entry.cloudCover > 0)) {
-                                        continue;
-                                    }
-                                    const x = chart.getPixelForValues(entry.deltaHours, 0, AxisDependency.LEFT).x;
-                                    const top = contentRect.bottom - (Math.min(100, entry.cloudCover) / 100) * maxHeight;
-                                    canvas.drawRoundRect(x - halfWidth, top, x + halfWidth, contentRect.bottom, radius, radius, cloudPaint);
-                                }
-                            } else if (dataSet.label === WeatherProps.cloudCover) {
-                                const scale = chart.yChartMax / 100;
-                                canvas.save();
-                                canvas.scale(1, scale, 0, chart.viewPortHandler.contentRect.bottom);
-                                superMethod();
-                                canvas.restore();
-                            } else {
-                                superMethod();
-                            }
-                        },
-                        drawIcon(canvas: Canvas, chart: CombinedChart, dataSet, dataSetIndex, entry, entryIndex, icon: any, x: number, y: number) {
-                            const date = getLocalTime(startTimestamp + entry['deltaHours'] * 3600 * 1000, timezoneOffset);
-                            const scaleX = chart.viewPortHandler.scaleX;
-                            const hour = date.valueOf() / (3600 * 1000);
-                            const modulo = Math.max(Math.round(timeRange / (scaleX * 10)), 1);
-                            if (dataSet.label === WeatherProps.iconId) {
-                                const imageSource = icon as ImageSource;
-                                const iconSize = 30;
-                                const padding = iconService.usingProvider ? PROVIDER_PADDING : 0;
-                                if ((icon && Math.abs(hour - lastIconHour) >= modulo) || (lastIconHour === undefined && hour % modulo === 0)) {
-                                    const drawOffsetX = x - iconSize / 2;
-                                    const drawOffsetY = 0;
-                                    canvas.drawBitmap(
-                                        imageSource,
-                                        new Rect(0, 0, imageSource.width, imageSource.height),
-                                        new RectF(drawOffsetX + padding, drawOffsetY + padding, drawOffsetX + iconSize - 2 * padding, drawOffsetY + iconSize - 2 * padding),
-                                        null
-                                    );
-                                    lastIconHour = hour;
-                                }
-                            } else if (dataSet.label === WeatherProps.windBearing) {
-                                if (Math.abs(hour - lastWindIconHour) >= modulo || (lastWindIconHour === undefined && hour % modulo === 0)) {
-                                    const item = entry as Hourly | DailyData;
-                                    const drawOffsetY = 40;
-                                    if ($designStyle === 'modern') {
-                                        // Tabler arrow from the data icon font, colored by speed
-                                        wdPaint.setTextAlign(Align.CENTER);
-                                        wdPaint.setTextSize(12);
-                                        wdPaint.setColor(isEInk ? dataSet.color : windSpeedColor(item.windSpeed, modernDataColor(WeatherProps.windBearing) ?? colorOnSurface));
-                                        canvas.drawText(styledDataIcon('modern', { fontFamily: 'app', icon: icon as string }).icon, x, drawOffsetY, wdPaint);
-                                    } else {
-                                        appPaint.setTextSize(10);
-                                        appPaint.color = !isEInk ? (item.windSpeed >= 70 ? '#ff0353' : item.windSpeed > 40 ? '#FFBC03' : dataSet.color) : dataSet.color;
-                                        canvas.drawText(icon as string, x, drawOffsetY, appPaint);
-                                    }
-                                    lastWindIconHour = hour;
-                                }
-                            }
-                        },
-                        drawValue(c: Canvas, chart, dataSet, dataSetIndex: number, entry, entryIndex: number, valueText: string, x: number, y: number, color: string | Color, paint: Paint) {
-                            // the label keeps the real prop even when the set is plotted from a scaled one
-                            const yProperty = dataSet.label;
-                            const value = entry as CommonWeatherData;
-                            if ($designStyle === 'modern' && yProperty !== WeatherProps.temperature) {
-                                return;
-                            }
-                            if (valuesToDraw.indexOf(entryIndex) !== -1) {
-                                const prevValue: CommonWeatherData = entryIndex > 0 ? dataSet.getEntryForIndex(entryIndex - 1) : null;
-                                // const nextValue: CommonWeatherData = entryIndex < dataSet.entryCount - 1 ? dataSet.getEntryForIndex(entryIndex + 1) : null;
-                                const current = convertWeatherValueToUnit(value, yProperty as WeatherProps);
-                                // const next = nextValue ? convertWeatherValueToUnit(nextValue, yProperty as WeatherProps) : null;
-                                const prev = prevValue ? convertWeatherValueToUnit(prevValue, yProperty as WeatherProps) : null;
-                                const showUnder = prev && current[0] < prev[0];
-                                if ($designStyle === 'modern') {
-                                    // value labels sit 3.5px above their point when circles are off
-                                    const pointY = y + 3.5;
-                                    // same scale and raw (celsius) value as the line gradient (generateGradient uses -20..30)
-                                    pointPaint.setColor(colorSurface);
-                                    c.drawCircle(x, pointY, 4.5, pointPaint);
-                                    pointPaint.setColor(tempColor(value.temperature, -20, 30));
-                                    c.drawCircle(x, pointY, 3, pointPaint);
-                                    paint.setFontWeight($accentFontWeight);
-                                    paint.setColor(colorOnSurface);
-                                    c.drawText(current.join(''), x, showUnder ? pointY + 16 : y - 4, paint);
-                                    paint.setFontWeight('normal');
-                                    return;
-                                }
-                                paint.setColor(color);
-                                c.drawText(current.join(''), x, y + (showUnder ? 14 : 0), paint);
-                            }
-                        },
-                        drawBar(c: Canvas, e, dataSet, left: number, top: number, right: number, bottom: number, paint: Paint) {
-                            const precipProbability = e.precipProbability;
-                            if (isEInk) {
-                                // same pattern and outline as the classic hourly bars, with our own paints: the
-                                // chart paint is reused to draw the labels
-                                einkBarPaint.setShader(getEInkShader());
-                                c.drawRect(left, top, right, bottom, einkBarPaint);
-                                einkOutlinePaint.setColor(colorOnSurface);
-                                c.drawRect(left, top, right, bottom, einkOutlinePaint);
-                                return;
-                            }
-                            if ($designStyle === 'modern' && !hasSnowFall && e.precipColor) {
-                                const fill = precipitationFill('modern', precipKind({ precipShowSnow: e.precipShowSnow, mixedRainSnow: e.mixedRainSnow }), e.precipColor, precipProbability);
-                                paint.setColor(fill.color);
-                                paint.setAlpha(fill.alpha);
-                                const radius = Math.min(MODERN_BAR_RADIUS, (right - left) / 2, (bottom - top) / 2);
-                                c.drawRoundRect(left + 1, top, right - 1, bottom, radius, radius, paint);
-                                return;
-                            }
-                            if ($designStyle === 'modern' && hasSnowFall) {
-                                // stacked rain and snow (colors from the set): only the top of the stack is rounded
-                                paint.setAlpha(precipitationFill('modern', 'rain', '', precipProbability).alpha);
-                                const total = (e.yVals ?? []).reduce((sum, value) => sum + value, 0);
-                                if (Math.abs(chart.getPixelForValues(e.deltaHours, total, AxisDependency.RIGHT).y - top) < 1) {
-                                    const radius = Math.min(MODERN_BAR_RADIUS, (right - left) / 2, bottom - top);
-                                    // rounded on top only: the bottom corners are clipped away
-                                    c.save();
-                                    c.clipRect(left, top, right, bottom);
-                                    c.drawRoundRect(left + 1, top, right - 1, bottom + radius, radius, radius, paint);
-                                    c.restore();
-                                } else {
-                                    c.drawRect(left + 1, top, right - 1, bottom, paint);
-                                }
-                                return;
-                            }
-                            paint.setAlpha(precipProbability === -1 ? 125 : precipProbability * 2.55);
-                            if (hasSnowFall) {
-                                c.drawRect(left + 1, top + 1, right - 0.5, bottom - 0.5, paint);
-                            } else if (e.precipColor) {
-                                paint.setColor(e.precipColor);
-                                paint.setAlpha(precipProbability === -1 ? 125 : precipProbability * 2.55);
-                                c.drawRect(left, top, right, bottom, paint);
-                            }
-                        },
-                        drawHighlight(c: Canvas, h: Highlight<Entry>) {
-                            const date = getLocalTime(startTimestamp + h.entry['deltaHours'] * 3600 * 1000, timezoneOffset);
-                            if ($designStyle === 'modern') {
-                                // solid line and a pill with the time, like the "now" marker
-                                const text = formatTime(date);
-                                selectionTextPaint.setTextSize(11 * $fontScale);
-                                selectionTextPaint.setFontWeight($accentFontWeight);
-                                const pillHeight = 18 * $fontScale;
-                                const pillWidth = selectionTextPaint.measureText(text) + 14 * $fontScale;
-                                const pillLeft = Math.min(Math.max(0, h.drawX - pillWidth / 2), c.getWidth() - pillWidth);
-                                selectionPaint.setColor(colorOnSurfaceVariant);
-                                selectionPaint.setAlpha(160);
-                                c.drawLine(h.drawX, pillHeight, h.drawX, c.getHeight(), selectionPaint);
-                                c.drawRoundRect(pillLeft, 0, pillLeft + pillWidth, pillHeight, pillHeight / 2, pillHeight / 2, selectionPaint);
-                                selectionTextPaint.setColor(colorSurface);
-                                c.drawText(text, pillLeft + pillWidth / 2, pillHeight / 2 + 4 * $fontScale, selectionTextPaint);
-                                return;
-                            }
-                            c.drawLine(h.drawX, 0, h.drawX, c.getHeight(), highlightPaint);
-                            highlightPaint.setTextAlign(Align.LEFT);
-                            let x = h.drawX + 4;
-                            const text = formatTime(date);
-                            const size = ChartUtils.calcTextSize(highlightPaint, text);
-                            if (x > c.getWidth() - size.width) {
-                                x = h.drawX - 4;
-                                highlightPaint.setTextAlign(Align.RIGHT);
-                            }
-                            c.drawText(text, x, 50, highlightPaint);
-                        }
-                    };
                     onChartConfigure?.(chart);
                     classicAxes = {
                         leftLabels: leftAxis.drawLabels,
                         rightLabels: rightAxis.drawLabels,
                         leftLine: leftAxis.drawAxisLine,
-                        rightLine: rightAxis.drawAxisLine,
-                        xLineColor: xAxis.axisLineColor
+                        rightLine: rightAxis.drawAxisLine
                     };
                 }
                 if (!setData) {
@@ -466,29 +405,15 @@
                 const modern = $designStyle === 'modern';
                 const fontFamily = textFontFamily($designStyle);
                 xAxis.typeface = xAxis.typeface.withFontFamily(fontFamily);
-                [dayLabelPaint, selectionTextPaint, highlightPaint].forEach((textPaint) => textPaint.setFontFamily(fontFamily));
-                // modern: tighter x labels and a light axis line
-                // labels are drawn from their baseline: the offset must cover their height
-                xAxis.yOffset = modern ? 3 + xAxis.textSize : 12;
+                dayLabelPaint.setFontFamily(fontFamily);
                 leftAxis.spaceTop = leftAxis.spaceBottom = modern ? 0 : 5;
-                xAxis.axisLineColor = modern ? new Color(colorOnSurface).setAlpha(40).hex : classicAxes.xLineColor;
                 // modern: no y axis, rain bars drawn over the lines
                 leftAxis.drawLabels = !modern && classicAxes.leftLabels;
                 rightAxis.drawLabels = !modern && classicAxes.rightLabels;
                 leftAxis.drawAxisLine = !modern && classicAxes.leftLine;
                 rightAxis.drawAxisLine = !modern && classicAxes.rightLine;
                 chart.drawOrder = modern ? [DrawOrder.LINE, DrawOrder.SCATTER, DrawOrder.BAR] : [DrawOrder.BAR, DrawOrder.BUBBLE, DrawOrder.LINE, DrawOrder.CANDLE, DrawOrder.SCATTER];
-                xAxis.textColor = modern ? colorOnSurfaceVariant : colorOnSurface;
-                if (showCurrentTimeLimitLine) {
-                    const limitLine = new LimitLine((getLocalTime(undefined, timezoneOffset).valueOf() - startTimestamp) / (3600 * 1000));
-                    limitLine.lineWidth = modern ? 1.5 : 2;
-                    if (!modern) {
-                        limitLine.enableDashedLine(4, 2, 0);
-                    }
-                    limitLine.lineColor = modern ? MODERN_NOW_COLOR : colorOnSurfaceVariant;
-                    xAxis.removeAllLimitLines();
-                    xAxis.addLimitLine(limitLine);
-                }
+                nowHours = showCurrentTimeLimitLine ? (Date.now() - startTimestamp) / (3600 * 1000) : null;
 
                 // if (forecast === 'hourly') {
                 xAxis.forcedInterval = 1;
@@ -528,10 +453,6 @@
                         // }
                     }
                 };
-                xAxis.customRenderer = createTimeAxisRenderer(
-                    (axisValue) => getLocalTime(startTimestamp + axisValue * 3600 * 1000, timezoneOffset).get('h'),
-                    () => $designStyle === 'modern'
-                );
                 let tempMin = Number.MAX_SAFE_INTEGER;
                 let tempMax = Number.MIN_SAFE_INTEGER;
                 hasSnowFall = false;
@@ -839,45 +760,16 @@
 
     onThemeChanged(() => {
         const chart = chartView?.nativeView;
-        if (chart) {
-            const newColor = $colors.colorOnSurface;
-            // DEV_LOG && console.log('onThemeChanged', !!chart, colorOnSurface, newColor);
-            const leftAxis = chart.leftAxis;
-            const rightAxis = chart.rightAxis;
-            const xAxis = chart.xAxis;
-            // leftAxis.textColor = rightAxis.textColor = xAxis.textColor = highlightPaint.color = labelPaint.color = newColor;
-            leftAxis.textColor = rightAxis.textColor = xAxis.textColor = highlightPaint.color = newColor;
-            if ($designStyle === 'modern') {
-                xAxis.textColor = $colors.colorOnSurfaceVariant;
-            }
-
-            xAxis.gridColor = leftAxis.gridColor = rightAxis.gridColor = colorOnSurfaceVariant + '33';
-            leftAxis.limitLines.forEach((l) => (l.lineColor = newColor));
-            const dataSets = chart.data?.dataSets;
-            if (dataSets) {
-                dataSets.forEach((d) => {
-                    if (d.drawValuesEnabled) {
-                        d.valueTextColor = newColor;
-                    }
-                });
-                chart.invalidate();
-            }
+        const dataSets = chart?.data?.dataSets;
+        if (dataSets) {
+            dataSets.forEach((dataSet) => {
+                if (dataSet.drawValuesEnabled) {
+                    dataSet.valueTextColor = $colors.colorOnSurface;
+                }
+            });
+            chart.invalidate();
         }
-        highlightCanvas?.nativeElement.redraw();
     });
-    function redraw() {
-        const chart = chartView?.nativeView;
-        if (chartInitialized && chart) {
-            const xAxis = chart.xAxis;
-            const leftAxis = chart.leftAxis;
-            leftAxis.textSize = 10 * $fontScale;
-            xAxis.textSize = 10 * $fontScale;
-            // labelPaint.textSize = 10 * $fontScale;
-        }
-        // labelPaint.getFontMetrics(mFontMetricsBuffer);
-        chartView?.nativeView.invalidate();
-    }
-    fontScale.subscribe(redraw);
 
     function onOrientationChanged(event: OrientationChangedEventData) {
         DEV_LOG && console.log('onOrientationChanged');
@@ -994,14 +886,13 @@
         // the x axis also has 1.5h of margin on each side
         return visibleHours ? visibleHoursScale(maxDatalength + 3, visibleHours) : 10 / (screenWidthDips / maxDatalength);
     }
-    function onLayoutChanged(event: EventData) {
+    function onLayoutChanged(chart: CombinedChart) {
         if (updatePlotPadding()) {
             chartView?.nativeView.notifyDataSetChanged();
         }
         updateGradient();
         //use a timeout to ensure we are called after chart layout changed was called
         setTimeout(() => {
-            const chart = event.object as CombinedChart;
             if (chart && chartNeedsZoomUpdate) {
                 chartNeedsZoomUpdate = false;
                 if (zoomsInOrientation()) {
@@ -1024,20 +915,17 @@
             }, 0);
         }
     }
-    // called after the chart draws
-    function onChartDrawn(event) {
+    // called after the chart draws, under the highlight card
+    function onChartDrawn(canvas: Canvas) {
         if ($designStyle === 'modern' && showDayLabels && hourly?.length) {
-            drawDayLabels(event.canvas);
+            drawDayLabels(canvas);
         }
     }
     // called before the chart draws
-    function onChartDraw(event) {
+    function onChartDraw() {
         lastIconHour = undefined;
         lastWindIconHour = undefined;
         lastXLabelIconHour = undefined;
-        if ($designStyle === 'modern' && nightRanges.length) {
-            drawNightShading(event.canvas, chartView.nativeView, nightRanges, colorOnSurface);
-        }
     }
 
     function highlightOnDate(timestamp: number) {
@@ -1049,46 +937,21 @@
             chart.highlight(highlights);
         }
     }
-    let popoverInstance: HourlyPopover__SvelteComponent_;
-    async function showPopover(item, highlightedMargin) {
-        try {
-            if (popoverInstance) {
-                popoverInstance.$set({ item });
-                return;
-            }
-            await showHourlyPopover(
-                item,
-                { legendKeys: dataToShow },
-                {
-                    anchor: chartView?.nativeView,
-                    onDismiss: () => {
-                        chartView?.nativeView?.highlightValues(null);
-                        popoverInstance = null;
-                        highlightedItem = null;
-                    },
-                    x: highlightedMargin
-                },
-                (data: ComponentInstanceInfo) => {
-                    popoverInstance = data.viewInstance as any;
-                }
-            );
-        } catch (error) {
-            showError(error);
-        }
+    // the whole hour at the highlighted time, like the hourly popover
+    function highlightCard(highlights: Highlight[]) {
+        const item = highlights[0].entry as CommonWeatherData;
+        return hourlyCardContent(item, {
+            legendKeys: dataToShow,
+            image: getIcon(item.iconId, item.isDay),
+            style: $designStyle,
+            theme: { onSurface: colorOnSurface, onSurfaceVariant: colorOnSurfaceVariant }
+        });
     }
-    function onHighlight({ highlight, object }: { object: CombinedChart; highlight: Highlight }) {
-        const popoverWidth = 150 * $fontScale;
-        const fullWidth = Utils.layout.toDeviceIndependentPixels(chartView.nativeView.getMeasuredWidth());
-        const highlightedX = highlight.xPx;
-        highlightedAlignment = highlightedX >= fullWidth - popoverWidth ? 'right' : 'left';
-        highlightedMargin = highlightedAlignment === 'left' ? `40 0 0 ${highlightedX}` : `40 ${fullWidth - highlightedX} 0 0`;
-        highlightedItem = highlight.entry as CommonWeatherData;
-        showPopover(highlightedItem, highlightedX > fullWidth / 2 ? 0 : fullWidth * 2);
+    // lines and bars only: the icons, wind arrows and cloud cover have no point to show
+    function isHighlightedSet(dataSet) {
+        return dataSet.visible !== false && NOT_HIGHLIGHTED.indexOf(dataSet.label) === -1;
     }
-    function clearHighlight() {
-        highlightedItem = null;
-        // currentHighlight = null;
-    }
+
     // function onDrawHighlight({ canvas }: { canvas: Canvas }) {
     //     const entry = currentHighlight?.entry as CommonWeatherData;
     //     if (!entry) {
@@ -1223,42 +1086,24 @@
 </script>
 
 <gridlayout {...$$restProps}>
-    <combinedchart
-        bind:this={chartView}
+    <BaseChart
+        customRenderer={hourlyRenderer}
+        {highlightCard}
+        highlightFilter={isHighlightedSet}
+        highlightPerDrag={true}
+        {nightRanges}
+        {nowHours}
+        onDraw={onChartDraw}
+        onDrawn={onChartDrawn}
+        {onFirstOffsetsCalculated}
+        {onLayoutChanged}
         opacity={chartReady ? 1 : 0}
         panGestureOptions={{
             minDist: 50,
             failOffsetYStart: -40,
             failOffsetYEnd: 40
         }}
-        on:draw={onChartDraw}
-        on:postDraw={onChartDrawn}
-        on:firstOffsetsCalculated={onFirstOffsetsCalculated}
-        on:layoutChanged={onLayoutChanged}
-        on:highlight={onHighlight}
-        on:pan={clearHighlight}
-        on:zoom={clearHighlight}>
-    </combinedchart>
-    <!-- {#if highlightedItem}
-        <HourlyPopover horizontalAlignment={highlightedAlignment} item={highlightedItem} margin={highlightedMargin} on:tap={clearHighlight} />
-    {/if} -->
-    <!-- {#if currentHighlight}
-        <nestedscrollview
-            backgroundColor={new Color(colorBackground).setAlpha(220)}
-            borderColor={colorOutline}
-            borderRadius={8}
-            borderWidth={1}
-            height="80%"
-            horizontalAlignment="left"
-            translateX={currentHighlight.xPx}
-            translateY={30}
-            verticalAlignment="top"
-            width={highlightViewWidth}
-            on:tap={() => (currentHighlight = null)}
-            transition:fade={{ duration: 100 }}>
-            <stacklayout padding={4}>
-                <label lineHeight={16 * $fontScale} text={getNativeText(currentHighlight)}/>
-            </stacklayout>
-        </nestedscrollview>
-    {/if} -->
+        {startTimestamp}
+        {timezoneOffset}
+        bind:chartView />
 </gridlayout>

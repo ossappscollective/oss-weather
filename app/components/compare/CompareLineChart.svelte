@@ -2,7 +2,6 @@
     import { Align, Canvas, FontMetrics, Paint } from '@nativescript-community/ui-canvas';
     import { CombinedChart } from '@nativescript-community/ui-chart';
     import { ScatterShape } from '@nativescript-community/ui-chart/charts/ScatterChart';
-    import { LimitLine } from '@nativescript-community/ui-chart/components/LimitLine';
     import { XAxisPosition } from '@nativescript-community/ui-chart/components/XAxis';
     import { BarData } from '@nativescript-community/ui-chart/data/BarData';
     import { BarDataSet } from '@nativescript-community/ui-chart/data/BarDataSet';
@@ -15,7 +14,6 @@
     import { ScatterDataSet } from '@nativescript-community/ui-chart/data/ScatterDataSet';
     import { Highlight } from '@nativescript-community/ui-chart/highlight/Highlight';
     import DrawerElement from '@nativescript-community/ui-drawer/svelte';
-    import { EventData } from '@nativescript-community/ui-image';
     import { Application, ApplicationSettings, Color, ObservableArray, OrientationChangedEventData } from '@nativescript/core';
     import { showError } from '@shared/utils/showError';
     import dayjs from 'dayjs';
@@ -25,16 +23,15 @@
     import { CHARTS_PORTRAIT_FULLSCREEN } from '~/helpers/constants';
     import { FavoriteLocation } from '~/helpers/favorites';
     import { formatDate, formatTime, getLocalTime, lc } from '~/helpers/locale';
-    import { onThemeChanged } from '~/helpers/theme';
     import type { DailyData, Hourly, WeatherData } from '~/services/providers/weather';
     import { convertWeatherValueToUnit, getWeatherDataIcon, getWeatherDataTitle, propToUnit } from '~/services/weatherData';
     import ModernCardTitle from '~/components/common/ModernCardTitle.svelte';
-    import { accentFontWeight, colors, designStyle, fontScale, fonts, screenWidthDips } from '~/variables';
+    import { colors, designStyle, fontScale, fonts, screenWidthDips } from '~/variables';
     import { drawLegendChip } from '~/helpers/legendChip';
     import { modernDataColor, styledDataIcon, textFontFamily } from '~/utils/designStyle';
     import { nightSpans } from '~/utils/chartLabels';
-    import { MODERN_NOW_COLOR, createTimeAxisRenderer, drawHighlightCard, drawNightShading } from '~/utils/chartDraw';
-    import { modernColors } from '~/helpers/modernTheme';
+    import type { HighlightCardContent } from '~/utils/chartDraw';
+    import BaseChart from '~/components/common/BaseChart.svelte';
     import { isLandscape } from '~/utils/ui';
     import { highlightRows } from '~/utils/highlightRows';
 
@@ -52,10 +49,6 @@
     const LINE_WIDTH = 2;
     // modern: smoother and a bit thicker lines, light night shading, the now line in the hourly chart color
     const MODERN_LINE_WIDTH = 2.5;
-    // modern highlight: a line with a dot on each model, and a card with the model values
-    const highlightLinePaint = new Paint();
-    highlightLinePaint.strokeWidth = 1;
-    const highlightDotPaint = new Paint();
 </script>
 
 <script lang="ts">
@@ -101,6 +94,7 @@
     let lastKey: string;
     let globalStartTimestamp = Number.MAX_SAFE_INTEGER;
     let nightRanges: { from: number; to: number }[] = [];
+    let nowHours: number = null;
     $: lineWidth = modern ? MODERN_LINE_WIDTH : LINE_WIDTH;
     let maxDatalength = 0;
     function updateLineChart(item: Item) {
@@ -118,8 +112,6 @@
                 if (!chartInitialized) {
                     chartInitialized = true;
 
-                    leftAxis.textColor = colorOnSurface;
-                    chart.xAxis.textColor = colorOnSurface;
                     chart.minOffset = 0;
                     // chart.highlightFullBarEnabled = false;
                     chart.autoScaleMinMaxEnabled = true;
@@ -133,29 +125,18 @@
                     // chart.highlightPerDragEnabled = true;
                     chart.setExtraOffsets(0, 0, 0, 0);
                     xAxis.enabled = true;
-                    xAxis.textSize = 10 * $fontScale;
                     xAxis.labelTextAlign = Align.CENTER;
                     xAxis.ensureLastLabel = true;
                     xAxis.position = XAxisPosition.BOTTOM;
-                    xAxis.yOffset = 12;
 
                     leftAxis.spaceBottom = 5;
                     leftAxis.spaceTop = 5;
-                    if (modern) {
-                        chart.highlightPerTapEnabled = true;
-                        chart.highlightsFilterByAxis = false;
-                        chart.customRenderer = { drawHighlight: drawModernHighlight };
-                    }
                 } else {
                     chart.resetZoom();
                 }
 
-                leftAxis.gridColor = modern ? $modernColors.colorModernHairline : colorOnSurfaceVariant + '33';
-                xAxis.gridColor = modern ? $modernColors.colorModernHairlineStrong : colorOnSurfaceVariant + '33';
                 if (modern) {
-                    leftAxis.textColor = xAxis.textColor = colorOnSurfaceVariant;
                     leftAxis.drawAxisLine = false;
-                    xAxis.axisLineColor = $modernColors.colorModernHairlineStrong;
                 }
                 const newLegends = [];
                 if (item.forecast === 'hourly') {
@@ -180,10 +161,6 @@
                     };
                 }
 
-                xAxis.customRenderer = createTimeAxisRenderer(
-                    (axisValue) => getLocalTime(globalStartTimestamp + axisValue * 3600 * 1000, timezoneOffset).get('h'),
-                    () => modern
-                );
                 const chartType = item.chartType;
                 const data = new CombinedData();
                 maxDatalength = 0;
@@ -273,20 +250,10 @@
                         break;
                 }
 
-                const limitLine = new LimitLine((Date.now() - globalStartTimestamp) / (3600 * 1000));
-                if (modern) {
-                    limitLine.lineWidth = 1.5;
-                    limitLine.lineColor = MODERN_NOW_COLOR;
-                } else {
-                    limitLine.lineWidth = 2;
-                    limitLine.enableDashedLine(4, 2, 0);
-                    limitLine.lineColor = colorOnSurfaceVariant;
-                }
                 // night shading from the first model hours (all models share the location)
                 const firstHourly = item.forecast === 'hourly' && modern ? item.weatherData[0]?.weatherData.hourly : null;
                 nightRanges = firstHourly ? nightSpans(firstHourly.map((hour) => ({ hours: (hour.time - globalStartTimestamp) / (3600 * 1000), isDay: hour.isDay }))) : [];
-                xAxis.removeAllLimitLines();
-                xAxis.addLimitLine(limitLine);
+                nowHours = (Date.now() - globalStartTimestamp) / (3600 * 1000);
 
                 chart.data = data;
                 // DEV_LOG && console.log('set combined data');
@@ -301,37 +268,10 @@
         updateLineChart(item);
     }
 
-    onThemeChanged(() => {
-        const chart = chartView?.nativeView;
-        if (chart) {
-            const newColor = $colors.colorOnSurface;
-            const leftAxis = chart.leftAxis;
-            const xAxis = chart.xAxis;
-            leftAxis.textColor = newColor;
-            xAxis.textColor = newColor;
-
-            leftAxis.gridColor = colorOnSurfaceVariant + '33';
-            xAxis.gridColor = colorOnSurfaceVariant + '33';
-            leftAxis.limitLines.forEach((l) => (l.lineColor = newColor));
-            if (modern) {
-                leftAxis.textColor = xAxis.textColor = $colors.colorOnSurfaceVariant;
-                leftAxis.gridColor = $modernColors.colorModernHairline;
-                xAxis.gridColor = xAxis.axisLineColor = $modernColors.colorModernHairlineStrong;
-            }
-            // chart.getLegend().textColor = (newColor);
-            chart.invalidate();
-        }
-    });
     let canvasView;
     function redraw() {
         const chart = chartView?.nativeView;
-        if (chartInitialized && chart) {
-            const xAxis = chart.xAxis;
-            const leftAxis = chart.leftAxis;
-            leftAxis.textSize = 10 * $fontScale;
-            xAxis.textSize = 10 * $fontScale;
-            labelPaint.textSize = 10 * $fontScale;
-        }
+        labelPaint.textSize = 10 * $fontScale;
         labelPaint.getFontMetrics(mFontMetricsBuffer);
         chartView?.nativeView.invalidate();
         canvasView?.nativeView.invalidate();
@@ -419,91 +359,21 @@
         const result = propToUnit(prop);
         return typeof result === 'function' ? result() : result;
     }
-    // modern: tapping highlights every model at that time (the chart only keeps the closest one)
-    let highlighted: Highlight[] = [];
-    function onModernHighlight({ highlight, object: chart }: { object: CombinedChart; highlight: Highlight }) {
-        highlighted = highlight ? (chart.getHighlightByXValue(highlight.x) ?? []) : [];
-        if (highlighted.length > 1) {
-            chart.highlights(highlighted);
-        }
-    }
-    function clearModernHighlight() {
-        if (highlighted.length) {
-            highlighted = [];
-            chartView?.nativeView.highlight(null);
-        }
-    }
-    // renderers pass different arguments after the highlight (data set, bar rect...)
-    function drawModernHighlight(canvas: Canvas, highlight: Highlight) {
-        const set = chartView.nativeView.data.getDataSetByHighlight(highlight);
-        if (!set || item.hidden.indexOf(set['modelId']) !== -1) {
-            return;
-        }
-        const content = chartView.nativeView.viewPortHandler.contentRect;
-        highlightLinePaint.setColor(colorOnSurfaceVariant);
-        highlightLinePaint.setAlpha(120);
-        canvas.drawLine(highlight.drawX, content.top, highlight.drawX, content.bottom, highlightLinePaint);
-        highlightDotPaint.setColor($modernColors.colorModernCard);
-        canvas.drawCircle(highlight.drawX, highlight.drawY, 6, highlightDotPaint);
-        highlightDotPaint.setColor(set.color);
-        canvas.drawCircle(highlight.drawX, highlight.drawY, 4, highlightDotPaint);
-    }
-    function onChartDraw({ canvas }: { canvas: Canvas }) {
-        const chart = chartView?.nativeView;
-        if (!modern || !chart || !nightRanges.length) {
-            return;
-        }
-        drawNightShading(canvas, chart, nightRanges, colorOnSurface);
-    }
-    // card next to the highlight line: the time, then each model value (highest first)
-    function onChartDrawn({ canvas }: { canvas: Canvas }) {
-        const chart = chartView?.nativeView;
-        if (!modern || !chart || !highlighted.length || highlighted[0].drawX === undefined) {
-            return;
-        }
+    // the value of each model at the highlighted time (highest first)
+    function highlightCard(highlights: Highlight[], chart: CombinedChart): HighlightCardContent {
         const rows = highlightRows(
-            highlighted
-                .map((highlight) => ({ highlight, set: chart.data.getDataSetByHighlight(highlight) }))
-                .filter(({ set }) => set && item.hidden.indexOf(set['modelId']) === -1)
-                .map(({ highlight, set }) => {
-                    const model = item.weatherData.find((data) => data.model.id === set['modelId'])?.model;
-                    return { name: model?.subtitle || model?.name || set['modelId'], color: set.color, value: highlight.entry?.[item.id] ?? highlight.y };
-                }),
+            highlights.map((highlight) => {
+                const set = chart.data.getDataSetByHighlight(highlight);
+                const model = item.weatherData.find((data) => data.model.id === set['modelId'])?.model;
+                return { name: model?.subtitle || model?.name || set['modelId'], color: set.color, value: highlight.entry?.[item.id] ?? highlight.y };
+            }),
             getUnit(item.id) || ''
         );
-        if (!rows.length) {
-            return;
-        }
-        const timestamp = globalStartTimestamp + highlighted[0].x * 3600 * 1000;
+        const timestamp = globalStartTimestamp + highlights[0].x * 3600 * 1000;
         const title =
             item.forecast === 'hourly' ? formatDate(timestamp, 'ddd', timezoneOffset) + ' ' + formatTime(timestamp, undefined, timezoneOffset) : formatDate(timestamp, 'ddd DD/MM', timezoneOffset);
-        drawHighlightCard(canvas, chart, {
-            lineX: highlighted[0].drawX,
-            title,
-            rows,
-            scale: $fontScale,
-            colors: { surface: $modernColors.colorModernSurface, border: $modernColors.colorModernHairlineStrong, text: colorOnSurface, textVariant: colorOnSurfaceVariant }
-        });
+        return { title, rows };
     }
-    function onChartHighlight({ entry, highlight, highlights, object: chart }: { object: CombinedChart; entry: Entry; highlight: Highlight; highlights: Highlight[] }) {
-        // highlighted = highlights
-        //     .sort((a, b) => a.dataSetIndex - b.dataSetIndex)
-        //     .map((h) => {
-        //         const dataSet = (chart.data[h.dataType] as ChartData<any, any>).getDataSetByIndex(h.dataSetIndex);
-        //         return {
-        //             entry: h.entry,
-        //             x: h.x,
-        //             y: h.y,
-        //             xTouchPx: h.xTouchPx,
-        //             yTouchPx: h.yTouchPx,
-        //             modelName: dataSet['modelId'],
-        //             color: dataSet.color,
-        //             timestamp: globalStartTimestamp + h.x * 3600 * 1000
-        //         };
-        //     });
-        // DEV_LOG && console.log('onChartHighlight', highlights.length, JSON.stringify(highlighted));
-    }
-
     let chartNeedsZoomUpdate = false;
     function onOrientationChanged(event: OrientationChangedEventData) {
         const chart = chartView?.nativeElement;
@@ -514,8 +384,7 @@
         chartHeight = !fullscreen && !landscape && !ApplicationSettings.getBoolean('charts_portrait_fullscreen', CHARTS_PORTRAIT_FULLSCREEN) ? screenWidthDips : undefined;
         chartNeedsZoomUpdate = true;
     }
-    function onLayoutChanged(event: EventData) {
-        const chart = event.object as CombinedChart;
+    function onLayoutChanged(chart: CombinedChart) {
         chart.once('postDraw', () => {
             //use a timeout to ensure we are called after chart layout changed was called
             // setTimeout(() => {
@@ -575,9 +444,13 @@
         {/if}
 
         <!-- horizontal pans only: vertical moves fail fast to let the page scroll -->
-        <combinedchart
-            bind:this={chartView}
+        <BaseChart
             height={chartHeight}
+            {highlightCard}
+            highlightFilter={(set) => item.hidden.indexOf(set['modelId']) === -1}
+            {nightRanges}
+            {nowHours}
+            {onLayoutChanged}
             panGestureOptions={{
                 activeOffsetXStart: -10,
                 activeOffsetXEnd: 10,
@@ -585,13 +458,10 @@
                 failOffsetYEnd: 10
             }}
             row={1}
-            verticalAlignment={chartHeight ? 'center' : 'stretch'}
-            on:highlight={modern ? onModernHighlight : onChartHighlight}
-            on:draw={onChartDraw}
-            on:postDraw={onChartDrawn}
-            on:pan={clearModernHighlight}
-            on:zoom={clearModernHighlight}
-            on:layoutChanged={onLayoutChanged} />
+            startTimestamp={globalStartTimestamp}
+            {timezoneOffset}
+            bind:chartView
+            verticalAlignment={chartHeight ? 'center' : 'stretch'} />
         <!-- <label
             backgroundColor={new Color(colorBackground).setAlpha(200)}
             borderRadius={10}

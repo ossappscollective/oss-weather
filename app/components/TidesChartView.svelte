@@ -1,24 +1,19 @@
 <script context="module" lang="ts">
-    import { Align, Canvas, DashPathEffect, Paint } from '@nativescript-community/ui-canvas';
-    import { LineChart } from '@nativescript-community/ui-chart';
+    import { Align, Canvas, Paint } from '@nativescript-community/ui-canvas';
+    import { CombinedChart } from '@nativescript-community/ui-chart';
     import { AxisBase } from '@nativescript-community/ui-chart/components/AxisBase';
     import { XAxisPosition } from '@nativescript-community/ui-chart/components/XAxis';
+    import { CombinedData } from '@nativescript-community/ui-chart/data/CombinedData';
     import { LineData } from '@nativescript-community/ui-chart/data/LineData';
     import { LineDataSet, Mode } from '@nativescript-community/ui-chart/data/LineDataSet';
-    import { Highlight } from '@nativescript-community/ui-chart/highlight/Highlight';
-    import { Utils } from '@nativescript-community/ui-chart/utils/Utils';
+    import type { Highlight } from '@nativescript-community/ui-chart/highlight/Highlight';
+    import BaseChart from '~/components/common/BaseChart.svelte';
+    import type { HighlightCardContent } from '~/utils/chartDraw';
     import type { NativeViewElementNode } from '@nativescript-community/svelte-native/dom';
-    import { formatTime, getStartOfDay } from '~/helpers/locale';
+    import { formatTime, getStartOfDay, lc } from '~/helpers/locale';
     import type { Tide } from '~/services/providers/weather';
     import { colors, fontScale, onFontScaleChanged } from '~/variables';
     import { onThemeChanged } from '~/helpers/theme';
-
-    const highlightPaint = new Paint();
-    highlightPaint.setColor('white');
-    highlightPaint.setStrokeWidth(2);
-    highlightPaint.setPathEffect(new DashPathEffect([3, 3], 0));
-    highlightPaint.setTextAlign(Align.LEFT);
-    highlightPaint.setTextSize(10);
 
     const labelPaint = new Paint();
     labelPaint.setTextAlign(Align.CENTER);
@@ -26,7 +21,6 @@
 
 <script lang="ts">
     import type { Dayjs } from 'dayjs';
-    import { Rounding } from '@nativescript-community/ui-chart/data/DataSet';
 
     export let tides: Tide[] = [];
     export let startTime: Dayjs;
@@ -35,14 +29,14 @@
     let { colorOnSurface } = $colors;
     $: ({ colorOnSurface } = $colors);
 
-    let chartView: NativeViewElementNode<LineChart>;
+    let chartView: NativeViewElementNode<CombinedChart>;
     let chartInitialized = false;
 
     onThemeChanged(() => {
         const chart = chartView?.nativeView;
         if (chart) {
             const newColor = $colors.colorOnSurface;
-            chart.leftAxis.textColor = chart.xAxis.textColor = highlightPaint.color = newColor;
+            chart.leftAxis.textColor = chart.xAxis.textColor = newColor;
             const dataSets = chart.data?.dataSets;
             if (dataSets) {
                 dataSets.forEach((d) => {
@@ -86,31 +80,10 @@
             const leftAxis = chart.leftAxis;
             const xAxis = chart.xAxis;
 
-            leftAxis.textColor = xAxis.textColor = highlightPaint.color = colorOnSurface;
+            leftAxis.textColor = xAxis.textColor = colorOnSurface;
             chart.setExtraOffsets(0, 10, 0, 40);
             chart.minOffset = 0;
             chart.clipDataToContent = false;
-            chart.highlightPerTapEnabled = true;
-            chart.highlightPerDragEnabled = true;
-            chart.customRenderer = {
-                drawHighlight(c: Canvas, h: Highlight<any>, set: LineDataSet, paint: Paint) {
-                    highlightPaint.setTextSize(10 * $fontScale);
-                    c.drawLine(h.drawX, 0, h.drawX, c.getHeight() - 46, highlightPaint);
-                    const x = h.x;
-                    const tideIndex = set.getEntryIndexForXValue(x, NaN, Rounding.CLOSEST);
-                    const tide = tides[tideIndex];
-                    highlightPaint.setTextAlign(Align.LEFT);
-                    let xPos = h.drawX + 4;
-                    const text = formatTime(tide.time, undefined, timezoneOffset);
-                    const size = Utils.calcTextSize(highlightPaint, text);
-                    if (xPos > c.getWidth() - size.width) {
-                        xPos = h.drawX - 4;
-                        highlightPaint.setTextAlign(Align.RIGHT);
-                    }
-                    c.drawText(text, xPos, 14, highlightPaint);
-                }
-            };
-
             const heights = tides.map((t) => t.height);
             const minH = Math.max(0, Math.min(...heights) - 0.5);
             const maxH = Math.max(...heights) + 0.3;
@@ -174,9 +147,11 @@
                 }
             } as any;
 
-            chart.data = new LineData([set]);
+            const data = new CombinedData();
+            data.lineData = new LineData([set]);
+            chart.data = data;
         } else {
-            const dataSet = chart.data?.getDataSetByIndex(0);
+            const dataSet = chart.lineData?.getDataSetByIndex(0);
             if (dataSet) {
                 dataSet.values = entries;
                 dataSet.notifyDataSetChanged();
@@ -195,6 +170,19 @@
         } catch (err) {
             // ignore
         }
+    }
+
+    // time, height and coefficient of the highlighted tide
+    function highlightCard(highlights: Highlight[]): HighlightCardContent {
+        const tide = tides[highlights[0].entryIndex];
+        if (!tide) {
+            return null;
+        }
+        const isHigh = tide.type === 'high';
+        return {
+            title: formatTime(tide.time, undefined, timezoneOffset),
+            rows: [{ name: lc(isHigh ? 'tide_high' : 'tide_low'), color: isHigh ? '#0288d1' : '#80cbc4', text: tide.height.toFixed(2) + 'm', extra: tide.coef != null ? `(${tide.coef})` : undefined }]
+        };
     }
 
     function drawTideLabels({ canvas }: { canvas: Canvas }) {
@@ -221,7 +209,7 @@
     }
 </script>
 
-<linechart bind:this={chartView} height={200} {...$$restProps} />
+<BaseChart height={200} {highlightCard} highlightPerDrag={true} styleAxes={false} timeGrid={false} {timezoneOffset} bind:chartView {...$$restProps} />
 <!-- {#if tides.length}
         <canvasview padding="0 10 0 10" row={1} on:draw={drawTideLabels} />
     {/if} -->

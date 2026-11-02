@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cardLeft, cardMetrics } from './highlightCard';
+import { cardLayout, cardLeft, ellipsize } from './highlightCard';
 
 describe('cardLeft', () => {
     it('sits right of the highlight line when it fits', () => {
@@ -13,24 +13,52 @@ describe('cardLeft', () => {
     });
 });
 
-describe('cardMetrics', () => {
-    it('sizes the card from its widest title, row names and values, and the row count', () => {
-        const metrics = cardMetrics({ titleWidth: 30, namesWidth: 50, valuesWidth: 40, rowCount: 3, hasTitle: true, scale: 1 });
-        // dot 14 + names 50 + gap 12 + values 40 = 116 wider than the title, plus 2 * 10 padding
-        expect(metrics.width).toBe(136);
-        // (3 rows + title) * 18 + 2 * 10 padding
-        expect(metrics.height).toBe(92);
+const base = { headerWidth: 30, headerHeight: 18, columnWidth: 116, rowCount: 3, rowHeight: 18, padding: 10, columnGap: 16, availableHeight: 1000 };
+
+describe('cardLayout', () => {
+    it('stacks the rows in one column when the card fits', () => {
+        const layout = cardLayout(base);
+        expect(layout).toEqual({ columns: 1, rowsPerColumn: 3, rowHeight: 18, width: 136, height: 92 });
     });
-    it('uses the title width when it is the widest', () => {
-        expect(cardMetrics({ titleWidth: 200, namesWidth: 50, valuesWidth: 40, rowCount: 1, hasTitle: true, scale: 1 }).width).toBe(220);
+    it('uses the header width when it is the widest', () => {
+        expect(cardLayout({ ...base, headerWidth: 200 }).width).toBe(220);
     });
-    it('has no title line without a title', () => {
-        expect(cardMetrics({ titleWidth: 0, namesWidth: 50, valuesWidth: 40, rowCount: 2, hasTitle: false, scale: 1 }).height).toBe(56);
+    it('has no header line without a header', () => {
+        expect(cardLayout({ ...base, headerWidth: 0, headerHeight: 0, rowCount: 2 }).height).toBe(56);
     });
-    it('scales with the font scale', () => {
-        const metrics = cardMetrics({ titleWidth: 0, namesWidth: 50, valuesWidth: 40, rowCount: 1, hasTitle: false, scale: 2 });
-        expect(metrics.padding).toBe(20);
-        expect(metrics.lineHeight).toBe(36);
-        expect(metrics.height).toBe(76);
+    it('goes to two columns when one column is too tall', () => {
+        const layout = cardLayout({ ...base, rowCount: 10, availableHeight: 150 });
+        expect(layout.columns).toBe(2);
+        expect(layout.rowsPerColumn).toBe(5);
+        expect(layout.rowHeight).toBe(18);
+        // two columns and the gap, plus the paddings
+        expect(layout.width).toBe(2 * 116 + 16 + 20);
+        expect(layout.height).toBe(20 + 18 + 5 * 18);
+    });
+    it('shrinks the rows when two columns are still too tall', () => {
+        const layout = cardLayout({ ...base, rowCount: 10, availableHeight: 110 });
+        expect(layout.columns).toBe(2);
+        expect(layout.rowHeight).toBeCloseTo(14.4, 5);
+        expect(layout.height).toBeCloseTo(110, 5);
+    });
+    it('does not shrink the rows under the minimum scale', () => {
+        const layout = cardLayout({ ...base, rowCount: 10, availableHeight: 40 });
+        expect(layout.rowHeight).toBeCloseTo(18 * 0.7, 5);
+    });
+    it('keeps the layout when nothing is known about the space', () => {
+        expect(cardLayout({ ...base, rowCount: 10, availableHeight: 0 }).columns).toBe(1);
+    });
+});
+
+describe('ellipsize', () => {
+    const measure = (text: string) => text.length * 10;
+    it('keeps a text that fits', () => {
+        expect(ellipsize('Cloudy', 100, measure)).toBe('Cloudy');
+    });
+    it('cuts a long text and adds an ellipsis', () => {
+        expect(ellipsize('Light rain showers', 100, measure)).toBe('Light rai…');
+    });
+    it('returns the ellipsis only when nothing else fits', () => {
+        expect(ellipsize('Cloudy', 5, measure)).toBe('…');
     });
 });
