@@ -283,8 +283,10 @@ export async function getMarineWeather(providerType: MarineProviderType, weather
 
     // Fetch fresh data
     const data = await provider.getMarineWeather(weatherLocation, options);
-    // Save to cache
-    setCachedWeather('marine', providerId, weatherLocation, data, options);
+    // nothing to cache when there is no marine data here: `JSON.stringify(undefined)` is not a string
+    if (data) {
+        setCachedWeather('marine', providerId, weatherLocation, data, options);
+    }
 
     return data;
 }
