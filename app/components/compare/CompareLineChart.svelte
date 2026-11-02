@@ -1,10 +1,9 @@
 <script context="module" lang="ts">
-    import { Align, Canvas, DashPathEffect, FontMetrics, Paint, RectF, Style } from '@nativescript-community/ui-canvas';
+    import { Align, Canvas, FontMetrics, Paint } from '@nativescript-community/ui-canvas';
     import { CombinedChart } from '@nativescript-community/ui-chart';
     import { ScatterShape } from '@nativescript-community/ui-chart/charts/ScatterChart';
     import { LimitLine } from '@nativescript-community/ui-chart/components/LimitLine';
     import { XAxisPosition } from '@nativescript-community/ui-chart/components/XAxis';
-    import { AxisDependency } from '@nativescript-community/ui-chart/components/YAxis';
     import { BarData } from '@nativescript-community/ui-chart/data/BarData';
     import { BarDataSet } from '@nativescript-community/ui-chart/data/BarDataSet';
     import { BarLineScatterCandleBubbleDataSet } from '@nativescript-community/ui-chart/data/BarLineScatterCandleBubbleDataSet';
@@ -34,6 +33,7 @@
     import { drawLegendChip } from '~/helpers/legendChip';
     import { modernDataColor, styledDataIcon, textFontFamily } from '~/utils/designStyle';
     import { nightSpans } from '~/utils/chartLabels';
+    import { MODERN_NOW_COLOR, createTimeAxisRenderer, drawHighlightCard, drawNightShading } from '~/utils/chartDraw';
     import { modernColors } from '~/helpers/modernTheme';
     import { isLandscape } from '~/utils/ui';
     import { highlightRows } from '~/utils/highlightRows';
@@ -52,18 +52,10 @@
     const LINE_WIDTH = 2;
     // modern: smoother and a bit thicker lines, light night shading, the now line in the hourly chart color
     const MODERN_LINE_WIDTH = 2.5;
-    const MODERN_NIGHT_ALPHA = 12;
-    const MODERN_NOW_COLOR = '#D85A30';
-    const nightPaint = new Paint();
     // modern highlight: a line with a dot on each model, and a card with the model values
     const highlightLinePaint = new Paint();
     highlightLinePaint.strokeWidth = 1;
     const highlightDotPaint = new Paint();
-    const tooltipPaint = new Paint();
-    const tooltipBorderPaint = new Paint();
-    tooltipBorderPaint.setStyle(Style.STROKE);
-    tooltipBorderPaint.strokeWidth = 1;
-    const tooltipTextPaint = new Paint();
 </script>
 
 <script lang="ts">
@@ -188,36 +180,10 @@
                     };
                 }
 
-                const gridLinePathEffect = new DashPathEffect([4, 8], 0);
-                xAxis.customRenderer = {
-                    drawGridLine(c: Canvas, axis, rect: RectF, x: any, y: any, axisValue: any, paint: Paint) {
-                        const hours = getLocalTime(globalStartTimestamp + axisValue * 3600 * 1000, timezoneOffset).get('h');
-                        // modern: only the day separations, night shading is drawn before the chart (onChartDraw)
-                        if (modern) {
-                            if (hours === 0) {
-                                paint.setPathEffect(null);
-                                c.drawLine(x, rect.bottom, x, rect.top, paint);
-                            }
-                            return;
-                        }
-                        if (hours % 4 === 0) {
-                            if (hours === 0) {
-                                paint.setPathEffect(null);
-                            } else {
-                                paint.setPathEffect(gridLinePathEffect);
-                            }
-                            c.drawLine(x, rect.bottom, x, rect.top, paint);
-                        }
-                    },
-                    drawLabel(c: Canvas, axis, text, x, y, paint: Paint, anchor, angleDegrees) {
-                        if (text) {
-                            const lines = text.split('\n');
-                            for (let index = 0; index < lines.length; index++) {
-                                c.drawText(lines[index], x, y + index * paint.textSize, paint);
-                            }
-                        }
-                    }
-                };
+                xAxis.customRenderer = createTimeAxisRenderer(
+                    (axisValue) => getLocalTime(globalStartTimestamp + axisValue * 3600 * 1000, timezoneOffset).get('h'),
+                    () => modern
+                );
                 const chartType = item.chartType;
                 const data = new CombinedData();
                 maxDatalength = 0;
@@ -482,24 +448,12 @@
         highlightDotPaint.setColor(set.color);
         canvas.drawCircle(highlight.drawX, highlight.drawY, 4, highlightDotPaint);
     }
-    // from the axis values, not between the grid lines: those only exist for the visible hours, so the
-    // partial hour at the edges would stay undrawn until a pan crosses an hour
     function onChartDraw({ canvas }: { canvas: Canvas }) {
         const chart = chartView?.nativeView;
         if (!modern || !chart || !nightRanges.length) {
             return;
         }
-        const rect = chart.viewPortHandler.contentRect;
-        nightPaint.setColor(colorOnSurface);
-        nightPaint.setAlpha(MODERN_NIGHT_ALPHA);
-        canvas.save();
-        canvas.clipRect(rect.left, rect.top, rect.right, rect.bottom);
-        for (const range of nightRanges) {
-            const left = chart.getPixelForValues(range.from, 0, AxisDependency.LEFT).x;
-            const right = chart.getPixelForValues(range.to, 0, AxisDependency.LEFT).x;
-            canvas.drawRect(left, rect.top, right, rect.bottom, nightPaint);
-        }
-        canvas.restore();
+        drawNightShading(canvas, chart, nightRanges, colorOnSurface);
     }
     // card next to the highlight line: the time, then each model value (highest first)
     function onChartDrawn({ canvas }: { canvas: Canvas }) {
@@ -523,41 +477,12 @@
         const timestamp = globalStartTimestamp + highlighted[0].x * 3600 * 1000;
         const title =
             item.forecast === 'hourly' ? formatDate(timestamp, 'ddd', timezoneOffset) + ' ' + formatTime(timestamp, undefined, timezoneOffset) : formatDate(timestamp, 'ddd DD/MM', timezoneOffset);
-        const scale = $fontScale;
-        const padding = 10 * scale;
-        const lineHeight = 18 * scale;
-        const dotSpace = 14 * scale;
-        tooltipTextPaint.setTextSize(12 * scale);
-        tooltipTextPaint.setFontWeight('normal');
-        const namesWidth = Math.max(...rows.map((row) => tooltipTextPaint.measureText(row.name)));
-        tooltipTextPaint.setFontWeight($accentFontWeight);
-        const valuesWidth = Math.max(...rows.map((row) => tooltipTextPaint.measureText(row.text)));
-        const width = Math.max(tooltipTextPaint.measureText(title), dotSpace + namesWidth + 12 * scale + valuesWidth) + 2 * padding;
-        const height = (rows.length + 1) * lineHeight + 2 * padding;
-        const content = chart.viewPortHandler.contentRect;
-        const lineX = highlighted[0].drawX;
-        const left = lineX + 12 + width <= content.right ? lineX + 12 : Math.max(content.left, lineX - 12 - width);
-        const top = content.top + 8;
-        tooltipPaint.setColor($modernColors.colorModernSurface);
-        canvas.drawRoundRect(left, top, left + width, top + height, 10, 10, tooltipPaint);
-        tooltipBorderPaint.setColor($modernColors.colorModernHairlineStrong);
-        canvas.drawRoundRect(left, top, left + width, top + height, 10, 10, tooltipBorderPaint);
-        const baseline = lineHeight * 0.7;
-        tooltipTextPaint.setColor(colorOnSurface);
-        tooltipTextPaint.setTextAlign(Align.LEFT);
-        canvas.drawText(title, left + padding, top + padding + baseline, tooltipTextPaint);
-        rows.forEach((row, index) => {
-            const rowTop = top + padding + (index + 1) * lineHeight;
-            highlightDotPaint.setColor(row.color);
-            canvas.drawCircle(left + padding + 4 * scale, rowTop + lineHeight / 2, 4 * scale, highlightDotPaint);
-            tooltipTextPaint.setFontWeight('normal');
-            tooltipTextPaint.setColor(colorOnSurfaceVariant);
-            tooltipTextPaint.setTextAlign(Align.LEFT);
-            canvas.drawText(row.name, left + padding + dotSpace, rowTop + baseline, tooltipTextPaint);
-            tooltipTextPaint.setFontWeight($accentFontWeight);
-            tooltipTextPaint.setColor(colorOnSurface);
-            tooltipTextPaint.setTextAlign(Align.RIGHT);
-            canvas.drawText(row.text, left + width - padding, rowTop + baseline, tooltipTextPaint);
+        drawHighlightCard(canvas, chart, {
+            lineX: highlighted[0].drawX,
+            title,
+            rows,
+            scale: $fontScale,
+            colors: { surface: $modernColors.colorModernSurface, border: $modernColors.colorModernHairlineStrong, text: colorOnSurface, textVariant: colorOnSurfaceVariant }
         });
     }
     function onChartHighlight({ entry, highlight, highlights, object: chart }: { object: CombinedChart; entry: Entry; highlight: Highlight; highlights: Highlight[] }) {

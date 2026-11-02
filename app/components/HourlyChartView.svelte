@@ -47,6 +47,7 @@
     import { ValueRange, computeDataRange, getNaturalRange, makeScaler, pickReferenceProp, resolveRange, visibleHoursScale } from '~/utils/chartScale';
     import { generateGradient, loadImage, tempColor } from '~/utils/utils.common';
     import { contentGradientRange, extremaIndexes, highlightHour, nightSpans, plotPadding } from '~/utils/chartLabels';
+    import { MODERN_NOW_COLOR, createTimeAxisRenderer, drawNightShading } from '~/utils/chartDraw';
 
     const einkBarPaint = new Paint();
     const einkOutlinePaint = new Paint();
@@ -62,8 +63,6 @@
     const LINE_WIDTH = 2;
 
     // modern: night shading instead of a grid, solid temperature line, dashed labelled secondary lines
-    const MODERN_NOW_COLOR = '#D85A30';
-    const MODERN_NIGHT_ALPHA = 12;
     const MODERN_BAR_RADIUS = 3;
     const MODERN_CLOUD_ALPHA = 40;
     // modern plot paddings (px): room for the low labels under the lines, the high labels and day pills over them
@@ -529,37 +528,10 @@
                         // }
                     }
                 };
-                const gridLinePathEffect = new DashPathEffect([4, 8], 0);
-                xAxis.customRenderer = {
-                    drawGridLine(c: Canvas, axis, rect: RectF, x: any, y: any, axisValue: any, paint: Paint) {
-                        const hours = getLocalTime(startTimestamp + axisValue * 3600 * 1000).get('h');
-                        if ($designStyle === 'modern') {
-                            // only the day boundaries as lines (in the location time); night shading and day
-                            // labels are drawn before and after the chart (onChartDraw, onChartDrawn)
-                            if (getLocalTime(startTimestamp + axisValue * 3600 * 1000, timezoneOffset).get('h') === 0) {
-                                paint.setPathEffect(null);
-                                c.drawLine(x, rect.bottom, x, rect.top, paint);
-                            }
-                            return;
-                        }
-                        if (hours % 4 === 0) {
-                            if (hours === 0) {
-                                paint.setPathEffect(null);
-                            } else {
-                                paint.setPathEffect(gridLinePathEffect);
-                            }
-                            c.drawLine(x, rect.bottom, x, rect.top, paint);
-                        }
-                    },
-                    drawLabel(c: Canvas, axis, text, x, y, paint: Paint, anchor, angleDegrees) {
-                        if (text) {
-                            const lines = text.split('\n');
-                            for (let index = 0; index < lines.length; index++) {
-                                c.drawText(lines[index], x, y + index * paint.textSize, paint);
-                            }
-                        }
-                    }
-                };
+                xAxis.customRenderer = createTimeAxisRenderer(
+                    (axisValue) => getLocalTime(startTimestamp + axisValue * 3600 * 1000, timezoneOffset).get('h'),
+                    () => $designStyle === 'modern'
+                );
                 let tempMin = Number.MAX_SAFE_INTEGER;
                 let tempMax = Number.MIN_SAFE_INTEGER;
                 hasSnowFall = false;
@@ -980,20 +952,6 @@
         updateGradient();
         chartReady = true;
     }
-    function drawNightShading(canvas: Canvas) {
-        const chart = chartView?.nativeView;
-        const rect = chart.viewPortHandler.contentRect;
-        nightPaint.setColor(colorOnSurface);
-        nightPaint.setAlpha(MODERN_NIGHT_ALPHA);
-        canvas.save();
-        canvas.clipRect(rect.left, rect.top, rect.right, rect.bottom);
-        for (const range of nightRanges) {
-            const left = chart.getPixelForValues(range.from, 0, AxisDependency.LEFT).x;
-            const right = chart.getPixelForValues(range.to, 0, AxisDependency.LEFT).x;
-            canvas.drawRect(left, rect.top, right, rect.bottom, nightPaint);
-        }
-        canvas.restore();
-    }
     // day name at the top of each day separation line, over the data, on a pill so lines below stay readable
     function drawDayLabels(canvas: Canvas) {
         const chart = chartView?.nativeView;
@@ -1078,7 +1036,7 @@
         lastWindIconHour = undefined;
         lastXLabelIconHour = undefined;
         if ($designStyle === 'modern' && nightRanges.length) {
-            drawNightShading(event.canvas);
+            drawNightShading(event.canvas, chartView.nativeView, nightRanges, colorOnSurface);
         }
     }
 

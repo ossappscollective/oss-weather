@@ -78,3 +78,11 @@ export function highlightHour(timestamp: number, startTimestamp: number): number
     }
     return (timestamp - startTimestamp) / (3600 * 1000);
 }
+
+// x grid line to draw for an hour of the day: modern only separates the days, classic marks every 4 hours
+export function gridLineKind(hours: number, modern: boolean): 'solid' | 'dashed' | null {
+    if (hours === 0) {
+        return 'solid';
+    }
+    return !modern && hours % 4 === 0 ? 'dashed' : null;
+}
