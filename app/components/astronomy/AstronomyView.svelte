@@ -2,16 +2,17 @@
     import { Color, GridLayout } from '@akylas/nativescript';
     import type { NativeViewElementNode } from '@nativescript-community/svelte-native/dom';
     import { textAttributedString } from '~/utils/ui/attributedString';
-    import { Align, Canvas, DashPathEffect, LayoutAlignment, Paint, StaticLayout, Style } from '@nativescript-community/ui-canvas';
+    import { Align, Canvas, LayoutAlignment, Paint, StaticLayout, Style } from '@nativescript-community/ui-canvas';
     import { CanvasLabel } from '@nativescript-community/ui-canvaslabel/canvaslabel.common';
-    import { LineChart } from '@nativescript-community/ui-chart';
+    import { CombinedChart } from '@nativescript-community/ui-chart';
     import { AxisBase } from '@nativescript-community/ui-chart/components/AxisBase';
     import { XAxisPosition } from '@nativescript-community/ui-chart/components/XAxis';
-    import { Entry } from '@nativescript-community/ui-chart/data/Entry';
+    import { CombinedData } from '@nativescript-community/ui-chart/data/CombinedData';
     import { LineData } from '@nativescript-community/ui-chart/data/LineData';
     import { LineDataSet } from '@nativescript-community/ui-chart/data/LineDataSet';
-    import { Highlight } from '@nativescript-community/ui-chart/highlight/Highlight';
-    import { Utils } from '@nativescript-community/ui-chart/utils/Utils';
+    import type { Highlight } from '@nativescript-community/ui-chart/highlight/Highlight';
+    import BaseChart from '~/components/common/BaseChart.svelte';
+    import type { HighlightCardContent } from '~/utils/chartDraw';
     import { showError } from '@shared/utils/showError';
     import dayjs, { Dayjs } from 'dayjs';
     import { GetTimesResult, getMoonPosition, getPosition, getTimes } from 'suncalc';
@@ -152,7 +153,7 @@
 <script lang="ts">
     let { colorBackground, colorOnSurface, colorOnSurfaceVariant } = $colors;
     $: ({ colorBackground, colorOnSurface, colorOnSurfaceVariant } = $colors);
-    let chartView: NativeViewElementNode<LineChart>;
+    let chartView: NativeViewElementNode<CombinedChart>;
     let gridLayout: NativeViewElementNode<GridLayout>;
     let bottomLabel: NativeViewElementNode<CanvasLabel>;
 
@@ -193,13 +194,6 @@
     const moonPaint = new Paint();
     moonPaint.strokeWidth = 1.5;
 
-    const highlightPaint = new Paint();
-    highlightPaint.setColor('white');
-    highlightPaint.setStrokeWidth(2);
-    highlightPaint.setPathEffect(new DashPathEffect([3, 3], 0));
-    highlightPaint.setTextAlign(Align.LEFT);
-    highlightPaint.setTextSize(10);
-
     // modern: light neutral night shading and line, palette sun (amber) and moon (violet) curves
     const MODERN_SUN_COLOR = '#EF9F27';
     const MODERN_MOON_COLOR = '#7F77DD';
@@ -209,9 +203,6 @@
         // modern: below the horizon is mostly covered by the card color, leaving the sun arc above it
         nightPaint.color = modernStyle ? new Color(get(modernColors).colorModernCard).setAlpha(215) : new Color($colors.colorBackground).setAlpha(170);
         nightLiinePaint.color = new Color($colors.colorOnSurface).setAlpha(modernStyle ? 60 : 150);
-        if (modernStyle) {
-            highlightPaint.setColor($colors.colorOnSurfaceVariant);
-        }
     }
     updateTheme();
     onThemeChanged(() => {
@@ -222,9 +213,9 @@
             // DEV_LOG && console.log('onThemeChanged', !!chart, colorOnSurface, newColor);
             const leftAxis = chart.leftAxis;
             const xAxis = chart.xAxis;
-            leftAxis.textColor = xAxis.textColor = highlightPaint.color = newColor;
+            leftAxis.textColor = xAxis.textColor = newColor;
             if (modern) {
-                xAxis.textColor = highlightPaint.color = $colors.colorOnSurfaceVariant;
+                xAxis.textColor = $colors.colorOnSurfaceVariant;
             }
             const dataSets = chart.data?.dataSets;
             if (dataSets) {
@@ -258,7 +249,7 @@
             const leftAxis = chart.leftAxis;
             const xAxis = chart.xAxis;
 
-            leftAxis.textColor = xAxis.textColor = highlightPaint.color = colorOnSurface;
+            leftAxis.textColor = xAxis.textColor = colorOnSurface;
             if (modern) {
                 xAxis.textColor = $colors.colorOnSurfaceVariant;
                 xAxis.textSize = 11 * $fontScale;
@@ -266,36 +257,6 @@
             chart.setExtraOffsets(0, 0, 0, 0);
             chart.minOffset = 0;
             chart.clipDataToContent = false;
-            chart.highlightPerTapEnabled = true;
-            chart.highlightPerDragEnabled = true;
-            chart.customRenderer = {
-                drawHighlight(c: Canvas, h: Highlight<Entry>, set: LineDataSet, paint: Paint) {
-                    const w = c.getWidth();
-                    const height = c.getHeight();
-                    highlightPaint.setTextSize(10 * $fontScale);
-                    c.drawRect(0, height / 2, w, height, nightPaint);
-                    c.drawLine(0, height / 2, w, height / 2, nightLiinePaint);
-
-                    // modern: no time cursor on other days (it would sit at midnight)
-                    if (modern && !isCurrentDay && h.x === 0) {
-                        return;
-                    }
-                    const hours = Math.min(Math.floor(h.x / 6), 23);
-                    const minutes = (h.x * 10) % 60;
-                    selectedTime = startTime.set('h', hours).set('m', minutes);
-                    c.drawLine(h.drawX, 0, h.drawX, c.getHeight(), highlightPaint);
-                    highlightPaint.setTextAlign(Align.LEFT);
-                    let x = h.drawX + 4;
-                    const text = formatTime(selectedTime);
-                    const size = Utils.calcTextSize(highlightPaint, text);
-                    if (x > c.getWidth() - size.width) {
-                        x = h.drawX - 4;
-                        highlightPaint.setTextAlign(Align.RIGHT);
-                    }
-                    c.drawText(text, x, 14, highlightPaint);
-                    bottomLabel?.nativeView?.redraw();
-                }
-            };
             leftAxis.labelCount = 0;
             leftAxis.drawGridLines = false;
             leftAxis.drawAxisLine = false;
@@ -329,7 +290,7 @@
         // limitLine.setLabel(formatTime(startTime));
         // limitLine.setLimit(nowMinutes / 10);
 
-        const chartData = chart.data;
+        const chartData = chart.lineData;
         if (!chartData) {
             let set = new LineDataSet(sunPoses, 'sun', undefined, 'altitude');
             set.fillFormatter = {
@@ -348,15 +309,17 @@
             }
             sets.unshift(set);
 
-            const lineData = new LineData(sets);
-            chart.data = lineData;
+            const data = new CombinedData();
+            data.lineData = new LineData(sets);
+            chart.data = data;
 
             if (startTime && isCurrentDay) {
                 const nowMinutes = startTime.diff(getStartOfDay(startTime, timezoneOffset), 'minutes');
                 // DEV_LOG && console.log('highlight current day', isCurrentDay, startTime, dayjs(startTime), nowMinutes);
                 const h = chart.getHighlightByXValue(nowMinutes / 10);
                 chart.highlight(h[0]);
-            } else {
+            } else if (!modern) {
+                // modern: no time cursor on other days (it would sit at midnight)
                 const h = chart.getHighlightByXValue(0);
                 chart.highlight(h[0]);
             }
@@ -365,10 +328,35 @@
             chartData.getDataSetByIndex(1).notifyDataSetChanged();
             chartData.getDataSetByIndex(0).values = moonPoses;
             chartData.getDataSetByIndex(0).notifyDataSetChanged();
-            chartData.notifyDataChanged();
+            chart.data.notifyDataChanged();
             chart.notifyDataSetChanged();
             chart.invalidate();
         }
+    }
+
+    function timeAt(x: number) {
+        return startTime.set('h', Math.min(Math.floor(x / 6), 23)).set('m', (x * 10) % 60);
+    }
+    function onHighlight(highlight: Highlight) {
+        if (highlight) {
+            selectedTime = timeAt(highlight.x);
+            bottomLabel?.nativeView?.redraw();
+        }
+    }
+    // below the horizon, over the curves
+    function drawNightOverlay(canvas: Canvas) {
+        const height = canvas.getHeight();
+        canvas.drawRect(0, height / 2, canvas.getWidth(), height, nightPaint);
+        canvas.drawLine(0, height / 2, canvas.getWidth(), height / 2, nightLiinePaint);
+    }
+    // elevation of the sun and the moon at the highlighted time
+    function highlightCard(highlights: Highlight[], chart: CombinedChart): HighlightCardContent {
+        const rows = highlights.map((highlight) => {
+            const set = chart.data.getDataSetByHighlight(highlight);
+            return { name: lc(set.label), color: set.color, text: Math.round(highlight.entry['altitude'] * TO_DEG) + '°' };
+        });
+        // samples keep the card size while the values change
+        return { title: formatTime(timeAt(highlights[0].x)), titleSample: formatTime(startTime.set('h', 20).set('m', 8)), valueSample: '-88°', rows };
     }
 
     async function selectDate() {
@@ -644,7 +632,7 @@
         variant="text"
         visibility={selectableDate ? 'visible' : 'hidden'}
         on:tap={() => updateStartTime(startTime.add(1, 'd'))} />
-    <linechart bind:this={chartView} colSpan={3} row={1} />
+    <BaseChart colSpan={3} {highlightCard} highlightPerDrag={true} onDrawn={drawNightOverlay} {onHighlight} row={1} styleAxes={false} timeGrid={false} {timezoneOffset} bind:chartView />
     {#if sunTimes && modern}
         <!-- sunrise, daylight (and what is left today), sunset and moon on one line, then the moon phase -->
         <gridlayout colSpan={2} columns="auto,*,auto,auto" padding="8 16 4 16" row={2}>

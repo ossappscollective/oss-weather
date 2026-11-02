@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { contentGradientRange, extremaIndexes, highlightHour, nightSpans, plotPadding } from './chartLabels';
+import { contentGradientRange, extremaIndexes, gridLineKind, highlightHour, nightSpans, plotPadding } from './chartLabels';
 
 describe('extremaIndexes', () => {
     it('keeps the ends and every local high and low', () => {
@@ -90,5 +90,18 @@ describe('highlightHour', () => {
         expect(highlightHour(start, NaN)).toBeNull();
         expect(highlightHour(start, undefined)).toBeNull();
         expect(highlightHour(start, Infinity)).toBeNull();
+    });
+});
+
+describe('gridLineKind', () => {
+    it('modern keeps only the day separation', () => {
+        expect(gridLineKind(0, true)).toBe('solid');
+        expect(gridLineKind(4, true)).toBeNull();
+        expect(gridLineKind(12, true)).toBeNull();
+    });
+    it('classic draws every 4 hours, solid at midnight', () => {
+        expect(gridLineKind(0, false)).toBe('solid');
+        expect(gridLineKind(8, false)).toBe('dashed');
+        expect(gridLineKind(5, false)).toBeNull();
     });
 });

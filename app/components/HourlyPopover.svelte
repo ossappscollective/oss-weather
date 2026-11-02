@@ -6,7 +6,8 @@
     import { formatTime } from '~/helpers/locale';
     import { iconService } from '~/services/icon';
     import type { CommonWeatherData } from '~/services/providers/weather';
-    import { CommonData, WeatherProps, weatherDataService } from '~/services/weatherData';
+    import { CommonData, WeatherProps } from '~/services/weatherData';
+    import { hourlyCardData } from '~/utils/hourlyCard';
     import { accentFontWeight, colors, designStyle, fontScale } from '~/variables';
     import { dataTextStyle, modernDataColor, modernLineStyle, precipitationFill, textFontFamily } from '~/utils/designStyle';
     import { tempColor } from '~/utils/utils.common';
@@ -45,17 +46,7 @@
         if (!item) {
             return;
         }
-        data = weatherDataService.getAllIconsData({
-            item,
-            filter: [WeatherProps.windBeaufort, WeatherProps.precipAccumulation],
-            addedBefore: [WeatherProps.temperature, WeatherProps.rainPrecipitation, WeatherProps.snowfall],
-            addedAfter: [WeatherProps.rainSnowLimit, WeatherProps.iso],
-            type: 'hourly'
-        });
-        // opened from the chart: every charted line gets a row, even when its value is usually hidden (low gust...)
-        const shownKeys = data.map((d) => d.key);
-        const missingChartKeys = legendKeys.filter((key) => shownKeys.indexOf(key) === -1 && PRECIPITATION_KEYS.indexOf(key) === -1 && key !== WeatherProps.iconId && key !== WeatherProps.windBearing);
-        data = data.concat(missingChartKeys.map((key) => weatherDataService.getChartItemData(key as WeatherProps, item, 'hourly')).filter((d) => !!d));
+        data = hourlyCardData(item, legendKeys);
         canvas?.nativeView?.invalidate();
     }
 

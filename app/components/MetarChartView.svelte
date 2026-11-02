@@ -1,44 +1,31 @@
 <script context="module" lang="ts">
-    import { Align, Canvas, DashPathEffect, Paint, RectF, Style } from '@nativescript-community/ui-canvas';
+    import { Align, Canvas, Paint } from '@nativescript-community/ui-canvas';
     import { CombinedChart } from '@nativescript-community/ui-chart';
-    import type { HighlightEventData } from '@nativescript-community/ui-chart/charts/Chart';
     import { XAxisPosition } from '@nativescript-community/ui-chart/components/XAxis';
     import { AxisDependency } from '@nativescript-community/ui-chart/components/YAxis';
     import { CombinedData } from '@nativescript-community/ui-chart/data/CombinedData';
     import { LineData } from '@nativescript-community/ui-chart/data/LineData';
     import { LineDataSet } from '@nativescript-community/ui-chart/data/LineDataSet';
-    import { Highlight } from '@nativescript-community/ui-chart/highlight/Highlight';
+    import type { Highlight } from '@nativescript-community/ui-chart/highlight/Highlight';
     import type { NativeViewElementNode } from '@nativescript-community/svelte-native/dom';
     import { Color } from '@nativescript/core';
     import { formatValueToUnit } from '~/helpers/formatter';
     import { formatDate, formatTime, getLocalTime } from '~/helpers/locale';
+    import BaseChart from '~/components/common/BaseChart.svelte';
     import { modernColors } from '~/helpers/modernTheme';
-    import { onThemeChanged } from '~/helpers/theme';
     import { WeatherProps, defaultPropUnit, getWeatherDataIcon, getWeatherDataTitle, propToUnit } from '~/services/weatherData';
     import { modernDataColor, modernLineStyle, styledDataIcon, textFontFamily } from '~/utils/designStyle';
     import type { MetarPoint } from '~/utils/metar';
     import { accentFontWeight, colors, designStyle, fontScale, fonts } from '~/variables';
+    import type { HighlightCardContent } from '~/utils/chartDraw';
 
     // same look as the hourly chart: temperature is the thick reference line, the other metrics are thinner
     const TEMPERATURE_LINE_WIDTH = 3;
     const LINE_WIDTH = 2;
     const HOUR = 3600 * 1000;
-    const highlightPaint = new Paint();
-    highlightPaint.setTextAlign(Align.LEFT);
-    highlightPaint.setTextSize(10);
-    const selectionPaint = new Paint();
-    selectionPaint.setStrokeWidth(1.5);
-    const selectionTextPaint = new Paint();
-    selectionTextPaint.setTextAlign(Align.CENTER);
     const pointPaint = new Paint();
     const labelPaint = new Paint();
     labelPaint.setTextAlign(Align.CENTER);
-    // card with the values at the selected time, like the compare charts
-    const tooltipPaint = new Paint();
-    const tooltipBorderPaint = new Paint();
-    tooltipBorderPaint.setStyle(Style.STROKE);
-    tooltipBorderPaint.strokeWidth = 1;
-    const tooltipTextPaint = new Paint();
 </script>
 
 <script lang="ts">
@@ -62,13 +49,9 @@
     let startTimestamp = 0;
     let chartSeries: ChartSeries[] = [];
     let hidden: WeatherProps[] = [];
-    let highlighted: Highlight = null;
 
     function isShown(item: ChartSeries) {
         return hidden.indexOf(item.weatherProp) === -1;
-    }
-    function nearestEntry(item: ChartSeries, hours: number) {
-        return item.entries.reduce((nearest, entry) => (Math.abs(entry.hours - hours) < Math.abs(nearest.hours - hours) ? entry : nearest));
     }
     function formatRaw(weatherProp: WeatherProps, raw: number) {
         return formatValueToUnit(raw, propToUnit(weatherProp), defaultPropUnit(weatherProp));
@@ -106,21 +89,18 @@
         startTimestamp = Math.floor(Math.min(...series.map((item) => item.points[0].time)) / HOUR) * HOUR;
         chartSeries = buildSeries();
         const fontFamily = textFontFamily($designStyle);
-        [selectionTextPaint, labelPaint, highlightPaint, tooltipTextPaint].forEach((paint) => paint.setFontFamily(fontFamily));
+        labelPaint.setFontFamily(fontFamily);
 
         if (!chartInitialized) {
             chartInitialized = true;
             chart.minOffset = 0;
             chart.autoScaleMinMaxEnabled = true;
             chart.clipDataToContent = true;
-            chart.highlightsFilterByAxis = false;
-            chart.highlightPerTapEnabled = true;
             chart.dragEnabled = false;
             chart.pinchZoomEnabled = false;
             chart.scaleXEnabled = false;
             chart.scaleYEnabled = false;
             xAxis.enabled = true;
-            xAxis.textSize = 10 * $fontScale;
             xAxis.labelTextAlign = Align.CENTER;
             xAxis.ensureLastLabel = true;
             xAxis.position = XAxisPosition.BOTTOM;
@@ -130,32 +110,6 @@
             rightAxis.enabled = true;
             rightAxis.drawGridLines = false;
             rightAxis.axisMinimum = 0;
-            const gridLinePathEffect = new DashPathEffect([4, 8], 0);
-            xAxis.customRenderer = {
-                drawGridLine(canvas: Canvas, axis, rect: RectF, lineX: number, lineY: number, axisValue: number, paint: Paint) {
-                    const hours = getLocalTime(startTimestamp + axisValue * HOUR, timezoneOffset).get('h');
-                    // modern: only the day separation
-                    if (modern) {
-                        if (hours === 0) {
-                            paint.setPathEffect(null);
-                            canvas.drawLine(lineX, rect.bottom, lineX, rect.top, paint);
-                        }
-                        return;
-                    }
-                    if (hours % 4 === 0) {
-                        paint.setPathEffect(hours === 0 ? null : gridLinePathEffect);
-                        canvas.drawLine(lineX, rect.bottom, lineX, rect.top, paint);
-                    }
-                },
-                drawLabel(canvas: Canvas, axis, text, labelX, labelY, paint: Paint) {
-                    if (text) {
-                        const lines = text.split('\n');
-                        for (let index = 0; index < lines.length; index++) {
-                            canvas.drawText(lines[index], labelX, labelY + index * paint.textSize, paint);
-                        }
-                    }
-                }
-            };
             xAxis.valueFormatter = {
                 getAxisLabel: (value) => {
                     const date = getLocalTime(startTimestamp + value * HOUR, timezoneOffset);
@@ -173,15 +127,12 @@
             rightAxis.valueFormatter = {
                 getAxisLabel: (value) => formatRaw(WeatherProps.windSpeed, value)
             };
-            chart.customRenderer = { drawHighlight: drawSelection };
         }
         // modern: no value axes, the line labels, chips and selection give the values
         chart.setExtraOffsets(0, modern ? 26 : 10, 0, 0);
-        xAxis.yOffset = modern ? 3 + xAxis.textSize : 12;
         leftAxis.drawLabels = rightAxis.drawLabels = !modern;
         leftAxis.drawAxisLine = rightAxis.drawAxisLine = false;
         leftAxis.drawGridLines = !modern;
-        updateAxisColors();
 
         const dataSets = chartSeries.map((item) => {
             const set = new LineDataSet(item.entries, item.weatherProp, 'hours', 'value');
@@ -207,23 +158,6 @@
         chart.notifyDataSetChanged();
     }
 
-    function updateAxisColors() {
-        const chart = chartView?.nativeView;
-        if (!chart) {
-            return;
-        }
-        const { leftAxis, rightAxis, xAxis } = chart;
-        leftAxis.textSize = rightAxis.textSize = xAxis.textSize = 10 * $fontScale;
-        leftAxis.textColor = rightAxis.textColor = highlightPaint.color = colorOnSurface;
-        xAxis.textColor = modern ? colorOnSurfaceVariant : colorOnSurface;
-        leftAxis.gridColor = xAxis.gridColor = colorOnSurfaceVariant + '33';
-        xAxis.axisLineColor = modern ? new Color(colorOnSurface).setAlpha(40).hex : colorOnSurfaceVariant + '33';
-        if (modern) {
-            // the day separation
-            xAxis.gridColor = new Color(colorOnSurface).setAlpha(40).hex;
-        }
-    }
-
     $: if (chartView && series.length) {
         try {
             // a design change redraws everything
@@ -232,19 +166,6 @@
         } catch (error) {
             console.error('MetarChartView', error);
         }
-    }
-
-    onThemeChanged(() => {
-        updateAxisColors();
-        chartView?.nativeView?.invalidate();
-    });
-    fontScale.subscribe(() => {
-        updateAxisColors();
-        chartView?.nativeView?.invalidate();
-    });
-
-    function onHighlight({ highlight }: HighlightEventData) {
-        highlighted = highlight ?? null;
     }
 
     function toggleSeries(weatherProp: WeatherProps) {
@@ -265,37 +186,6 @@
         enabled: hidden.indexOf(item.weatherProp) === -1
     }));
 
-    function drawSelection(canvas: Canvas, highlight: Highlight) {
-        const chart = chartView.nativeView;
-        const text = formatTime(startTimestamp + highlight.x * HOUR, undefined, timezoneOffset);
-        if (modern) {
-            // solid line and a pill with the time, like the hourly chart
-            selectionTextPaint.setTextSize(11 * $fontScale);
-            selectionTextPaint.setFontWeight($accentFontWeight);
-            const pillHeight = 18 * $fontScale;
-            const pillWidth = selectionTextPaint.measureText(text) + 14 * $fontScale;
-            const pillLeft = Math.min(Math.max(0, highlight.drawX - pillWidth / 2), canvas.getWidth() - pillWidth);
-            selectionPaint.setColor(colorOnSurfaceVariant);
-            selectionPaint.setAlpha(160);
-            canvas.drawLine(highlight.drawX, pillHeight, highlight.drawX, canvas.getHeight(), selectionPaint);
-            canvas.drawRoundRect(pillLeft, 0, pillLeft + pillWidth, pillHeight, pillHeight / 2, pillHeight / 2, selectionPaint);
-            selectionTextPaint.setColor(colorSurface);
-            canvas.drawText(text, pillLeft + pillWidth / 2, pillHeight / 2 + 4 * $fontScale, selectionTextPaint);
-            for (const item of chartSeries.filter(isShown)) {
-                const entry = nearestEntry(item, highlight.x);
-                const pixel = chart.getPixelForValues(entry.hours, entry.value, axisDependency(item));
-                drawPoint(canvas, pixel.x, pixel.y, item.color);
-            }
-            return;
-        }
-        canvas.drawLine(highlight.drawX, 0, highlight.drawX, canvas.getHeight(), highlightPaint);
-        for (const item of chartSeries.filter(isShown)) {
-            const entry = nearestEntry(item, highlight.x);
-            const pixel = chart.getPixelForValues(entry.hours, entry.value, axisDependency(item));
-            drawPoint(canvas, pixel.x, pixel.y, item.color);
-        }
-    }
-
     function drawPoint(canvas: Canvas, pointX: number, pointY: number, color: string) {
         pointPaint.setColor(colorSurface);
         canvas.drawCircle(pointX, pointY, 4.5, pointPaint);
@@ -303,64 +193,18 @@
         canvas.drawCircle(pointX, pointY, 3, pointPaint);
     }
 
-    // card next to the selection line: the values of each shown series (the time too, when there is no pill)
-    function drawValuesCard(canvas: Canvas, chart: CombinedChart) {
-        const rows = chartSeries.filter(isShown).map((item) => ({
-            name: getWeatherDataTitle(item.weatherProp),
-            color: item.color,
-            text: formatRaw(item.weatherProp, nearestEntry(item, highlighted.x).raw)
-        }));
-        if (!rows.length) {
-            return;
-        }
-        const title = modern ? null : formatDate(startTimestamp + highlighted.x * HOUR, 'ddd', timezoneOffset) + ' ' + formatTime(startTimestamp + highlighted.x * HOUR, undefined, timezoneOffset);
-        const scale = $fontScale;
-        const padding = 10 * scale;
-        const lineHeight = 18 * scale;
-        const dotSpace = 14 * scale;
-        const lineCount = rows.length + (title ? 1 : 0);
-        tooltipTextPaint.setTextSize(12 * scale);
-        tooltipTextPaint.setFontWeight('normal');
-        const namesWidth = Math.max(...rows.map((row) => tooltipTextPaint.measureText(row.name)));
-        tooltipTextPaint.setFontWeight($accentFontWeight);
-        const valuesWidth = Math.max(...rows.map((row) => tooltipTextPaint.measureText(row.text)));
-        const width = Math.max(title ? tooltipTextPaint.measureText(title) : 0, dotSpace + namesWidth + 12 * scale + valuesWidth) + 2 * padding;
-        const height = lineCount * lineHeight + 2 * padding;
-        const content = chart.viewPortHandler.contentRect;
-        const lineX = highlighted.drawX;
-        const left = lineX + 12 + width <= content.right ? lineX + 12 : Math.max(content.left, lineX - 12 - width);
-        const top = content.top + 8;
-        tooltipPaint.setColor(modern ? $modernColors.colorModernSurface : colorSurface);
-        canvas.drawRoundRect(left, top, left + width, top + height, 10, 10, tooltipPaint);
-        tooltipBorderPaint.setColor(modern ? $modernColors.colorModernHairlineStrong : colorOutlineVariant);
-        canvas.drawRoundRect(left, top, left + width, top + height, 10, 10, tooltipBorderPaint);
-        const baseline = lineHeight * 0.7;
-        tooltipTextPaint.setTextAlign(Align.LEFT);
-        if (title) {
-            tooltipTextPaint.setColor(colorOnSurface);
-            canvas.drawText(title, left + padding, top + padding + baseline, tooltipTextPaint);
-        }
-        rows.forEach((row, index) => {
-            const rowTop = top + padding + (index + (title ? 1 : 0)) * lineHeight;
-            pointPaint.setColor(row.color);
-            canvas.drawCircle(left + padding + 4 * scale, rowTop + lineHeight / 2, 4 * scale, pointPaint);
-            tooltipTextPaint.setFontWeight('normal');
-            tooltipTextPaint.setColor(colorOnSurfaceVariant);
-            tooltipTextPaint.setTextAlign(Align.LEFT);
-            canvas.drawText(row.name, left + padding + dotSpace, rowTop + baseline, tooltipTextPaint);
-            tooltipTextPaint.setFontWeight($accentFontWeight);
-            tooltipTextPaint.setColor(colorOnSurface);
-            tooltipTextPaint.setTextAlign(Align.RIGHT);
-            canvas.drawText(row.text, left + width - padding, rowTop + baseline, tooltipTextPaint);
+    // the values of each shown series at the highlighted time
+    function highlightCard(highlights: Highlight[], chart: CombinedChart): HighlightCardContent {
+        const rows = highlights.map((highlight) => {
+            const item = chartSeries.find((candidate) => candidate.weatherProp === chart.data.getDataSetByHighlight(highlight).label);
+            return { name: getWeatherDataTitle(item.weatherProp), color: item.color, text: formatRaw(item.weatherProp, highlight.entry.raw) };
         });
+        const timestamp = startTimestamp + highlights[0].x * HOUR;
+        return { title: formatDate(timestamp, 'ddd', timezoneOffset) + ' ' + formatTime(timestamp, undefined, timezoneOffset), rows };
     }
 
     // modern: the highest, lowest and latest temperatures are labelled, like the hourly chart
-    function onChartDrawn({ canvas }: { canvas: Canvas }) {
-        const chart = chartView?.nativeView;
-        if (chart && highlighted && highlighted.drawX !== undefined) {
-            drawValuesCard(canvas, chart);
-        }
+    function onChartDrawn(canvas: Canvas, chart: CombinedChart) {
         const temperature = chartSeries.find((item) => item.weatherProp === WeatherProps.temperature);
         if (!modern || !chart || !temperature || !isShown(temperature)) {
             return;
@@ -380,7 +224,7 @@
 </script>
 
 <stacklayout {...$$restProps}>
-    <combinedchart bind:this={chartView} height={220} on:highlight={onHighlight} on:postDraw={onChartDrawn} />
+    <BaseChart height={220} {highlightCard} onDrawn={onChartDrawn} {startTimestamp} {timezoneOffset} bind:chartView />
     <wraplayout padding="4 11 8 11">
         {#each legendItems as legend (legend.weatherProp)}
             {#if modern}

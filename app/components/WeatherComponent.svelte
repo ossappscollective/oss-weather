@@ -10,6 +10,7 @@
     import { onThemeChanged } from '~/helpers/theme';
     import { WeatherLocation } from '~/services/api';
     import { iconService, onIconAnimationsChanged } from '~/services/icon';
+    import { notifyChartScrolled } from '~/utils/chartEvents';
     import { computeTopViewHeight } from '~/utils/topViewHeight';
     import { actionBarHeight, fontScale, hourlyViewData, hourlyViewMode, isMacCatalyst, onFontScaleChanged, onUnitsChanged, topViewHeight, windowInset, windowSize } from '~/variables';
 
@@ -82,7 +83,8 @@
     itemTemplateSelector={selectTemplate}
     {items}
     paddingBottom={(__ANDROID__ ? $windowInset.bottom : 0) + 16}
-    on:layoutCompleted={onCollectionViewLayoutCompleted}>
+    on:layoutCompleted={onCollectionViewLayoutCompleted}
+    on:scroll={notifyChartScrolled}>
     <Template key="topView" let:item>
         <TopWeatherView {fakeNow} height={topHeight} {item} {weatherLocation} on:tap={() => onTap(item)} />
     </Template>
