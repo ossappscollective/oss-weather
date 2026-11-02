@@ -118,8 +118,8 @@ export class WidgetBridge extends WidgetBridgeBase {
                 throw new Error(`No configuration found for widget ${widgetId}`);
             }
 
-            // Generate cache key based on location to deduplicate requests for same location
-            const cacheKey = `${config.locationName}_${config.latitude}_${config.longitude}_${config.provider}_${config.model}`;
+            // Generate cache key based on the resolved location, provider and model to deduplicate requests
+            const cacheKey = this.dataManager.sourceKey(config);
 
             // Widgets on the same location share one fetch
             const widgetData = await this.updates.run(cacheKey, () => this.dataManager.getWidgetWeatherData(config));
