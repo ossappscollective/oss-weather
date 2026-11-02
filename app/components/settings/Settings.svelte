@@ -39,6 +39,7 @@
         MAIN_CHART_NB_HOURS,
         MAIN_CHART_VISIBLE_HOURS,
         MAX_NB_DAYS_FORECAST,
+        METEOBLUE_ENABLED,
         MIN_UV_INDEX,
         NB_DAYS_FORECAST,
         NB_HOURS_FORECAST,
@@ -58,6 +59,7 @@
         SETTINGS_LANGUAGE,
         SETTINGS_MAIN_CHART_NB_HOURS,
         SETTINGS_MAIN_CHART_VISIBLE_HOURS,
+        SETTINGS_METEOBLUE_ENABLED,
         SETTINGS_METRIC_CM_TO_MM,
         SETTINGS_METRIC_TEMP_DECIMAL,
         SETTINGS_MIN_UV_INDEX,
@@ -66,7 +68,6 @@
         SETTINGS_SHOW_CURRENT_DAY_DAILY,
         SETTINGS_SHOW_DAILY_IN_CURRENTLY,
         SETTINGS_SHOW_EMPTY_DATA,
-        SETTINGS_METEOBLUE_ENABLED,
         SETTINGS_SWIPE_ACTION_BAR_PROVIDER,
         SETTINGS_UNITS,
         SETTINGS_WEATHER_DATA_LAYOUT,
@@ -74,7 +75,6 @@
         SHOW_DAILY_IN_CURRENTLY,
         SHOW_EMPTY_DATA,
         SWIPE_ACTION_BAR_PROVIDER,
-        METEOBLUE_ENABLED,
         WEATHER_DATA_LAYOUT
     } from '~/helpers/constants';
     import { clock_24, getLocaleDisplayName, l, lc, onLanguageChanged, selectLanguage, slc } from '~/helpers/locale';
@@ -633,9 +633,7 @@
                             title: lc('enabled_weather_data')
                         }
                     ]
-                        .concat(
-                            currentData.map(weatherDataRow) as any
-                        )
+                        .concat(currentData.map(weatherDataRow) as any)
                         .concat([
                             {
                                 type: 'sectionheader',
@@ -644,9 +642,7 @@
                                 title: lc('enabled_small_weather_data')
                             }
                         ] as any)
-                        .concat(
-                            currentSmallData.map(weatherDataRow) as any
-                        )
+                        .concat(currentSmallData.map(weatherDataRow) as any)
                         .concat([
                             {
                                 type: 'sectionheader',
@@ -655,9 +651,7 @@
                                 title: lc('disabled_weather_data')
                             }
                         ] as any)
-                        .concat(
-                            disabledData.map(weatherDataRow) as any
-                        );
+                        .concat(disabledData.map(weatherDataRow) as any);
                 };
             case 'map':
                 return async () => [
@@ -734,9 +728,7 @@
                             title: lc('weather_data_to_show_on_main')
                         }
                     ]
-                        .concat(
-                            currentData.map(weatherDataRow)
-                        )
+                        .concat(currentData.map(weatherDataRow))
                         .concat([
                             {
                                 type: 'sectionheader',
@@ -745,9 +737,7 @@
                                 title: lc('available_weather_data')
                             }
                         ] as any)
-                        .concat(
-                            disabledData.map(weatherDataRow) as any
-                        );
+                        .concat(disabledData.map(weatherDataRow) as any);
                 };
             case 'widgets':
                 return async (page, updateItem) => {
@@ -1121,13 +1111,19 @@
                 if (position > disabledPosition) {
                     items.splice(position, 1);
                     if (enabledSmallPosition > -1) {
+                        items.setItem(enabledSmallPosition - 1, items.getItem(enabledSmallPosition - 1));
                         items.splice(enabledSmallPosition, 0, item);
                     } else {
+                        items.setItem(disabledPosition - 1, items.getItem(disabledPosition - 1));
                         items.splice(disabledPosition, 0, item);
                     }
                 } else if (position > enabledPosition) {
                     items.splice(position, 1);
                     items.splice(disabledPosition, 0, item);
+                    const nextItem = items.getItem(disabledPosition + 1);
+                    if (nextItem) {
+                        items.setItem(disabledPosition + 1, nextItem);
+                    }
                 }
                 onReordered(items);
                 return;
@@ -1575,7 +1571,14 @@
     const MOON_DATA_ICON = { fontFamily: 'wi', icon: 'wi-moon-waxing-crescent-4' };
     function weatherDataRow(key: string) {
         const style = $designStyle;
-        return { id: key, reorder: true, type: 'reorder', title: getWeatherDataTitle(key), dataIcon: styledDataIcon(style, key === WeatherProps.moon ? MOON_DATA_ICON : getWeatherDataIcon(key)), dataIconColor: style === 'modern' ? modernDataColor(key) : undefined };
+        return {
+            id: key,
+            reorder: true,
+            type: 'reorder',
+            title: getWeatherDataTitle(key),
+            dataIcon: styledDataIcon(style, key === WeatherProps.moon ? MOON_DATA_ICON : getWeatherDataIcon(key)),
+            dataIconColor: style === 'modern' ? modernDataColor(key) : undefined
+        };
     }
     // modern: navigation rows have no description, only their current value (a chip) when short
     function rowItem(item) {
@@ -1761,11 +1764,7 @@
                 {/if}
             </Template>
             <Template key="sectionheader" let:item>
-                {#if modern}
-                    <label class="modernCaption" {...item.additionalProps || {}} text={item.title} />
-                {:else}
-                    <label class="sectionHeader" {...item.additionalProps || {}} text={item.title} />
-                {/if}
+                <label class="sectionHeader" {...item.additionalProps || {}} text={item.title} />
             </Template>
             <Template key="switch" let:item>
                 <ListItemAutoSize groupPosition={rowGroupPosition(item)} item={rowItem(item)} on:tap={(event) => onTap(item, event)}>
@@ -1812,7 +1811,14 @@
             <Template key="leftIcon" let:item>
                 <ListItemAutoSize columns="auto,*,auto" groupPosition={rowGroupPosition(item)} item={rowItem(item)} mainCol={1} showBottomLine={false} on:tap={(event) => onTap(item, event)}>
                     {#if modern}
-                        <label class="modernTile themedIcon" col={0} color={MODERN_ICON_COLORS[item.icon]} marginRight={12} text={item.icon} verticalAlignment="center" verticalTextAlignment="center" />
+                        <label
+                            class="modernTile themedIcon"
+                            col={0}
+                            color={MODERN_ICON_COLORS[item.icon]}
+                            marginRight={12}
+                            text={item.icon}
+                            verticalAlignment="center"
+                            verticalTextAlignment="center" />
                     {:else}
                         <label class="themedIcon" col={0} fontFamily={$fonts.mdi} fontSize={24} padding="0 10 0 0" text={item.icon} verticalAlignment="center" />
                     {/if}
