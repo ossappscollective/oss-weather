@@ -164,7 +164,9 @@
 
     // a tap highlights every series at that time (the chart only keeps the closest one)
     function handleHighlight({ highlight, object: chart }: { object: CombinedChart; highlight: Highlight }) {
-        highlighted = highlight ? (chart.getHighlightByXValue(highlight.x) ?? [highlight]) : [];
+        const atSameX = highlight ? chart.getHighlightByXValue(highlight.x) : null;
+        // the chart draws, and so gives a drawX to, only its own highlight object: the one of a single series
+        highlighted = !highlight ? [] : atSameX?.length > 1 ? atSameX : [highlight];
         if (highlighted.length > 1) {
             chart.highlights(highlighted);
         }
