@@ -4,6 +4,7 @@
     import { ScatterShape } from '@nativescript-community/ui-chart/charts/ScatterChart';
     import { LimitLine } from '@nativescript-community/ui-chart/components/LimitLine';
     import { XAxisPosition } from '@nativescript-community/ui-chart/components/XAxis';
+    import { AxisDependency } from '@nativescript-community/ui-chart/components/YAxis';
     import { BarData } from '@nativescript-community/ui-chart/data/BarData';
     import { BarDataSet } from '@nativescript-community/ui-chart/data/BarDataSet';
     import { BarLineScatterCandleBubbleDataSet } from '@nativescript-community/ui-chart/data/BarLineScatterCandleBubbleDataSet';
@@ -108,7 +109,6 @@
     let lastKey: string;
     let globalStartTimestamp = Number.MAX_SAFE_INTEGER;
     let nightRanges: { from: number; to: number }[] = [];
-    let lastGridX: number;
     $: lineWidth = modern ? MODERN_LINE_WIDTH : LINE_WIDTH;
     let maxDatalength = 0;
     function updateLineChart(item: Item) {
@@ -192,14 +192,8 @@
                 xAxis.customRenderer = {
                     drawGridLine(c: Canvas, axis, rect: RectF, x: any, y: any, axisValue: any, paint: Paint) {
                         const hours = getLocalTime(globalStartTimestamp + axisValue * 3600 * 1000, timezoneOffset).get('h');
-                        // modern: night shading between hour lines (x is in zoomed pixels here), then only the day separations
+                        // modern: only the day separations, night shading is drawn before the chart (onChartDraw)
                         if (modern) {
-                            if (lastGridX !== undefined && x > lastGridX && nightRanges.some((range) => axisValue - 0.5 >= range.from && axisValue - 0.5 < range.to)) {
-                                nightPaint.setColor(colorOnSurface);
-                                nightPaint.setAlpha(MODERN_NIGHT_ALPHA);
-                                c.drawRect(lastGridX, rect.top, x, rect.bottom, nightPaint);
-                            }
-                            lastGridX = x;
                             if (hours === 0) {
                                 paint.setPathEffect(null);
                                 c.drawLine(x, rect.bottom, x, rect.top, paint);
@@ -488,6 +482,25 @@
         highlightDotPaint.setColor(set.color);
         canvas.drawCircle(highlight.drawX, highlight.drawY, 4, highlightDotPaint);
     }
+    // from the axis values, not between the grid lines: those only exist for the visible hours, so the
+    // partial hour at the edges would stay undrawn until a pan crosses an hour
+    function onChartDraw({ canvas }: { canvas: Canvas }) {
+        const chart = chartView?.nativeView;
+        if (!modern || !chart || !nightRanges.length) {
+            return;
+        }
+        const rect = chart.viewPortHandler.contentRect;
+        nightPaint.setColor(colorOnSurface);
+        nightPaint.setAlpha(MODERN_NIGHT_ALPHA);
+        canvas.save();
+        canvas.clipRect(rect.left, rect.top, rect.right, rect.bottom);
+        for (const range of nightRanges) {
+            const left = chart.getPixelForValues(range.from, 0, AxisDependency.LEFT).x;
+            const right = chart.getPixelForValues(range.to, 0, AxisDependency.LEFT).x;
+            canvas.drawRect(left, rect.top, right, rect.bottom, nightPaint);
+        }
+        canvas.restore();
+    }
     // card next to the highlight line: the time, then each model value (highest first)
     function onChartDrawn({ canvas }: { canvas: Canvas }) {
         const chart = chartView?.nativeView;
@@ -649,6 +662,7 @@
             row={1}
             verticalAlignment={chartHeight ? 'center' : 'stretch'}
             on:highlight={modern ? onModernHighlight : onChartHighlight}
+            on:draw={onChartDraw}
             on:postDraw={onChartDrawn}
             on:pan={clearModernHighlight}
             on:zoom={clearModernHighlight}
