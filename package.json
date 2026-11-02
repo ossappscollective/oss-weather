@@ -94,7 +94,7 @@
         "@nativescript-community/ui-switch": "1.4.2",
         "@nativescript-community/ui-textfield": "1.4.2",
         "@nativescript-community/ui-textview": "1.4.2",
-        "@nativescript-community/ui-webview": "1.6.2",
+        "@nativescript-community/ui-webview": "1.7.0",
         "@nativescript-community/ui-zoomimage": "4.6.20",
         "@nativescript-community/universal-links": "3.0.2",
         "@nativescript/iqkeyboardmanager": "2.1.2",
