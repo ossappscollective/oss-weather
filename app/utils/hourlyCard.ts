@@ -5,6 +5,7 @@ import type { CommonWeatherData } from '~/services/providers/weather';
 import { CommonData, WeatherProps, weatherDataService } from '~/services/weatherData';
 import { dataTextStyle, modernDataColor, modernLineStyle, precipitationFill } from '~/utils/designStyle';
 import { tempColor } from '~/utils/utils.common';
+import { isChartedKey } from '~/utils/chartLabels';
 import { splitValueUnit } from '~/utils/valueUnit';
 import type { HighlightCardContent, HighlightCardRow, HighlightLegendMark } from './chartDraw';
 
@@ -20,7 +21,11 @@ export function hourlyCardData(item: CommonWeatherData, legendKeys: string[] = [
         addedAfter: [WeatherProps.rainSnowLimit, WeatherProps.iso],
         type: 'hourly'
     });
-    // opened from the chart: every charted line gets a row, even when its value is usually hidden (low gust...)
+    // opened from the chart: only the charted data (no uv index, air quality...), and every charted line gets
+    // a row, even when its value is usually hidden (low gust...)
+    if (legendKeys.length) {
+        data = data.filter((entry) => isChartedKey(entry.key, legendKeys));
+    }
     const shownKeys = data.map((entry) => entry.key);
     const missingChartKeys = legendKeys.filter((key) => shownKeys.indexOf(key) === -1 && PRECIPITATION_KEYS.indexOf(key) === -1 && key !== WeatherProps.iconId && key !== WeatherProps.windBearing);
     data = data.concat(missingChartKeys.map((key) => weatherDataService.getChartItemData(key as WeatherProps, item, 'hourly')).filter((entry) => !!entry));

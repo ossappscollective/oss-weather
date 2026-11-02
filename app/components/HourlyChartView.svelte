@@ -33,7 +33,7 @@
     import { WeatherProps, appPaint, convertWeatherValueToUnit, defaultPropUnit, getWeatherDataColor, getWeatherDataTitle, propToUnit, wdPaint, weatherDataService } from '~/services/weatherData';
     import { ValueRange, computeDataRange, getNaturalRange, makeScaler, pickReferenceProp, resolveRange, visibleHoursScale } from '~/utils/chartScale';
     import { generateGradient, loadImage, tempColor } from '~/utils/utils.common';
-    import { contentGradientRange, extremaIndexes, highlightHour, nightSpans, plotPadding } from '~/utils/chartLabels';
+    import { contentGradientRange, extremaIndexes, highlightHour, highlightedAlpha, nightSpans, plotPadding } from '~/utils/chartLabels';
     import BaseChart from '~/components/common/BaseChart.svelte';
     import { hourlyCardContent } from '~/utils/hourlyCard';
 
@@ -292,6 +292,8 @@
         drawBar(c: Canvas, e, dataSet, left: number, top: number, right: number, bottom: number, paint: Paint) {
             const chart = chartView.nativeView;
             const precipProbability = e.precipProbability;
+            // a highlighted bar is drawn more opaque instead of getting a dot
+            const highlighted = chart.highlighted?.some((highlight) => highlight.x === e.deltaHours) ?? false;
             if (isEInk) {
                 // same pattern and outline as the classic hourly bars, with our own paints: the
                 // chart paint is reused to draw the labels
@@ -304,14 +306,14 @@
             if ($designStyle === 'modern' && !hasSnowFall && e.precipColor) {
                 const fill = precipitationFill('modern', precipKind({ precipShowSnow: e.precipShowSnow, mixedRainSnow: e.mixedRainSnow }), e.precipColor, precipProbability);
                 paint.setColor(fill.color);
-                paint.setAlpha(fill.alpha);
+                paint.setAlpha(highlightedAlpha(fill.alpha, highlighted));
                 const radius = Math.min(MODERN_BAR_RADIUS, (right - left) / 2, (bottom - top) / 2);
                 c.drawRoundRect(left + 1, top, right - 1, bottom, radius, radius, paint);
                 return;
             }
             if ($designStyle === 'modern' && hasSnowFall) {
                 // stacked rain and snow (colors from the set): only the top of the stack is rounded
-                paint.setAlpha(precipitationFill('modern', 'rain', '', precipProbability).alpha);
+                paint.setAlpha(highlightedAlpha(precipitationFill('modern', 'rain', '', precipProbability).alpha, highlighted));
                 const total = (e.yVals ?? []).reduce((sum, value) => sum + value, 0);
                 if (Math.abs(chart.getPixelForValues(e.deltaHours, total, AxisDependency.RIGHT).y - top) < 1) {
                     const radius = Math.min(MODERN_BAR_RADIUS, (right - left) / 2, bottom - top);
@@ -325,12 +327,12 @@
                 }
                 return;
             }
-            paint.setAlpha(precipProbability === -1 ? 125 : precipProbability * 2.55);
+            paint.setAlpha(highlightedAlpha(precipProbability === -1 ? 125 : precipProbability * 2.55, highlighted));
             if (hasSnowFall) {
                 c.drawRect(left + 1, top + 1, right - 0.5, bottom - 0.5, paint);
             } else if (e.precipColor) {
                 paint.setColor(e.precipColor);
-                paint.setAlpha(precipProbability === -1 ? 125 : precipProbability * 2.55);
+                paint.setAlpha(highlightedAlpha(precipProbability === -1 ? 125 : precipProbability * 2.55, highlighted));
                 c.drawRect(left, top, right, bottom, paint);
             }
         }
@@ -928,6 +930,11 @@
         lastXLabelIconHour = undefined;
     }
 
+    // the dot of the temperature follows the color of its line at that point
+    function highlightColor(dataSet, highlight: Highlight) {
+        return dataSet.label === WeatherProps.temperature ? tempColor((highlight.entry as CommonWeatherData).temperature, -20, 30) : undefined;
+    }
+
     function highlightOnDate(timestamp: number) {
         const chart = chartView?.nativeView;
         const x = highlightHour(timestamp, startTimestamp);
@@ -946,6 +953,10 @@
             style: $designStyle,
             theme: { onSurface: colorOnSurface, onSurfaceVariant: colorOnSurfaceVariant }
         });
+    }
+    // the bars have no dot: they are drawn more opaque (drawBar)
+    function hasHighlightDot(dataSet) {
+        return ['barchart', 'precipitationchart'].indexOf(CHART_TYPE[dataSet.label]) === -1;
     }
     // lines and bars only: the icons, wind arrows and cloud cover have no point to show
     function isHighlightedSet(dataSet) {
@@ -1089,6 +1100,8 @@
     <BaseChart
         customRenderer={hourlyRenderer}
         {highlightCard}
+        {highlightColor}
+        highlightDot={hasHighlightDot}
         highlightFilter={isHighlightedSet}
         highlightPerDrag={true}
         {nightRanges}
