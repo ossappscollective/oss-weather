@@ -705,6 +705,7 @@
                                 { value: 'chart', title: lc('chart_view') },
                                 { value: 'windy', title: lc('windy_view') }
                             ],
+                            currentValue: () => ApplicationSettings.getString(SETTINGS_HOURLY_VIEW_MODE, HOURLY_VIEW_MODE),
                             rightValue: () => lc(ApplicationSettings.getString(SETTINGS_HOURLY_VIEW_MODE, HOURLY_VIEW_MODE) + '_view')
                         },
                         {
