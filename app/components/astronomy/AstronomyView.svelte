@@ -355,7 +355,8 @@
             const set = chart.data.getDataSetByHighlight(highlight);
             return { name: lc(set.label), color: set.color, text: Math.round(highlight.entry['altitude'] * TO_DEG) + '°' };
         });
-        return { title: formatTime(timeAt(highlights[0].x)), rows };
+        // samples keep the card size while the values change
+        return { title: formatTime(timeAt(highlights[0].x)), titleSample: formatTime(startTime.set('h', 20).set('m', 8)), valueSample: '-88°', rows };
     }
 
     async function selectDate() {

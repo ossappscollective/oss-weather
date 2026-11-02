@@ -35,6 +35,12 @@ describe('cardLayout', () => {
         expect(layout.width).toBe(2 * 116 + 16 + 20);
         expect(layout.height).toBe(20 + 18 + 5 * 18);
     });
+    it('shrinks the rows in one column before using two', () => {
+        const layout = cardLayout({ ...base, rowCount: 10, availableHeight: 180 });
+        expect(layout.columns).toBe(1);
+        expect(layout.rowHeight).toBeCloseTo(14.2, 5);
+        expect(layout.height).toBeCloseTo(180, 5);
+    });
     it('shrinks the rows when two columns are still too tall', () => {
         const layout = cardLayout({ ...base, rowCount: 10, availableHeight: 110 });
         expect(layout.columns).toBe(2);

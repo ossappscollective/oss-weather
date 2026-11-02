@@ -6,6 +6,8 @@
     import type { NativeViewElementNode } from '@nativescript-community/svelte-native/dom';
     import { getLocalTime } from '~/helpers/locale';
     import { modernColors } from '~/helpers/modernTheme';
+    import { onDestroy } from 'svelte';
+    import { chartScrolled } from '~/utils/chartEvents';
     import { colors, designStyle, fontScale } from '~/variables';
     import { MODERN_NOW_COLOR, createTimeAxisRenderer, drawHighlightCard, drawNightShading } from '~/utils/chartDraw';
     import type { HighlightCardContent } from '~/utils/chartDraw';
@@ -58,6 +60,7 @@
     let lineDrawn = false;
     let classicAxisLineColor: string;
     let hasNowLine = false;
+    onDestroy(chartScrolled.subscribe(() => clearHighlight()));
 
     export function getChart() {
         return chartView?.nativeView;
@@ -71,9 +74,14 @@
 
     $: if (chartView) {
         const chart = chartView.nativeView;
-        chart.highlightPerTapEnabled = highlightEnabled;
         chart.highlightsFilterByAxis = false;
-        chart.highlightPerDragEnabled = highlightEnabled && highlightPerDrag;
+        // never set to false: it also turns off the pan gesture, and with it the drag of the chart
+        if (highlightEnabled) {
+            chart.highlightPerTapEnabled = true;
+            if (highlightPerDrag) {
+                chart.highlightPerDragEnabled = true;
+            }
+        }
     }
     $: if (chartView) {
         chartView.nativeView.customRenderer = { ...customRenderer, drawHighlight };

@@ -88,6 +88,9 @@ export interface HighlightCardContent {
     rows: HighlightCardRow[];
     // nominal row height, before the font scale
     rowHeight?: number;
+    // widest title and value the card can show: keeps its size from changing while the highlight moves
+    titleSample?: string;
+    valueSample?: string;
 }
 
 export interface HighlightCardColors {
@@ -102,7 +105,18 @@ export interface HighlightCardColors {
 export function drawHighlightCard(
     canvas: Canvas,
     chart: CombinedChart,
-    { colors, image, lineX, rowHeight: nominalRowHeight = 18, rows, scale, subtitle, title }: HighlightCardContent & { lineX: number; scale: number; colors: HighlightCardColors }
+    {
+        colors,
+        image,
+        lineX,
+        rowHeight: nominalRowHeight = 18,
+        rows,
+        scale,
+        subtitle,
+        title,
+        titleSample,
+        valueSample
+    }: HighlightCardContent & { lineX: number; scale: number; colors: HighlightCardColors }
 ) {
     if (!rows.length) {
         return;
@@ -121,7 +135,7 @@ export function drawHighlightCard(
     const namesWidth = Math.max(...rows.map((row) => cardTextPaint.measureText(row.name)));
     const extrasWidth = Math.max(...rows.map((row) => (row.extra ? cardTextPaint.measureText(row.extra) + 6 * scale : 0)));
     cardTextPaint.setFontWeight(fontWeight);
-    const valuesWidth = Math.max(...rows.map((row) => cardTextPaint.measureText(row.text)));
+    const valuesWidth = Math.max(...rows.map((row) => cardTextPaint.measureText(row.text)), valueSample ? cardTextPaint.measureText(valueSample) : 0);
     const columnWidth = legendSpace + leadingSpace + namesWidth + gap + extrasWidth + valuesWidth;
 
     const imageSize = image ? 30 * scale : 0;
@@ -130,7 +144,7 @@ export function drawHighlightCard(
     const subtitleHeight = subtitle ? 16 * scale : 0;
     const shownSubtitle = subtitle ? ellipsize(subtitle, Math.max(columnWidth, Math.min(content.width() * 0.8, 260 * scale)) - imageSpace, (text) => cardTextPaint.measureText(text)) : null;
     // the title is drawn with the values weight
-    const titleWidth = title ? cardTextPaint.measureText(title) : 0;
+    const titleWidth = title ? Math.max(cardTextPaint.measureText(title), titleSample ? cardTextPaint.measureText(titleSample) : 0) : 0;
     cardTextPaint.setFontWeight('normal');
     cardTextPaint.setTextSize(11 * scale);
     const subtitleWidth = shownSubtitle ? cardTextPaint.measureText(shownSubtitle) : 0;
@@ -145,11 +159,11 @@ export function drawHighlightCard(
         rowHeight: nominalRowHeight * scale,
         padding,
         columnGap,
-        availableHeight: content.height() - 16
+        availableHeight: canvas.getHeight() - 16
     });
     const { height, rowHeight, width } = layout;
     const left = cardLeft(lineX, width, content.left, content.right);
-    const top = content.top + 8;
+    const top = 8;
     cardPaint.setColor(colors.surface);
     canvas.drawRoundRect(left, top, left + width, top + height, 10, 10, cardPaint);
     cardBorderPaint.setColor(colors.border);

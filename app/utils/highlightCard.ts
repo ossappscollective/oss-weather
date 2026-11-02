@@ -6,8 +6,9 @@ export function cardLeft(lineX: number, width: number, contentLeft: number, cont
     return lineX + LINE_GAP + width <= contentRight ? lineX + LINE_GAP : Math.max(contentLeft, lineX - LINE_GAP - width);
 }
 
-// card size from its measured parts: a header, then the rows in one column, or two when the plot is
-// too short, with rows shrunk (down to a minimum) if that still does not fit. availableHeight 0 = unknown
+// card size from its measured parts: a header, then the rows in as few columns as possible. A column
+// that is too tall first shrinks its rows (down to a minimum), then the rows go to one more column.
+// availableHeight 0 = unknown
 export function cardLayout({
     availableHeight,
     columnGap,
@@ -30,24 +31,30 @@ export function cardLayout({
     maxColumns?: number;
 }) {
     const fixedHeight = 2 * padding + headerHeight;
-    let columns = 1;
-    if (availableHeight > 0) {
-        while (columns < maxColumns && fixedHeight + Math.ceil(rowCount / columns) * rowHeight > availableHeight) {
-            columns++;
+    const result = (columns: number, shownRowHeight: number) => {
+        const rowsPerColumn = Math.ceil(rowCount / columns);
+        return {
+            columns,
+            rowsPerColumn,
+            rowHeight: shownRowHeight,
+            width: Math.max(headerWidth, columns * columnWidth + (columns - 1) * columnGap) + 2 * padding,
+            height: fixedHeight + rowsPerColumn * shownRowHeight
+        };
+    };
+    if (availableHeight <= 0) {
+        return result(1, rowHeight);
+    }
+    for (let columns = 1; columns <= maxColumns; columns++) {
+        const rowsPerColumn = Math.ceil(rowCount / columns);
+        const fittingRowHeight = rowsPerColumn > 0 ? (availableHeight - fixedHeight) / rowsPerColumn : rowHeight;
+        if (fittingRowHeight >= rowHeight) {
+            return result(columns, rowHeight);
+        }
+        if (fittingRowHeight >= rowHeight * MIN_ROW_SCALE || columns === maxColumns) {
+            return result(columns, Math.max(rowHeight * MIN_ROW_SCALE, fittingRowHeight));
         }
     }
-    const rowsPerColumn = Math.ceil(rowCount / columns);
-    let shownRowHeight = rowHeight;
-    if (availableHeight > 0 && rowsPerColumn > 0 && fixedHeight + rowsPerColumn * rowHeight > availableHeight) {
-        shownRowHeight = Math.max(rowHeight * MIN_ROW_SCALE, (availableHeight - fixedHeight) / rowsPerColumn);
-    }
-    return {
-        columns,
-        rowsPerColumn,
-        rowHeight: shownRowHeight,
-        width: Math.max(headerWidth, columns * columnWidth + (columns - 1) * columnGap) + 2 * padding,
-        height: fixedHeight + rowsPerColumn * shownRowHeight
-    };
+    return result(maxColumns, rowHeight * MIN_ROW_SCALE);
 }
 
 // text cut to fit maxWidth, ending with an ellipsis
