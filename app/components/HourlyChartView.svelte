@@ -928,6 +928,11 @@
         lastXLabelIconHour = undefined;
     }
 
+    // the dot of the temperature follows the color of its line at that point
+    function highlightColor(dataSet, highlight: Highlight) {
+        return dataSet.label === WeatherProps.temperature ? tempColor((highlight.entry as CommonWeatherData).temperature, -20, 30) : undefined;
+    }
+
     function highlightOnDate(timestamp: number) {
         const chart = chartView?.nativeView;
         const x = highlightHour(timestamp, startTimestamp);
@@ -1089,6 +1094,7 @@
     <BaseChart
         customRenderer={hourlyRenderer}
         {highlightCard}
+        {highlightColor}
         highlightFilter={isHighlightedSet}
         highlightPerDrag={true}
         {nightRanges}
