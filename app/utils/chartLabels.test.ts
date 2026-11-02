@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { contentGradientRange, extremaIndexes, gridLineKind, highlightHour, nightSpans, plotPadding } from './chartLabels';
+import { contentGradientRange, extremaIndexes, gridLineKind, highlightHour, isChartedKey, nightSpans, plotPadding } from './chartLabels';
 
 describe('extremaIndexes', () => {
     it('keeps the ends and every local high and low', () => {
@@ -103,5 +103,25 @@ describe('gridLineKind', () => {
         expect(gridLineKind(0, false)).toBe('solid');
         expect(gridLineKind(8, false)).toBe('dashed');
         expect(gridLineKind(5, false)).toBeNull();
+    });
+});
+
+describe('isChartedKey', () => {
+    it('keeps the lines of the chart', () => {
+        expect(isChartedKey('temperature', ['temperature', 'windSpeed'])).toBe(true);
+    });
+
+    it('drops the data the chart does not show, like the uv index or the air quality', () => {
+        expect(isChartedKey('uvIndex', ['temperature', 'windSpeed'])).toBe(false);
+        expect(isChartedKey('aqi', ['temperature'])).toBe(false);
+    });
+
+    it('keeps every precipitation row when the chart shows one precipitation bar', () => {
+        expect(isChartedKey('rainPrecipitation', ['temperature', 'precipAccumulation'])).toBe(true);
+        expect(isChartedKey('snowfall', ['temperature', 'precipAccumulation'])).toBe(true);
+    });
+
+    it('drops the precipitation rows when the chart shows none', () => {
+        expect(isChartedKey('snowfall', ['temperature'])).toBe(false);
     });
 });

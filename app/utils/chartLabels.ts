@@ -86,3 +86,13 @@ export function gridLineKind(hours: number, modern: boolean): 'solid' | 'dashed'
     }
     return !modern && hours % 4 === 0 ? 'dashed' : null;
 }
+
+const PRECIPITATION_KEYS = ['precipAccumulation', 'rainPrecipitation', 'snowfall'];
+
+// the data a chart shows: its lines, and the precipitation rows when it shows a precipitation bar
+export function isChartedKey(key: string, chartedKeys: string[]): boolean {
+    if (chartedKeys.indexOf(key) !== -1) {
+        return true;
+    }
+    return PRECIPITATION_KEYS.indexOf(key) !== -1 && PRECIPITATION_KEYS.some((precipitationKey) => chartedKeys.indexOf(precipitationKey) !== -1);
+}
