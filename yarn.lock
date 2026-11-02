@@ -3002,9 +3002,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nativescript-community/ui-chart@npm:2.0.30":
-  version: 2.0.30
-  resolution: "@nativescript-community/ui-chart@npm:2.0.30"
+"@nativescript-community/ui-chart@npm:2.0.31":
+  version: 2.0.31
+  resolution: "@nativescript-community/ui-chart@npm:2.0.31"
   dependencies:
     "@nativescript-community/additween": "npm:^4.0.9"
     "@nativescript-community/arraybuffers": "npm:^1.1.5"
@@ -3012,7 +3012,7 @@ __metadata:
     "@nativescript-community/ui-canvas": "npm:^4.6.46"
     downsample: "npm:^1.4.0"
     number-format.js: "npm:^2.0.9"
-  checksum: 10/6d07766c63134752bbc07ba36dd9807fba5067ab1112c875c8987fb81f45ade1a2694d6f5edab61f23efe9dda5b48b4183123372cc71e99645a1c6bc95bb685c
+  checksum: 10/9bbe257f182f0caf0053d2ceca8e22bd7c3d69def3eb85559f69d6358c41eb9a1d7aaf3890ffe1709f93c239d1a02aacb759b344c1481368658d136b9999840e
   languageName: node
   linkType: hard
 
@@ -13645,7 +13645,7 @@ __metadata:
     "@nativescript-community/ui-button": "npm:1.4.2"
     "@nativescript-community/ui-canvas": "npm:4.6.57"
     "@nativescript-community/ui-canvaslabel": "npm:1.2.60"
-    "@nativescript-community/ui-chart": "npm:2.0.30"
+    "@nativescript-community/ui-chart": "npm:2.0.31"
     "@nativescript-community/ui-checkbox": "npm:1.4.2"
     "@nativescript-community/ui-collectionview": "npm:6.0.35"
     "@nativescript-community/ui-collectionview-swipemenu": "npm:6.0.35"
