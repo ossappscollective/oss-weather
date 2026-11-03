@@ -1,0 +1,12 @@
+Features:
+- add daily rows to tall hourly widget (#610)
+- use METAR observations for the current conditions (#617)
+- add Open-Meteo as marine weather provider and a full-day tide chart (#628)
+
+Bug fixes:
+- MeteoFrance default key not working anymore
+- keep classic weather data below the row header (#619)
+- Translations update from Hosted Weblate (#618)
+- hourly display mode alert not showing currenlty seleected
+- draw night shading up to the chart edges (#621)
+- keep zoom when a pinch ends with 
