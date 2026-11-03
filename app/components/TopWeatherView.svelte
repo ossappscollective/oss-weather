@@ -518,11 +518,11 @@
         };
         sunLineItem('wd-sunrise', wdPaint, '#EF9F27', formatTime(item.sunriseTime, undefined, item.timezoneOffset));
         sunLineItem('wd-sunset', wdPaint, '#D85A30', formatTime(item.sunsetTime, undefined, item.timezoneOffset));
-        if (weatherDataService.isDataEnabled(WeatherProps.moon) && item.moonIcon) {
-            // modern moon glyph; the lit percentage is shorter than the phase name and the icon already shows the phase
-            sunLineItem(styledDataIcon('modern', { fontFamily: 'wi', icon: item.moonIcon }).icon, wdPaint, '#7F77DD', `${getMoonIlluminationPercent(new Date(item.time))}%`);
-        }
-        for (const c of weatherDataService.getSmallIconsData({ item, type: 'currently', filter: [WeatherProps.moon] })) {
+        // if (weatherDataService.isDataEnabled(WeatherProps.moon) && item.moonIcon) {
+        //     // modern moon glyph; the lit percentage is shorter than the phase name and the icon already shows the phase
+        //     sunLineItem(styledDataIcon('modern', { fontFamily: 'wi', icon: item.moonIcon }).icon, wdPaint, '#7F77DD', `${getMoonIlluminationPercent(new Date(item.time))}%`);
+        // }
+        for (const c of weatherDataService.getSmallIconsData({ item, type: 'currently' })) {
             const paint = c.paint || textIconPaint;
             paint.setTextAlign(Align.LEFT);
             paint.setTextSize(c.iconFontSize * 0.75);
