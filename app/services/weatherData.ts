@@ -15,6 +15,7 @@ import { createGlobalEventListener, globalObservable } from '@shared/utils/svelt
 import { dataTint, modernPrecipColor, precipKind, styledDataIcon } from '~/utils/designStyle';
 import { getMoonIlluminationPercent } from '~/helpers/moon';
 import { getIndexedColor, tempColor } from '~/utils/utils';
+import { marineValueDigits } from '~/utils/valueUnit';
 import { cloudyColor, designStyle, fontScale, fonts, rainColor, scatteredCloudyColor, snowColor, sunnyColor, unitsSettings } from '~/variables';
 import { colorForAqi } from './airQualityData';
 import { iconService } from './icon';
@@ -918,15 +919,15 @@ export class DataService extends Observable {
                 }
                 break;
             case WeatherProps.waveHeight:
-                if (Math.round(item.waveHeight) > 0 || Math.round(item.waveHeightMax) > 0) {
+                if (Math.round(item.waveHeight * 10) > 0 || Math.round(item.waveHeightMax * 10) > 0) {
                     return {
                         key,
                         iconFontSize,
                         iconColor: getWeatherDataColor(key),
                         paint,
                         icon,
-                        value: formatValueToUnit(item.waveHeight, propToUnit(key, item), defaultPropUnit(key)),
-                        subvalue: lc('max') + ': ' + formatValueToUnit(item.waveHeightMax, propToUnit(key, item), defaultPropUnit(key))
+                        value: formatValueToUnit(item.waveHeight, propToUnit(key, item), defaultPropUnit(key), { digits: marineValueDigits(key) }),
+                        subvalue: lc('max') + ': ' + formatValueToUnit(item.waveHeightMax, propToUnit(key, item), defaultPropUnit(key), { digits: marineValueDigits(key) })
                     };
                 }
                 break;
@@ -940,14 +941,14 @@ export class DataService extends Observable {
                     value: formatWeatherValue(item, key)
                 };
             case WeatherProps.swellHeight:
-                if (Math.round(item.swellHeight) > 0) {
+                if (Math.round(item.swellHeight * 10) > 0) {
                     return {
                         key,
                         iconFontSize,
                         iconColor: getWeatherDataColor(key),
                         paint,
                         icon,
-                        value: formatValueToUnit(item.waveHeight, propToUnit(key, item), defaultPropUnit(key))
+                        value: formatValueToUnit(item.swellHeight, propToUnit(key, item), defaultPropUnit(key), { digits: marineValueDigits(key) })
                     };
                 }
                 break;
@@ -985,15 +986,15 @@ export async function showHourlyPopover(
 export function convertWeatherValueToUnit(
     item: CommonWeatherData,
     key: WeatherProps,
-    options?: { prefix?: string; join?: string; unitScale?: number; roundedTo05?: boolean; round?: boolean; forceUnit?: boolean }
+    options?: { prefix?: string; join?: string; unitScale?: number; roundedTo05?: boolean; round?: boolean; forceUnit?: boolean; digits?: number }
 ) {
-    return convertValueToUnit(item[key], propToUnit(key, item), defaultPropUnit(key), options);
+    return convertValueToUnit(item[key], propToUnit(key, item), defaultPropUnit(key), { digits: marineValueDigits(key), ...options });
 }
-export function formatWeatherValue(item: CommonWeatherData, key: WeatherProps, options?: { prefix?: string; join?: string; unitScale?: number; roundedTo05?: boolean; canForcePrecipUnit?: boolean }) {
+export function formatWeatherValue(item: CommonWeatherData, key: WeatherProps, options?: { prefix?: string; join?: string; unitScale?: number; roundedTo05?: boolean; canForcePrecipUnit?: boolean; digits?: number }) {
     if (key === WeatherProps.iconId) {
         return iconService.getIcon(item.iconId, item.isDay, false);
     }
-    return formatValueToUnit(item[key], propToUnit(key, item, options), defaultPropUnit(key), options);
+    return formatValueToUnit(item[key], propToUnit(key, item, options), defaultPropUnit(key), { digits: marineValueDigits(key), ...options });
 }
 
 export function colorForUV(value) {

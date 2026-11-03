@@ -91,7 +91,7 @@
     let filter: string = null;
 
     // technique for only specific properties to get updated on store change
-    $: ({ colorOnSurface, colorOutline, colorPrimary } = $colors);
+    $: ({ colorOnSurface, colorOnSurfaceVariant, colorOutline, colorPrimary } = $colors);
     // modern: regular row titles separated by hairlines, the title in the accent weight
     $: modern = $designStyle === 'modern';
     $: rowFontWeight = modern ? 'normal' : fontWeight;
@@ -448,14 +448,14 @@
                     <!-- text icons ("mb") have an iconFontSize: drawn smaller -->
                     <label
                         class={item.iconFontSize ? 'modernMenuIcon modernMenuIconText' : 'modernMenuIcon'}
-                        color={item.iconColor || item.color}
+                        color={item.iconColor || item.color || colorOnSurface}
                         fontFamily={item.iconFontFamily || $fonts.mdi}
                         text={item.icon}
                         verticalAlignment="center"
                         visibility={item.icon ? 'visible' : 'collapse'} />
                     <stacklayout col={1} verticalAlignment="center">
-                        <label class="modernMenuTitle modernEllipsis" color={item.color} text={item.title || item.name} />
-                        <label class="modernSubtitle modernEllipsis" text={item.subtitle} visibility={item.subtitle ? 'visible' : 'collapse'} />
+                        <label class="modernMenuTitle modernEllipsis" color={item.color || colorOnSurface} text={item.title || item.name} />
+                        <label class="modernSubtitle modernEllipsis" color={colorOnSurfaceVariant} text={item.subtitle} visibility={item.subtitle ? 'visible' : 'collapse'} />
                     </stacklayout>
                     <label
                         class="modernChip"
@@ -471,11 +471,12 @@
                 <gridlayout class={modernMenuRowClass(item) + (isMenu ? '' : ' modernChoiceRow')} columns="auto,*,auto" rippleColor={colorPrimary} on:tap={(event) => onCheckBox?.(item, true, event)}>
                     <label
                         class={item.value ? 'modernMenuIcon modernChoiceIconSelected' : 'modernMenuIcon modernChoiceIcon'}
+                        color={item.value ? colorPrimary : colorOnSurfaceVariant}
                         text={item.value ? 'mdi-check-circle-outline' : 'mdi-circle-outline'}
                         verticalAlignment="center" />
                     <stacklayout col={1} verticalAlignment="center">
-                        <label class={item.value ? 'modernMenuTitle modernStrong' : 'modernMenuTitle'} text={item.title || item.name} textWrap={true} />
-                        <label class="modernSubtitle" text={item.subtitle} textWrap={true} visibility={item.subtitle ? 'visible' : 'collapse'} />
+                        <label class={item.value ? 'modernMenuTitle modernStrong' : 'modernMenuTitle'} color={colorOnSurface} text={item.title || item.name} textWrap={true} />
+                        <label class="modernSubtitle" color={colorOnSurfaceVariant} text={item.subtitle} textWrap={true} visibility={item.subtitle ? 'visible' : 'collapse'} />
                     </stacklayout>
                     <label
                         class="modernChip"
@@ -488,18 +489,18 @@
             </Template>
             <Template key="modernCheck" let:item>
                 <gridlayout class={modernMenuRowClass(item) + ' modernCheckRow'} columns="auto,*,auto" rippleColor={colorPrimary} on:tap={(event) => onTap(item, event)}>
-                    <label class="modernMenuIcon" color={item.iconColor || item.color} text={item.icon} verticalAlignment="center" visibility={item.icon ? 'visible' : 'collapse'} />
+                    <label class="modernMenuIcon" color={item.iconColor || item.color || colorOnSurface} text={item.icon} verticalAlignment="center" visibility={item.icon ? 'visible' : 'collapse'} />
                     <stacklayout col={1} verticalAlignment="center">
-                        <label class="modernMenuTitle" text={item.title || item.name} textWrap={true} />
-                        <label class="modernSubtitle" text={item.subtitle} textWrap={true} visibility={item.subtitle ? 'visible' : 'collapse'} />
+                        <label class="modernMenuTitle" color={colorOnSurface} text={item.title || item.name} textWrap={true} />
+                        <label class="modernSubtitle" color={colorOnSurfaceVariant} text={item.subtitle} textWrap={true} visibility={item.subtitle ? 'visible' : 'collapse'} />
                     </stacklayout>
                     <checkbox id="checkbox" checked={item.value} col={2} marginLeft={8} verticalAlignment="center" on:checkedChange={(e) => onCheckedChanged(item, e)} />
                 </gridlayout>
             </Template>
             <Template key="modernSwitch" let:item>
                 <gridlayout class={modernMenuRowClass(item) + ' modernSwitchRow'} columns="auto,*,auto" rippleColor={colorPrimary} on:tap={(event) => onTap(item, event)}>
-                    <label class="modernMenuIcon" text={item.icon} verticalAlignment="center" visibility={item.icon ? 'visible' : 'collapse'} />
-                    <label class="modernMenuTitle" col={1} text={item.title || item.name} textWrap={true} verticalAlignment="center" />
+                    <label class="modernMenuIcon" color={colorOnSurface} text={item.icon} verticalAlignment="center" visibility={item.icon ? 'visible' : 'collapse'} />
+                    <label class="modernMenuTitle" col={1} color={colorOnSurface} text={item.title || item.name} textWrap={true} verticalAlignment="center" />
                     <switch id="checkbox" checked={item.value} col={2} marginLeft={8} on:loaded={styleModernSwitch} on:checkedChange={(e) => onCheckedChanged(item, e)} />
                 </gridlayout>
             </Template>

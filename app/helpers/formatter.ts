@@ -39,7 +39,7 @@ export function toImperialUnit(unit: UNITS, imperial = imperialUnits) {
             return unit;
     }
 }
-export function convertValueToUnit(value: any, unit: UNITS, defaultUnit: UNITS, options: { round?: boolean; roundedTo05?: boolean; forceUnit?: boolean } = {}): [number, string] {
+export function convertValueToUnit(value: any, unit: UNITS, defaultUnit: UNITS, options: { round?: boolean; roundedTo05?: boolean; forceUnit?: boolean; digits?: number } = {}): [number, string] {
     if (value === undefined || value === null) {
         return [null, unit];
     }
@@ -50,7 +50,7 @@ export function convertValueToUnit(value: any, unit: UNITS, defaultUnit: UNITS, 
     switch (defaultUnit) {
         case UNITS.Celcius:
             shouldRound = true;
-            options.roundedTo05 = !metricDecimalTemp;
+            options.roundedTo05 = !metricDecimalTemp && options.digits === undefined;
             if (unit === UNITS.Fahrenheit) {
                 value = celciusToFahrenheit(value);
                 // we rollback to celcius after to only show '°' and not '°F'
@@ -149,7 +149,8 @@ export function convertValueToUnit(value: any, unit: UNITS, defaultUnit: UNITS, 
         value = ((Math.round(value * 2) / 2) * 10) / 10;
     }
     // DEV_LOG && console.log('convertValueToUnit', value, unit, defaultUnit, shouldRound, digits);
-    return [shouldRound ? Math.round(value * digits) / digits : value, unit];
+    const roundDigits = options.digits ?? digits;
+    return [shouldRound ? Math.round(value * roundDigits) / roundDigits : value, unit];
     // switch (unit) {
     //     case UNITS.Percent:
     //     case UNITS.UV:
@@ -229,7 +230,7 @@ export function convertValueToUnit(value: any, unit: UNITS, defaultUnit: UNITS, 
     // }
 }
 
-export function formatValueToUnit(value: any, unit: UNITS, defaultUnit: UNITS, options: { prefix?: string; join?: string; unitScale?: number; roundedTo05?: boolean } = {}) {
+export function formatValueToUnit(value: any, unit: UNITS, defaultUnit: UNITS, options: { prefix?: string; join?: string; unitScale?: number; roundedTo05?: boolean; digits?: number } = {}) {
     if (unit === UNITS.Celcius) {
         options.join ??= '';
     } else {

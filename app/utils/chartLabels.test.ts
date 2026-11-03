@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { contentGradientRange, extremaIndexes, highlightHour, nightSpans, plotPadding } from './chartLabels';
+import { contentGradientRange, extremaIndexes, gridLineKind, highlightHour, highlightedAlpha, isChartedKey, nightSpans, plotPadding } from './chartLabels';
 
 describe('extremaIndexes', () => {
     it('keeps the ends and every local high and low', () => {
@@ -90,5 +90,57 @@ describe('highlightHour', () => {
         expect(highlightHour(start, NaN)).toBeNull();
         expect(highlightHour(start, undefined)).toBeNull();
         expect(highlightHour(start, Infinity)).toBeNull();
+    });
+});
+
+describe('gridLineKind', () => {
+    it('modern keeps only the day separation', () => {
+        expect(gridLineKind(0, true)).toBe('solid');
+        expect(gridLineKind(4, true)).toBeNull();
+        expect(gridLineKind(12, true)).toBeNull();
+    });
+    it('classic draws every 4 hours, solid at midnight', () => {
+        expect(gridLineKind(0, false)).toBe('solid');
+        expect(gridLineKind(8, false)).toBe('dashed');
+        expect(gridLineKind(5, false)).toBeNull();
+    });
+});
+
+describe('isChartedKey', () => {
+    it('keeps the lines of the chart', () => {
+        expect(isChartedKey('temperature', ['temperature', 'windSpeed'])).toBe(true);
+    });
+
+    it('drops the data the chart does not show, like the uv index or the air quality', () => {
+        expect(isChartedKey('uvIndex', ['temperature', 'windSpeed'])).toBe(false);
+        expect(isChartedKey('aqi', ['temperature'])).toBe(false);
+    });
+
+    it('keeps every precipitation row when the chart shows one precipitation bar', () => {
+        expect(isChartedKey('rainPrecipitation', ['temperature', 'precipAccumulation'])).toBe(true);
+        expect(isChartedKey('snowfall', ['temperature', 'precipAccumulation'])).toBe(true);
+    });
+
+    it('drops the precipitation rows when the chart shows none', () => {
+        expect(isChartedKey('snowfall', ['temperature'])).toBe(false);
+    });
+});
+
+describe('highlightedAlpha', () => {
+    it('keeps the alpha of a bar that is not highlighted', () => {
+        expect(highlightedAlpha(100, false)).toBe(100);
+    });
+
+    it('makes a highlighted bar more opaque', () => {
+        expect(highlightedAlpha(100, true)).toBe(160);
+    });
+
+    it('never goes over fully opaque', () => {
+        expect(highlightedAlpha(200, true)).toBe(255);
+        expect(highlightedAlpha(255, true)).toBe(255);
+    });
+
+    it('keeps a transparent bar transparent', () => {
+        expect(highlightedAlpha(0, true)).toBe(0);
     });
 });

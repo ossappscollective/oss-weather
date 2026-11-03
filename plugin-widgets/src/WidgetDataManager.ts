@@ -15,6 +15,7 @@ import { widgetChip } from '~/utils/widgetChips';
 import { upcomingDays } from '~/utils/widgetDays';
 import { precipBars, precipTexts } from '~/utils/widgetPrecip';
 import { splitValueUnit } from '~/utils/valueUnit';
+import { widgetSourceKey, widgetWeatherSource } from '~/utils/widgetSource';
 import { staleForecast } from '~/utils/widgetStale';
 import { renderWidgetIcon } from './WidgetIcons';
 import { ForecastData, WeatherWidgetData, WidgetChip, WidgetConfig } from './WidgetTypes';
@@ -47,25 +48,29 @@ export class WidgetDataManager {
         return location;
     }
 
+    // the location and the provider/model its weather comes from: the app ones for the current location
+    private resolveSource(config: WidgetConfig) {
+        const location = this.resolveLocation(config);
+        return { location, ...widgetWeatherSource(config, location) };
+    }
+
+    /**
+     * Widgets with the same key fetch the same weather
+     */
+    sourceKey(config: WidgetConfig) {
+        const { location, ...source } = this.resolveSource(config);
+        return widgetSourceKey(location?.coord ?? { lat: config.latitude, lon: config.longitude }, source);
+    }
+
     /**
      * Fetch and format weather data for a widget
      */
     async getWidgetWeatherData(config: WidgetConfig): Promise<WeatherWidgetData> {
         // DEV_LOG && console.log('getWidgetWeatherData', JSON.stringify(config));
-        const location = this.resolveLocation(config);
-        // native config sends null: undefined lets the provider use its default model
-        const model = config.model ?? undefined;
+        const { location, provider, model } = this.resolveSource(config);
 
         // Fetch weather data using WeatherProvider.getWeather
-        const weatherData = location
-            ? await getWeather(
-                  location,
-                  {
-                      model
-                  },
-                  config.provider
-              )
-            : null;
+        const weatherData = location ? await getWeather(location, { model }, provider) : null;
 
         // Format data for widget
         return this.formatWeatherDataForWidget(weatherData, location, config);
@@ -76,12 +81,12 @@ export class WidgetDataManager {
      * (enough upcoming forecast), flagged stale with the time of the data
      */
     getStaleWidgetWeatherData(config: WidgetConfig): WeatherWidgetData | null {
-        const location = this.resolveLocation(config);
+        const { location, provider, model } = this.resolveSource(config);
         if (!location) {
             return null;
         }
-        const providerId = (config.provider ? getProviderForType(config.provider) : getWeatherProvider()).id;
-        const cached = getCachedWeather('main', providerId, location, { model: config.model ?? undefined }, 0);
+        const providerId = (provider ? getProviderForType(provider) : getWeatherProvider()).id;
+        const cached = getCachedWeather('main', providerId, location, { model }, 0);
         if (!cached) {
             return null;
         }

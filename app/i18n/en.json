@@ -356,6 +356,7 @@
     "provider_marine": {
         "meteoconsult": "MétéoConsult",
         "none": "None",
+        "openmeteo": "Open-Meteo",
         "title": "Marine Weather Provider"
     },
     "providers": "providers",
@@ -434,6 +435,7 @@
     "spread_models": "%1$s to %2$s across %3$s models",
     "spread_now": "spread now",
     "spread_value": "%1$s spread",
+    "sun": "Sun",
     "sun_and_moon": "sun and moon",
     "sunrise": "sunrise",
     "sunset": "sunset",
@@ -458,6 +460,7 @@
     "tide_high": "High Tide",
     "tide_low": "Low Tide",
     "tides": "Tides",
+    "tides_msl_warning": "Open-Meteo tide heights are relative to the mean sea level: negative values are normal.",
     "timeout_error": "the request timed out. Please check your internet connection and try again",
     "turkish": "Turkish",
     "uchinaguchi": "Okinawan",

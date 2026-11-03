@@ -3002,9 +3002,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nativescript-community/ui-chart@npm:2.0.30":
-  version: 2.0.30
-  resolution: "@nativescript-community/ui-chart@npm:2.0.30"
+"@nativescript-community/ui-chart@npm:2.0.32":
+  version: 2.0.32
+  resolution: "@nativescript-community/ui-chart@npm:2.0.32"
   dependencies:
     "@nativescript-community/additween": "npm:^4.0.9"
     "@nativescript-community/arraybuffers": "npm:^1.1.5"
@@ -3012,7 +3012,7 @@ __metadata:
     "@nativescript-community/ui-canvas": "npm:^4.6.46"
     downsample: "npm:^1.4.0"
     number-format.js: "npm:^2.0.9"
-  checksum: 10/6d07766c63134752bbc07ba36dd9807fba5067ab1112c875c8987fb81f45ade1a2694d6f5edab61f23efe9dda5b48b4183123372cc71e99645a1c6bc95bb685c
+  checksum: 10/0f82b55abaed123985ed2738264fd7b8399603150cf8399398fa6f402e840215865c9ef09570e1a870f5d02b03171f0a26ee43806942a841a608f6e10d72113c
   languageName: node
   linkType: hard
 
@@ -3209,12 +3209,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nativescript-community/ui-webview@npm:1.6.2":
-  version: 1.6.2
-  resolution: "@nativescript-community/ui-webview@npm:1.6.2"
+"@nativescript-community/ui-webview@npm:1.7.0":
+  version: 1.7.0
+  resolution: "@nativescript-community/ui-webview@npm:1.7.0"
   dependencies:
     url: "npm:^0.11.0"
-  checksum: 10/659bca9bb41e701176d985300221611bf94a772070d67a2834226698e846e386cbbbd45c382032e907fda482eadc6b4d533fdd6e48520465a4eb775d32c16135
+  checksum: 10/79d2e7e1f4098358e20dbd9afcee70b5ee425c9ada80d9a93c8f0f80c6a61357b85ae9c156733f14e5389dff069304208d1fc13d29faf018d9bce387f44463b2
   languageName: node
   linkType: hard
 
@@ -13645,7 +13645,7 @@ __metadata:
     "@nativescript-community/ui-button": "npm:1.4.2"
     "@nativescript-community/ui-canvas": "npm:4.6.57"
     "@nativescript-community/ui-canvaslabel": "npm:1.2.60"
-    "@nativescript-community/ui-chart": "npm:2.0.30"
+    "@nativescript-community/ui-chart": "npm:2.0.32"
     "@nativescript-community/ui-checkbox": "npm:1.4.2"
     "@nativescript-community/ui-collectionview": "npm:6.0.35"
     "@nativescript-community/ui-collectionview-swipemenu": "npm:6.0.35"
@@ -13667,7 +13667,7 @@ __metadata:
     "@nativescript-community/ui-switch": "npm:1.4.2"
     "@nativescript-community/ui-textfield": "npm:1.4.2"
     "@nativescript-community/ui-textview": "npm:1.4.2"
-    "@nativescript-community/ui-webview": "npm:1.6.2"
+    "@nativescript-community/ui-webview": "npm:1.7.0"
     "@nativescript-community/ui-zoomimage": "npm:4.6.20"
     "@nativescript-community/universal-links": "npm:3.0.2"
     "@nativescript/android-quickjs-ng": "npm:9.0.0-alpha.5"

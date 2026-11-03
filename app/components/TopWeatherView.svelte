@@ -2,10 +2,11 @@
     import type { NativeViewElementNode } from '@nativescript-community/svelte-native/dom';
     import { textAttributedString } from '~/utils/ui/attributedString';
     import { Align, Canvas, LayoutAlignment, Paint, StaticLayout } from '@nativescript-community/ui-canvas';
-    import { CombinedChart, LineChart } from '@nativescript-community/ui-chart';
+    import { CombinedChart } from '@nativescript-community/ui-chart';
     import { LimitLabelPosition, LimitLine } from '@nativescript-community/ui-chart/components/LimitLine';
     import { XAxisPosition } from '@nativescript-community/ui-chart/components/XAxis';
     import { AxisDependency } from '@nativescript-community/ui-chart/components/YAxis';
+    import { CombinedData } from '@nativescript-community/ui-chart/data/CombinedData';
     import { LineData } from '@nativescript-community/ui-chart/data/LineData';
     import { LineDataSet, Mode } from '@nativescript-community/ui-chart/data/LineDataSet';
     import { ApplicationSettings, Color, Utils } from '@nativescript/core';
@@ -43,6 +44,7 @@
     import { TOP_GRID_OPTIONS, drawCenteredValue, drawGrid, prepareGrid } from '~/helpers/dataGrid';
     import { minutelyAxisLabel, minutelyAxisTicks, minutelyIntensity, minutelySummary } from '~/utils/minutelySummary';
     import HourlyChartView from './HourlyChartView.svelte';
+    import BaseChart from '~/components/common/BaseChart.svelte';
     import WindyView from './WindyView.svelte';
     import { screenWidthDips } from '~/variables';
 
@@ -126,7 +128,7 @@
     export let height;
     export let fakeNow;
     export let animated = false;
-    let lineChart: NativeViewElementNode<LineChart>;
+    let lineChart: NativeViewElementNode<CombinedChart>;
     let chartInitialized = false;
     let precipChartSet: LineDataSet;
     let cloudChartSet: LineDataSet;
@@ -303,7 +305,9 @@
             //     cloudChartSet.clear();
             // }
             if (needsToSetData) {
-                chart.data = new LineData([precipChartSet].filter((s) => !!s));
+                const chartData = new CombinedData();
+                chartData.lineData = new LineData([precipChartSet].filter((s) => !!s));
+                chart.data = chartData;
             } else if (needsUpdate) {
                 precipChartSet.notifyDataSetChanged();
                 chart.data.notifyDataChanged();
@@ -781,7 +785,13 @@
         marginTop={modern ? modernMinutelyTop + MODERN_MINUTELY_CHART_TOP * $fontScale : 0}
         verticalAlignment={modern ? 'top' : 'bottom'}
         width={modern ? $windowSize.width - 2 * (MODERN_PADDING + MODERN_CARD_PADDING * $fontScale) : minutelyChartWidth}>
-        <linechart bind:this={lineChart} visibility={hasPrecip ? 'visible' : 'hidden'} />
+        <BaseChart
+            highlightEnabled={false}
+            styleAxes={false}
+            timeGrid={false}
+            timezoneOffset={weatherLocation.timezoneOffset}
+            visibility={hasPrecip ? 'visible' : 'hidden'}
+            bind:chartView={lineChart} />
     </gridlayout>
     <WeatherIcon
         {animated}

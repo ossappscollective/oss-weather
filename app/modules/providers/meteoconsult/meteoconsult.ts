@@ -5,6 +5,7 @@ import { Daily, Tide, WeatherData } from '~/services/providers/weather';
 import { DailyData, Hourly } from '~/services/providers/weather';
 import { MarineWeatherProvider } from '~/services/providers/marineweatherprovider';
 import { GetWeatherOptions } from '~/services/providers/weatherprovider';
+import { startOfDay } from '~/utils/dayBounds';
 
 const BASE_URL = 'https://ws.meteoconsult.fr/meteoconsultmarine';
 const SEARCH_URL = `${BASE_URL}/android/100/fr/v30/recherche.php`;
@@ -12,9 +13,6 @@ const FORECAST_URL = `${BASE_URL}/androidtab/115/fr/v30/previsionsSpot.php`;
 
 /** Maximum distance (km) to consider a marine station relevant for a location */
 const MAX_DISTANCE_KM = 10;
-
-/** Cache TTL for marine location search: ~1 year in ms */
-const MARINE_LOCATION_CACHE_TTL = 365 * 24 * 60 * 60 * 1000;
 
 /** Cache TTL for marine weather data: 1 hour in ms */
 const MARINE_WEATHER_CACHE_TTL = 60 * 60 * 1000;
@@ -65,20 +63,11 @@ interface MeteoConsultForecastResponse {
     };
 }
 
-/** Haversine formula: distance between two lat/lon points in km */
-function distanceKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
-    const R = 6371;
-    const dLat = ((lat2 - lat1) * Math.PI) / 180;
-    const dLon = ((lon2 - lon1) * Math.PI) / 180;
-    const a = Math.sin(dLat / 2) ** 2 + Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
 function cacheKey(prefix: string, lat: number, lon: number) {
     return `${prefix}_${lat.toFixed(4)}_${lon.toFixed(4)}`;
 }
 
-/** Returns cached marine location info (or null if expired/absent) */
+/** Returns cached marine location info (null: nothing relevant found, undefined: expired/absent) */
 function getCachedMarineLocation(lat: number, lon: number): MeteoConsultMarineLocation | null | undefined {
     const key = cacheKey('marine_location', lat, lon);
     const raw = ApplicationSettings.getString(key);
@@ -87,30 +76,27 @@ function getCachedMarineLocation(lat: number, lon: number): MeteoConsultMarineLo
     }
     try {
         const parsed = JSON.parse(raw);
-        if (Date.now() - parsed.cachedAt > MARINE_LOCATION_CACHE_TTL) {
+        if (!isMarineSearchCacheValid(parsed, Date.now())) {
             ApplicationSettings.remove(key);
             return undefined;
         }
-        return parsed.data; // null means "no relevant marine location"
+        return parsed.data;
     } catch {
         return undefined;
     }
 }
 
 function setCachedMarineLocation(lat: number, lon: number, data: MeteoConsultMarineLocation | null) {
-    const key = cacheKey('marine_location', lat, lon);
-    ApplicationSettings.setString(key, JSON.stringify({ cachedAt: Date.now(), data }));
+    ApplicationSettings.setString(cacheKey('marine_location', lat, lon), JSON.stringify({ cachedAt: Date.now(), data }));
 }
 
-/** Fetch and validate a marine location for the given coordinates.
- *  Returns the marine location if eligible, null if no relevant location, or throws on error. */
-export async function searchMarineLocation(weatherLocation: WeatherLocation): Promise<MeteoConsultMarineLocation | null> {
-    const { lat, lon } = weatherLocation.coord;
+/** Search the MeteoConsult marine station of a location.
+ *  Returns null when there is none (or the search is down): the caller falls back to the coordinates. */
+async function searchMarineLocation({ lat, lon }: { lat: number; lon: number }): Promise<MeteoConsultMarineLocation | null> {
     const cached = getCachedMarineLocation(lat, lon);
     if (cached !== undefined) {
         return cached;
     }
-
     let locations: MeteoConsultMarineLocation[];
     try {
         const result = await request<{ contenu: MeteoConsultMarineLocation[] }>({
@@ -123,27 +109,9 @@ export async function searchMarineLocation(weatherLocation: WeatherLocation): Pr
         console.error('meteoconsult searchMarineLocation error', error);
         return null;
     }
-
-    if (!locations || locations.length === 0) {
-        setCachedMarineLocation(lat, lon, null);
-        return null;
-    }
-
-    const first = locations[0];
-    const dist = distanceKm(lat, lon, first.lat, first.lon);
-
-    if (dist > MAX_DISTANCE_KM) {
-        setCachedMarineLocation(lat, lon, null);
-        return null;
-    }
-
-    if (!first.presence_houle && !first.presence_maree && !first.presence_coef_maree) {
-        setCachedMarineLocation(lat, lon, null);
-        return null;
-    }
-
-    setCachedMarineLocation(lat, lon, first);
-    return first;
+    const found = pickMarineLocation(locations, { lat, lon }, MAX_DISTANCE_KM);
+    setCachedMarineLocation(lat, lon, found);
+    return found;
 }
 
 /** Parse ISO-like date string "YYYY-MM-DD" and hour number into a UTC timestamp (ms) */
@@ -157,11 +125,8 @@ export class MeteoConsultProvider extends MarineWeatherProvider {
     /** Fetch and parse marine weather for the given coordinates.
      *  Merges tides into weatherData.tides and marine props into daily/hourly arrays. */
     async getMarineWeather(weatherLocation: WeatherLocation, options?: GetWeatherOptions): Promise<Partial<WeatherData>> {
-        const marineLocation = await searchMarineLocation(weatherLocation);
-        if (!marineLocation) {
-            return;
-        }
-        const { lat, lon } = marineLocation;
+        // the search stopped finding anything: the service also answers the coordinates themselves, with tides only near a station
+        const { lat, lon } = (await searchMarineLocation(weatherLocation.coord)) ?? weatherLocation.coord;
         let response: MeteoConsultForecastResponse;
         try {
             const result = await request<{ contenu: MeteoConsultForecastResponse }>({
@@ -175,14 +140,14 @@ export class MeteoConsultProvider extends MarineWeatherProvider {
             return;
         }
 
-        if (!response) {
+        if (!hasMarineData(response)) {
             return;
         }
         const tidesByTime: Record<number, Tide[]> = {};
         // Parse tides (marees)
         if (response.marees?.length) {
             for (const t of response.marees) {
-                tidesByTime[parseDateTime(weatherLocation, t.datetime)] = t.etales.map(
+                tidesByTime[localDayStart(t.datetime, weatherLocation.timezoneOffset)] = t.etales.map(
                     (m) =>
                         ({
                             time: dayjs.utc(m.datetime).valueOf(),
@@ -267,7 +232,7 @@ export class MeteoConsultProvider extends MarineWeatherProvider {
 
         const simpleByDate: Record<string, MeteoConsultSimplePrevis> = {};
         for (const s of simple) {
-            simpleByDate[parseDateTime(weatherLocation, s.datetime)] = s;
+            simpleByDate[localDayStart(s.datetime, weatherLocation.timezoneOffset)] = s;
         }
         // DEV_LOG && console.log('simpleByDate', JSON.stringify(simpleByDate));
         const hourlyData = Object.entries(hourlyByTime).map(([time, h]) => {
@@ -311,4 +276,60 @@ export class MeteoConsultProvider extends MarineWeatherProvider {
         DEV_LOG && console.log('getMarineWeather', JSON.stringify(r));
         return r;
     }
+}
+
+interface SeaHour {
+    teau?: number | null;
+    hauteurvague?: number | null;
+    hauteurvaguemax?: number | null;
+    hauteurhoule?: number | null;
+}
+
+// the service answers any point, but inland ones come back without tides or sea data
+export function hasMarineData(response: { marees?: unknown[]; previs?: { detail?: SeaHour[] } } | undefined): boolean {
+    return (
+        !!response?.marees?.length ||
+        !!response?.previs?.detail?.some((hour) => hour.teau != null || hour.hauteurvague != null || hour.hauteurvaguemax != null || hour.hauteurhoule != null)
+    );
+}
+
+export interface MarineSearchLocation {
+    lat: number;
+    lon: number;
+    presence_houle: boolean;
+    presence_maree: boolean;
+    presence_coef_maree: boolean;
+}
+
+// Haversine formula: distance between two lat/lon points in km
+function distanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
+    const earthRadiusKm = 6371;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+    return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+export function pickMarineLocation<T extends MarineSearchLocation>(locations: T[] | undefined, coord: { lat: number; lon: number }, maxDistanceKm: number): T | null {
+    const first = locations?.[0];
+    if (!first || distanceKm(coord.lat, coord.lon, first.lat, first.lon) > maxDistanceKm) {
+        return null;
+    }
+    return first.presence_houle || first.presence_maree || first.presence_coef_maree ? first : null;
+}
+
+const DAY = 24 * 60 * 60 * 1000;
+const FOUND_TTL = 365 * DAY;
+// the search can be down or come back: do not remember an empty result for long
+const EMPTY_TTL = DAY;
+
+export function isMarineSearchCacheValid(entry: { cachedAt: number; data: unknown }, now: number): boolean {
+    return now - entry.cachedAt <= (entry.data ? FOUND_TTL : EMPTY_TTL);
+}
+
+// The service dates a day at midnight in UTC for a point without station, in the station offset otherwise:
+// only the calendar date counts, the app days start at the local midnight of the location
+export function localDayStart(datetime: string, timezoneOffset?: number): number {
+    const noonUtc = Date.parse(`${datetime.slice(0, 10)}T12:00:00Z`);
+    return startOfDay(noonUtc, timezoneOffset).valueOf();
 }
