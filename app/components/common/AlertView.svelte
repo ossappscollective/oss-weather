@@ -5,7 +5,11 @@
     import { formatDate, l, lc } from '~/helpers/locale';
     import type { Alert } from '~/services//providers/weather';
     import { colors, designStyle, windowInset } from '~/variables';
-    import { alertStatus } from '~/utils/alertStatus';
+
+    // alerts sheet chip: an alert is upcoming until its start
+    function alertStatus(alert: { start: number; end: number }, now: number): 'active' | 'upcoming' {
+        return alert.start > now ? 'upcoming' : 'active';
+    }
 
     export let alerts: Alert[];
     // the sheet opens at its `peekHeight`; a full height content lets it expand up to the top while scrolling

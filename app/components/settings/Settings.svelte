@@ -7,7 +7,6 @@
     import { openFilePicker, saveFile } from '@nativescript-community/ui-document-picker';
     import { Label } from '@nativescript-community/ui-label';
     import { showBottomSheet } from '@nativescript-community/ui-bottomsheet/svelte';
-    import { PromptOutcome, promptOutcome } from '~/utils/promptOutcome';
     import { confirm, prompt } from '~/utils/ui/dialogs';
     import { showSnack } from '~/utils/ui/snack';
     import { TextField, TextFieldProperties } from '@nativescript-community/ui-textfield';
@@ -109,6 +108,23 @@
     import { styleModernSwitch } from '~/utils/ui/modernSwitch';
     import { modernDataColor, styledDataIcon } from '~/utils/designStyle';
     import IconButton from '../common/IconButton.svelte';
+
+    enum PromptOutcome {
+        Save,
+        Clear,
+        Ignore
+    }
+
+    // the neutral button resolves the prompt with `result: undefined`, cancel with `false`
+    function promptOutcome(answer?: { result?: boolean; text: string }): PromptOutcome {
+        if (!answer) {
+            return PromptOutcome.Ignore;
+        }
+        if (answer.result === undefined) {
+            return PromptOutcome.Clear;
+        }
+        return answer.result && answer.text.length > 0 ? PromptOutcome.Save : PromptOutcome.Ignore;
+    }
     const version = __APP_VERSION__ + ' Build ' + __APP_BUILD_NUMBER__;
     // modern: section icons on a tile in the data palette colors
     const MODERN_ICON_COLORS = {

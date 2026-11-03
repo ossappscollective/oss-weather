@@ -11,8 +11,17 @@ import { Forecast } from './openmeteo';
 import { AirQualityCurrently, AirQualityData, CommonAirQualityData, Currently, DailyData, Hourly, MinutelyData, Tide, WeatherData } from '~/services/providers/weather';
 import type { MarineWeatherProvider } from '~/services/providers/marineweatherprovider';
 import { WeatherProvider } from '~/services/providers/weatherprovider';
-import { keptDayCount } from '~/utils/dailyTrim';
 import { startOfDay } from '~/utils/dayBounds';
+
+// number of daily aggregates to keep from hourly counts: only the trailing days with too few hours
+// are dropped (the first day is the rest of today, partial by design)
+function keptDayCount(counts: number[], minCount: number) {
+    let count = counts.length;
+    while (count > 1 && counts[count - 1] < minCount) {
+        count--;
+    }
+    return count;
+}
 // import { Coord, Dailyforecast, Forecast, MFCurrent, MFForecastResult, MFMinutely, MFWarnings, Probabilityforecast } from './meteofrance';
 
 // const mfApiKey = getString('mfApiKey', MF_DEFAULT_KEY);

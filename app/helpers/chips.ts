@@ -4,9 +4,19 @@ import { ChipsLayout, layoutChips } from '~/utils/chipsLayout';
 import { get } from 'svelte/store';
 import { DesignStyle, cardBackgroundAlpha, dataTextStyle, tintAlpha } from '~/utils/designStyle';
 import { isDarkTheme, isEInk } from '~/helpers/theme';
-import { einkChipStyle } from '~/utils/eink';
 import { dataIntensity } from '~/variables';
 import { CHIP_GAP, CHIP_HEIGHT, CHIP_PADDING, DataContentOptions, drawDataContent, measureDataContent } from '~/helpers/dataGrid';
+
+interface EInkChipStyle {
+    strokeColor: string;
+    strokeWidth: number;
+    textColor: string;
+}
+
+// e-ink screens dither fills and alpha tints to black: chips are only outlined, a warning gets a thicker line
+function einkChipStyle(warning: boolean, onSurface: string): EInkChipStyle {
+    return { strokeColor: onSurface, strokeWidth: warning ? 2 : 1, textColor: onSurface };
+}
 
 const CHIP_ICON_GAP = 4;
 const CHIP_ICON_SCALE = 0.95;

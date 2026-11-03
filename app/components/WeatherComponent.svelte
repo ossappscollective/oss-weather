@@ -11,8 +11,25 @@
     import { WeatherLocation } from '~/services/api';
     import { iconService, onIconAnimationsChanged } from '~/services/icon';
     import { notifyChartScrolled } from '~/utils/chartEvents';
-    import { computeTopViewHeight } from '~/utils/topViewHeight';
     import { actionBarHeight, fontScale, hourlyViewData, hourlyViewMode, isMacCatalyst, onFontScaleChanged, onUnitsChanged, topViewHeight, windowInset, windowSize } from '~/variables';
+
+    const MIN_TOP_VIEW_HEIGHT = 370;
+
+    interface TopViewHeightParams {
+        windowWidth: number;
+        windowHeight: number;
+        actionBarHeight: number;
+        insetTop: number;
+        insetBottom: number;
+        fontScale: number;
+        resizableWindow: boolean;
+    }
+
+    function computeTopViewHeight({ actionBarHeight, fontScale, insetBottom, insetTop, resizableWindow, windowHeight, windowWidth }: TopViewHeightParams) {
+        // on phones use the longest side so rotating does not change the height
+        const availableHeight = resizableWindow ? windowHeight : Math.max(windowWidth, windowHeight);
+        return Math.max((availableHeight - actionBarHeight - insetBottom - insetTop - 100) * 0.6 * Math.sqrt(fontScale), MIN_TOP_VIEW_HEIGHT);
+    }
 
     export let items: any[];
     export let weatherLocation: WeatherLocation;

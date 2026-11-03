@@ -12,10 +12,17 @@ import { ComponentProps } from 'svelte';
 import { get } from 'svelte/store';
 import type OptionSelect__SvelteComponent_ from '~/components/common/OptionSelect.svelte';
 import { ALERT_OPTION_MAX_HEIGHT } from '~/helpers/constants';
-import { dialogListHeight } from '~/utils/dialogHeight';
 import { l, lc } from '~/helpers/locale';
 import { colors, designStyle, fontScale, screenWidthDips } from '~/variables';
 import { modernColors } from '~/helpers/modernTheme';
+
+// the material dialog keeps margins around its window and a title and buttons panel:
+// a taller list is clipped by the dialog (and does not scroll), not capped
+const DIALOG_CHROME_DIPS = 370;
+
+function dialogListHeight(height: number | string | null, screenHeightDips: number) {
+    return typeof height === 'number' ? Math.min(height, screenHeightDips - DIALOG_CHROME_DIPS) : height;
+}
 
 export * from '@shared/utils/ui';
 
