@@ -1397,16 +1397,21 @@
                                 text="mdi-map-marker-circle"
                                 verticalAlignment="center"
                                 verticalTextAlignment="center" />
+                            <!-- each line has its own right column: the region takes the width left by the selected / time difference label only -->
                             <stacklayout col={1} marginLeft={12} verticalAlignment="center">
-                                <label class="modernTitle modernStrong" lineBreak="end" maxLines={2} text={getLocationName(item)} textWrap={true} />
-                                <label class="modernSubtitle modernEllipsis" text={getFavoriteRegion(item)} />
-                            </stacklayout>
-                            <stacklayout col={2} marginLeft={8} verticalAlignment="center" visibility={item.timezone ? 'visible' : 'collapse'}>
-                                <label class="modernTitle modernStrong" text={formatTime(Date.now(), 'LT', item.timezoneOffset)} textAlignment="right" />
-                                <label
-                                    class={isCurrentLocation(item, weatherLocation) ? 'modernSubtitle modernAccent' : 'modernSubtitle'}
-                                    text={isCurrentLocation(item, weatherLocation) ? lc('selected') : timeDifferenceLabel(item.timezoneOffset, weatherLocation?.timezoneOffset)}
-                                    textAlignment="right" />
+                                <gridlayout columns="*,auto">
+                                    <label class="modernTitle modernStrong" lineBreak="end" maxLines={2} text={getLocationName(item)} textWrap={true} />
+                                    <label class="modernSubtitle modernStrong" col={1} marginLeft={8} text={formatTime(Date.now(), 'LT', item.timezoneOffset)} textAlignment="right" />
+                                </gridlayout>
+                                <gridlayout columns="*,auto">
+                                    <label class="modernSubtitle modernEllipsis" text={getFavoriteRegion(item)} />
+                                    <label
+                                        class={isCurrentLocation(item, weatherLocation) ? 'modernSubtitle modernAccent' : 'modernSubtitle'}
+                                        col={1}
+                                        marginLeft={8}
+                                        text={isCurrentLocation(item, weatherLocation) ? lc('selected') : timeDifferenceLabel(item.timezoneOffset, weatherLocation?.timezoneOffset)}
+                                        textAlignment="right" />
+                                </gridlayout>
                             </stacklayout>
                             <IconButton col={3} gray={true} size={36} text="mdi-dots-vertical" verticalAlignment="center" on:tap={(event) => showFavMenu(item, event)} />
                         </gridlayout>
