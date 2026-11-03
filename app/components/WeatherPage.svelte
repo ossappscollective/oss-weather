@@ -9,17 +9,14 @@
     import { confirm, prompt } from '~/utils/ui/dialogs';
     import { showSnack } from '~/utils/ui/snack';
     import { VerticalPosition } from '@nativescript-community/ui-popover';
-    import { closePopover } from '@nativescript-community/ui-popover/svelte';
     import { PullToRefresh } from '@nativescript-community/ui-pulltorefresh';
     import { getUniversalLink, getUniversalLinkIntent, registerUniversalLinkCallback } from '@nativescript-community/universal-links/index';
-    import { Application, ApplicationSettings, Color, ContentView, CoreTypes, EventData, File, Page, Screen, knownFolders, path } from '@nativescript/core';
-    import { openFile, throttle } from '@nativescript/core/utils';
+    import { Application, ApplicationSettings, Color, ContentView, CoreTypes, EventData, Page, Screen } from '@nativescript/core';
+    import { throttle } from '@nativescript/core/utils';
     import { alert, showError } from '@shared/utils/showError';
     import { refreshRequestedEvent } from '@shared/utils/window';
     import { globalObservable, navigate, showModal } from '@shared/utils/svelte/ui';
     import dayjs from 'dayjs';
-    import type { FeatureCollection, MultiPolygon } from 'geojson';
-    import PolygonLookup from 'polygon-lookup';
     import { onDestroy, onMount } from 'svelte';
     import WeatherComponent from '~/components/WeatherComponent.svelte';
     import CActionBar from '~/components/common/CActionBar.svelte';
@@ -60,34 +57,31 @@
     import { NetworkConnectionStateEvent, NetworkConnectionStateEventData, WeatherLocation, geocodeAddress, networkService, prepareItems } from '~/services/api';
     import { hasEnoughForecast } from '~/utils/forecastCoverage';
     import { gadgetbridgeService } from '~/services/gadgetbridge';
+    import { findLocationAction, getLocationActions } from '~/modules/registry';
     import { onIconPackChanged } from '~/services/icon';
-    import { MFProvider } from '~/services/providers/mf';
-    import { OpenMeteoModels, getOMPreferredModel } from '~/services/providers/om';
+    import { OpenMeteoModels, getOMPreferredModel } from '~/modules/providers/openmeteo/om';
     import type { AirQualityData, AqiProviderType, DailyData, Hourly, MarineProviderType, ProviderType, WeatherData } from '~/services/providers/weather';
     import {
-        MarineProviders,
-        Providers,
-        ProvidersClasses,
-        aqi_providers,
         getAirQuality,
         getAqiProvider,
+        getAqiProviderKeys,
         getAqiProviderType,
         getCachedWeather,
         getFullCachedWeather,
         getMarineProvider,
+        getMarineProviderKeys,
         getMarineWeather,
         getProviderClass,
         getProviderType,
         getWeather,
         getWeatherProvider,
+        getWeatherProviderKeys,
         onProviderChanged,
-        providerRequiresApiKey,
-        providers
+        providerRequiresApiKey
     } from '~/services/providers/weatherproviderfactory';
     import { WeatherProps, mergeWeatherData, onWeatherDataChanged, weatherDataService } from '~/services/weatherData';
     import { parseUrlQueryParameters } from '~/utils/http';
     import { hideLoading, selectValue, showLoading, showPopoverMenu, showToast, tryCatchFunction } from '~/utils/ui';
-    import { isBRABounds } from '~/utils/utils.common';
     import { accentFontWeight, actionBarHeight, colors, designStyle, fontScale, fonts, onFontScaleChanged, onSettingsChanged, windowInset } from '~/variables';
     import { groupPosition } from '~/utils/settingsGroups';
     import { groupRowClass } from '~/utils/groupClass';
@@ -247,14 +241,14 @@
                         }
                     ] as any)
                 );
-                if (weatherLocation.timezone === 'Europe/Paris' && isBRABounds(weatherLocation)) {
+                getLocationActions(weatherLocation).forEach((action) =>
                     options.push({
-                        icon: 'mdi-snowflake-alert',
-                        id: 'bra',
-                        name: lu('bra'),
-                        onLongPress: tryCatchFunction(selectAndOpenBRA)
-                    });
-                }
+                        icon: action.icon,
+                        id: action.id,
+                        name: lu(action.nameKey),
+                        onLongPress: action.runLongPress && tryCatchFunction(action.runLongPress)
+                    })
+                );
             }
             await showPopoverMenu({
                 options: modernMenuOptions(options, modern ? ['provider_marine', 'preferences'] : ['refresh', 'provider_marine']),
@@ -304,20 +298,8 @@
                                 case 'metar_station':
                                     await selectMetarStation(weatherLocation);
                                     break;
-                                case 'bra':
-                                    DEV_LOG && console.log('finding bra');
-                                    const lookup = await getFranceGeoJSONLookup();
-                                    const result = lookup.search(weatherLocation.coord.lon, weatherLocation.coord.lat);
-                                    DEV_LOG && console.log('bra lookup', weatherLocation.coord, result);
-                                    const massifId = result?.properties.code ?? -1;
-                                    if (massifId !== -1) {
-                                        const pdfFile = await MFProvider.getBRA(massifId);
-                                        DEV_LOG && console.log('massifId', massifId, typeof massifId, pdfFile.path);
-                                        openFile(pdfFile.path);
-                                    } else {
-                                        showToast(lc('failed_to_find_bra'));
-                                    }
-                                    break;
+                                default:
+                                    await findLocationAction(item.id)?.run(weatherLocation);
                             }
                         }
                     } catch (error) {
@@ -573,7 +555,7 @@
         return manualRefreshWeather();
     }
 
-    async function askForApiKey(provider: Providers | 'maptiler', shouldRefreshWeather = true) {
+    async function askForApiKey(provider: ProviderType | 'maptiler', shouldRefreshWeather = true) {
         try {
             const ApiKeysBottomSheet = (await import('~/components/APIKeysBottomSheet.svelte')).default;
             const result: boolean = await showBottomSheet({
@@ -839,7 +821,7 @@
 
     async function selectProvider(location: WeatherLocation) {
         const value = await selectValue<ProviderType>(
-            providers.map((t) => ({ data: t, title: lc('provider.' + t) })),
+            getWeatherProviderKeys().map((t) => ({ data: t, title: lc('provider.' + t) })),
             location.provider || getProviderType(),
             { title: lc('provider.title') }
         );
@@ -860,7 +842,7 @@
 
     async function selectProviderAQI(location: WeatherLocation) {
         const value = await selectValue<AqiProviderType>(
-            aqi_providers.map((t) => ({ data: t, title: lc('provider_aqi.' + t) })),
+            getAqiProviderKeys().map((t) => ({ data: t, title: lc('provider_aqi.' + t) })),
             location.providerAqi || getAqiProviderType(),
             { title: lc('provider_aqi.title') }
         );
@@ -872,8 +854,7 @@
     async function selectMarineProvider(location: WeatherLocation) {
         const marineProviders: { data: MarineProviderType; title: string }[] = [
             { data: null, title: lc('provider_marine.none') },
-            { data: MarineProviders.OpenMeteo, title: lc('provider_marine.openmeteo') },
-            { data: MarineProviders.MeteoConsult, title: lc('provider_marine.meteoconsult') }
+            ...getMarineProviderKeys().map((t) => ({ data: t, title: lc('provider_marine.' + t) }))
         ];
         const current: MarineProviderType = location.providerMarine ?? null;
         const value = await selectValue<MarineProviderType>(marineProviders, current, { title: lc('provider_marine.title') });
@@ -986,11 +967,12 @@
     const onSwipe = (e) => {
         const enabled = ApplicationSettings.getBoolean(SETTINGS_SWIPE_ACTION_BAR_PROVIDER, SWIPE_ACTION_BAR_PROVIDER);
         if (enabled && weatherLocation) {
+            const providers = getWeatherProviderKeys();
             const currentProviderIndex = providers.indexOf(provider);
             const delta = e.direction === 1 ? -1 : 1;
             let nextProviderIndex = currentProviderIndex;
             let newProvider;
-            let providerClass: ProvidersClasses;
+            let providerClass: ReturnType<typeof getProviderClass>;
             function updateNextProvider() {
                 nextProviderIndex = nextProviderIndex + delta;
                 if (nextProviderIndex < 0) {
@@ -1076,58 +1058,6 @@
     //         spans
     //     });
     // }
-    let franceGeoJSON: FeatureCollection<MultiPolygon>;
-    let franceGeoJSONLookup: PolygonLookup;
-
-    async function getFranceGeoJSON() {
-        if (!franceGeoJSON) {
-            franceGeoJSON = JSON.parse(await File.fromPath(path.join(knownFolders.currentApp().path, 'assets/meteofrance/massifs.geojson')).readText());
-        }
-        return franceGeoJSON;
-    }
-    async function getFranceGeoJSONLookup() {
-        if (!franceGeoJSONLookup) {
-            franceGeoJSONLookup = new PolygonLookup(await getFranceGeoJSON());
-        }
-        return franceGeoJSONLookup;
-    }
-    async function selectAndOpenBRA() {
-        const geoJSON = await getFranceGeoJSON();
-        const options = geoJSON.features
-            .map((feature) => ({
-                name: feature.properties.title as string,
-                subtitle: `${feature.properties.Departemen} (${feature.properties.mountain})`,
-                id: feature.properties.code
-            }))
-            .sort((a, b) => a.name.localeCompare(b.name));
-        const OptionSelect = (await import('~/components/common/OptionSelect.svelte')).default;
-        DEV_LOG && console.log('options', options);
-        closePopover();
-        const result = await showBottomSheet({
-            parent: null,
-            view: OptionSelect,
-            peekHeight: 400,
-            // skipCollapsedState: isLandscape(),
-            ignoreTopSafeArea: true,
-            props: {
-                options,
-                rowHeight: 58,
-                height: 400
-            }
-        });
-        if (result) {
-            try {
-                showLoading();
-                const pdfFile = await MFProvider.getBRA(result.id);
-
-                DEV_LOG && console.log('massifId', result.id, pdfFile.path);
-                openFile(pdfFile.path);
-            } finally {
-                hideLoading();
-            }
-        }
-    }
-
     async function goToWeatherMap(props = { focusPos: weatherLocation ? weatherLocation.coord : undefined }) {
         if (!isLibreWXRSource() && !MaptilerProvider.hasApiKey()) {
             if (!(await askForApiKey('maptiler', false))) {
@@ -1212,13 +1142,11 @@
                     name: lc('duplicate')
                 }
             ];
-            if (favItem.timezone === 'Europe/Paris' && isBRABounds(favItem)) {
-                options.splice(options.length - 2, 0, {
-                    icon: 'mdi-snowflake-alert',
-                    id: 'bra',
-                    name: l('bra')
-                } as any);
-            }
+            options.splice(
+                options.length - 2,
+                0,
+                ...getLocationActions(favItem).map((action) => ({ icon: action.icon, id: action.id, name: l(action.nameKey) }) as any)
+            );
 
             await showPopoverMenu({
                 options: modernMenuOptions(options, ['provider', 'compare', options.some((option) => option.id === 'bra') ? 'bra' : 'delete']),
@@ -1252,17 +1180,6 @@
                                     const MeteoBlue = (await import('~/components/MeteoBlue.svelte')).default;
                                     navigate({ page: MeteoBlue, props: { weatherLocation: favItem } });
                                     break;
-                                case 'bra':
-                                    const lookup = await getFranceGeoJSONLookup();
-                                    result = lookup.search(favItem.coord.lon, favItem.coord.lat);
-                                    const massifId = result?.properties.code ?? -1;
-                                    if (massifId !== -1) {
-                                        showLoading();
-                                        const result = await MFProvider.getBRA(massifId);
-                                        DEV_LOG && console.log('massifId', massifId, result.path);
-                                        openFile(result.path);
-                                    }
-                                    break;
 
                                 case 'provider':
                                     await selectProvider(favItem);
@@ -1294,6 +1211,8 @@
                                         await renameFavorite(favItem, result.text);
                                     }
                                     break;
+                                default:
+                                    await findLocationAction(item.id)?.run(favItem);
                             }
                         }
                     } catch (error) {

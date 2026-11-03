@@ -1,44 +1,28 @@
 import { ApplicationSettings } from '@nativescript/core';
 import { createGlobalEventListener, globalObservable } from '@shared/utils/svelte/ui';
 import { SETTINGS_PROVIDER, SETTINGS_PROVIDER_AQI, SETTINGS_PROVIDER_MARINE } from '~/helpers/constants';
+import { getProviderClass as getRegisteredProviderClass, getProviderKeys, resolveProviderKey } from '~/modules/registry';
 import { MarineWeatherProvider } from '~/services/providers/marineweatherprovider';
-import { MeteoConsultProvider } from '~/services/providers/meteoconsult';
 import { WeatherDataType, weatherDataIconColors } from '~/helpers/formatter';
 import { fetchLatestMetar } from '~/services/metar';
 import { WeatherProps, mergeWeatherData, weatherDataService } from '~/services/weatherData';
 import { MetarReport, applyMetarToCurrently } from '~/utils/metar';
 import { WeatherLocation } from '../api';
 import { prefs } from '../preferences';
-import { AccuWeatherAQIProvider, AccuWeatherProvider } from './accuweather';
+import { OMProvider } from '~/modules/providers/openmeteo/om';
 import { AirQualityProvider } from './airqualityprovider';
-import { AtmoProvider } from './atmo';
-import { MFProvider } from './mf';
-import { OMProvider } from './om';
-import { OWMProvider } from './owm';
 import { AirQualityData, AqiProviderType, Currently, MarineProviderType, ProviderType, WeatherData } from './weather';
 import { GetWeatherOptions, WeatherProvider } from './weatherprovider';
 
-export enum Providers {
-    MeteoFrance = 'meteofrance',
-    OpenWeather = 'openweathermap',
-    OpenMeteo = 'openmeteo',
-    AccuWeather = 'accuweather'
+export function getWeatherProviderKeys() {
+    return getProviderKeys('weather');
 }
-
-export enum AirQualityProviders {
-    OpenMeteo = 'openmeteo',
-    Atmo = 'atmo',
-    AccuWeather = 'accuweather'
+export function getAqiProviderKeys() {
+    return getProviderKeys('aqi');
 }
-
-export enum MarineProviders {
-    OpenMeteo = 'openmeteo',
-    MeteoConsult = 'meteoconsult'
+export function getMarineProviderKeys() {
+    return getProviderKeys('marine');
 }
-
-export const providers = Object.values(Providers);
-export const aqi_providers = Object.values(AirQualityProviders);
-export const marine_providers = Object.values(MarineProviders);
 
 let currentProvider: WeatherProvider;
 let currentAirQualityProvider: AirQualityProvider;
@@ -69,39 +53,29 @@ export function getMarineProvider(provider?: MarineProviderType): MarineWeatherP
     return getMarineProviderForType(provider || getMarineProviderType());
 }
 export function getProviderType(): ProviderType {
-    const requestedProviderType: ProviderType = (ApplicationSettings.getString(SETTINGS_PROVIDER, DEFAULT_PROVIDER) || DEFAULT_PROVIDER) as ProviderType;
-    return requestedProviderType;
+    return resolveProviderKey('weather', ApplicationSettings.getString(SETTINGS_PROVIDER), DEFAULT_PROVIDER);
 }
 export function getAqiProviderType(): AqiProviderType {
-    const requestedProviderType: AqiProviderType = (ApplicationSettings.getString(SETTINGS_PROVIDER_AQI, DEFAULT_PROVIDER) || DEFAULT_PROVIDER) as AqiProviderType;
-    return requestedProviderType;
+    return resolveProviderKey('aqi', ApplicationSettings.getString(SETTINGS_PROVIDER_AQI), DEFAULT_PROVIDER);
 }
 export function getMarineProviderType(): MarineProviderType {
-    const requestedProviderType: MarineProviderType = ApplicationSettings.getString(SETTINGS_PROVIDER_MARINE) as MarineProviderType;
-    return requestedProviderType;
+    const requestedProviderType = ApplicationSettings.getString(SETTINGS_PROVIDER_MARINE);
+    return requestedProviderType ? getMarineProviderKeyOrUndefined(requestedProviderType) : undefined;
 }
 
-interface ProvidersMap {
-    [Providers.OpenWeather]: typeof OWMProvider;
-    [Providers.MeteoFrance]: typeof MFProvider;
-    [Providers.AccuWeather]: typeof AccuWeatherProvider;
-    [Providers.OpenMeteo]: typeof OMProvider;
+// no marine provider is the default: a removed module must not be replaced by another one
+function getRegisteredMarineClass(key: MarineProviderType) {
+    return getRegisteredProviderClass('marine', key);
 }
-const ProvidersClassMap: ProvidersMap = {
-    [Providers.OpenWeather]: OWMProvider,
-    [Providers.MeteoFrance]: MFProvider,
-    [Providers.AccuWeather]: AccuWeatherProvider,
-    [Providers.OpenMeteo]: OMProvider
-};
-
-export type ProvidersClasses = ProvidersMap[keyof ProvidersMap];
-
-export function getProviderForType(newType: ProviderType): WeatherProvider {
-    const providerClass: { getInstance(): WeatherProvider } = ProvidersClassMap[newType];
-    return providerClass.getInstance();
+function getMarineProviderKeyOrUndefined(key: MarineProviderType) {
+    return getRegisteredMarineClass(key) ? key : undefined;
 }
+
 export function getProviderClass(provider: ProviderType) {
-    return ProvidersClassMap[provider];
+    return getRegisteredProviderClass('weather', resolveProviderKey('weather', provider, DEFAULT_PROVIDER));
+}
+export function getProviderForType(newType: ProviderType): WeatherProvider {
+    return getProviderClass(newType).getInstance();
 }
 export function getProviderSettins(provider: ProviderType): any[] {
     return getProviderClass(provider).getSettings();
@@ -110,28 +84,10 @@ export function providerRequiresApiKey(provider: ProviderType) {
     return getProviderClass(provider).requiresApiKey();
 }
 export function getAqiProviderForType(newType: AqiProviderType): AirQualityProvider {
-    switch (newType) {
-        case AirQualityProviders.Atmo:
-            return AtmoProvider.getInstance();
-
-        case AirQualityProviders.AccuWeather:
-            return AccuWeatherAQIProvider.getInstance();
-
-        case AirQualityProviders.OpenMeteo:
-        default:
-            return OMProvider.getInstance();
-    }
+    return getRegisteredProviderClass('aqi', resolveProviderKey('aqi', newType, DEFAULT_PROVIDER)).getInstance();
 }
 export function getMarineProviderForType(newType: MarineProviderType): MarineWeatherProvider {
-    if (newType) {
-        switch (newType) {
-            case MarineProviders.OpenMeteo:
-                return OMProvider.getInstance();
-            case MarineProviders.MeteoConsult:
-            default:
-                return MeteoConsultProvider.getInstance();
-        }
-    }
+    return newType ? getRegisteredMarineClass(newType)?.getInstance() : undefined;
 }
 
 function setWeatherProvider(newType: ProviderType): WeatherProvider {

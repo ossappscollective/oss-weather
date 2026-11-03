@@ -2,15 +2,15 @@ import { lc, titlecase } from '@nativescript-community/l';
 import { ApplicationSettings } from '@nativescript/core';
 import { WeatherDataType, weatherDataIconColors } from '~/helpers/formatter';
 import { getStartOfDay, lang } from '~/helpers/locale';
-import { RequestResult, WeatherLocation, request } from '../api';
+import { RequestResult, WeatherLocation, request } from '~/services/api';
 import { buildAccuAlerts } from './accuAlerts';
-import { GetWeatherOptions, WeatherProvider } from './weatherprovider';
-import { Alert, Currently, DailyData, Hourly, WeatherData } from './weather';
+import { GetWeatherOptions, WeatherProvider } from '~/services/providers/weatherprovider';
+import { Alert, Currently, DailyData, Hourly, WeatherData } from '~/services/providers/weather';
 import { FEELS_LIKE_TEMPERATURE, NB_DAYS_FORECAST, NB_HOURS_FORECAST } from '~/helpers/constants';
-import { prefs } from '../preferences';
-import { AirQualityProvider } from './airqualityprovider';
-import { AirQualityData, CommonAirQualityData } from './weather';
-import { Pollutants } from '../airQualityData';
+import { prefs } from '~/services/preferences';
+import { AirQualityProvider } from '~/services/providers/airqualityprovider';
+import { AirQualityData, CommonAirQualityData } from '~/services/providers/weather';
+import { Pollutants } from '~/services/airQualityData';
 
 /** `alerts/v1/geoposition` — only served on the paid AccuWeather plans. */
 export interface AccuWeatherAlert {

@@ -3,12 +3,12 @@ import { ApplicationSettings } from '@nativescript/core';
 import { FEELS_LIKE_TEMPERATURE, NB_DAYS_FORECAST, NB_HOURS_FORECAST } from '~/helpers/constants';
 import { WeatherDataType, weatherDataIconColors } from '~/helpers/formatter';
 import { getStartOfDay, lang } from '~/helpers/locale';
-import { WeatherLocation, request } from '../api';
-import { prefs } from '../preferences';
+import { WeatherLocation, request } from '~/services/api';
+import { prefs } from '~/services/preferences';
 import { CityWeather, Coord, OneCallResult } from './openweathermap';
 import { buildOwmAlerts } from './owmAlerts';
-import { Alert, Currently, DailyData, Hourly, WeatherData } from './weather';
-import { GetWeatherOptions, WeatherProvider } from './weatherprovider';
+import { Alert, Currently, DailyData, Hourly, WeatherData } from '~/services/providers/weather';
+import { GetWeatherOptions, WeatherProvider } from '~/services/providers/weatherprovider';
 
 const API_KEY_SETTING = 'owmApiKey';
 

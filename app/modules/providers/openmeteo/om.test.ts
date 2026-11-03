@@ -6,12 +6,12 @@ vi.mock('~/helpers/constants', () => ({}));
 vi.mock('~/helpers/formatter', () => ({}));
 vi.mock('~/helpers/locale', () => ({}));
 vi.mock('~/utils/dailyTrim', () => ({}));
-vi.mock('../airQualityData', () => ({ Pollutants: new Proxy({}, { get: (_, key) => key }), prepareAirQualityData: () => ({}) }));
-vi.mock('../api', () => ({}));
-vi.mock('../weatherData', () => ({ WeatherProps: new Proxy({}, { get: (_, key) => key }), weatherDataService: {} }));
-vi.mock('./airqualityprovider', () => ({}));
-vi.mock('./omIcons', () => ({}));
-vi.mock('./weatherprovider', () => ({ WeatherProvider: class {} }));
+vi.mock('~/services/airQualityData', () => ({ Pollutants: new Proxy({}, { get: (_, key) => key }), prepareAirQualityData: () => ({}) }));
+vi.mock('~/services/api', () => ({}));
+vi.mock('~/services/weatherData', () => ({ WeatherProps: new Proxy({}, { get: (_, key) => key }), weatherDataService: {} }));
+vi.mock('~/services/providers/airqualityprovider', () => ({}));
+vi.mock('~/services/providers/omIcons', () => ({}));
+vi.mock('~/services/providers/weatherprovider', () => ({ WeatherProvider: class {} }));
 
 import { openMeteoMarineData, tideExtremes } from './om';
 

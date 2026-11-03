@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('@nativescript/core', () => ({ ApplicationSettings: {} }));
-vi.mock('../api', () => ({}));
+vi.mock('~/services/api', () => ({}));
 vi.mock('~/services/providers/marineweatherprovider', () => ({ MarineWeatherProvider: class {} }));
 
 import { hasMarineData, isMarineSearchCacheValid, localDayStart, pickMarineLocation } from './meteoconsult';

@@ -1,6 +1,6 @@
 import type { AccuWeatherAlert } from './accuweather';
-import { AlertSeverity, colorFromSeverity, hexFromChannels } from './alerts';
-import type { Alert } from './weather';
+import { AlertSeverity, colorFromSeverity, hexFromChannels } from '~/services/providers/alerts';
+import type { Alert } from '~/services/providers/weather';
 
 /** AccuWeather alert mapping. Kept out of `accuweather.ts` so it stays unit testable. */
 

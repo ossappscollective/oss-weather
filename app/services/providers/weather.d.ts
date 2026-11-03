@@ -1,13 +1,13 @@
 import { Color } from '@nativescript/core';
 import { AlertSeverity } from './alerts';
-import { aqi_providers, marine_providers, providers } from './weatherproviderfactory';
 import { UNIT_FAMILIES } from '~/helpers/units';
 // import { Pollutants } from '../airQualityData';
 
 // export { Pollutants };
-export type ProviderType = (typeof providers)[number];
-export type AqiProviderType = (typeof aqi_providers)[number];
-export type MarineProviderType = (typeof marine_providers)[number];
+// keys of the registered provider modules, not a closed union: a module folder can be removed
+export type ProviderType = string;
+export type AqiProviderType = string;
+export type MarineProviderType = string;
 
 export interface Tide {
     time: number;
