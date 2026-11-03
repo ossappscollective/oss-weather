@@ -1,5 +1,5 @@
 <script context="module" lang="ts">
-    import { Align, Canvas, FontMetrics, Paint } from '@nativescript-community/ui-canvas';
+    import { Align, FontMetrics, Paint } from '@nativescript-community/ui-canvas';
     import { CombinedChart } from '@nativescript-community/ui-chart';
     import { ScatterShape } from '@nativescript-community/ui-chart/charts/ScatterChart';
     import { XAxisPosition } from '@nativescript-community/ui-chart/components/XAxis';
@@ -13,12 +13,10 @@
     import { ScatterData } from '@nativescript-community/ui-chart/data/ScatterData';
     import { ScatterDataSet } from '@nativescript-community/ui-chart/data/ScatterDataSet';
     import { Highlight } from '@nativescript-community/ui-chart/highlight/Highlight';
-    import DrawerElement from '@nativescript-community/ui-drawer/svelte';
-    import { Application, ApplicationSettings, Color, ObservableArray, OrientationChangedEventData } from '@nativescript/core';
+    import { Application, ApplicationSettings, ObservableArray, OrientationChangedEventData } from '@nativescript/core';
     import { showError } from '@shared/utils/showError';
     import dayjs from 'dayjs';
     import { onDestroy, onMount } from 'svelte';
-    import { Template } from '@nativescript-community/svelte-native/components';
     import type { NativeViewElementNode } from '@nativescript-community/svelte-native/dom';
     import { CHARTS_PORTRAIT_FULLSCREEN } from '~/helpers/constants';
     import { FavoriteLocation } from '~/helpers/favorites';
@@ -27,8 +25,7 @@
     import { convertWeatherValueToUnit, getWeatherDataIcon, getWeatherDataTitle, propToUnit } from '~/services/weatherData';
     import ModernCardTitle from '~/components/common/ModernCardTitle.svelte';
     import { colors, designStyle, fontScale, fonts, screenWidthDips } from '~/variables';
-    import { drawLegendChip } from '~/helpers/legendChip';
-    import { modernDataColor, styledDataIcon, textFontFamily } from '~/utils/design/designStyle';
+    import { modernDataColor, styledDataIcon } from '~/utils/design/designStyle';
     import { nightSpans } from '~/utils/charts/chartLabels';
     import type { HighlightCardContent } from '~/utils/charts/chartDraw';
     import BaseChart from '~/components/common/BaseChart.svelte';
@@ -42,12 +39,6 @@
             .map(({ color, name, value }) => ({ name, color, text: Math.round(value * 10) / 10 + unit }));
     }
 
-    const legendIconPaint = new Paint();
-    legendIconPaint.textSize = 13;
-
-    legendIconPaint.strokeWidth = 2;
-    const legendPaint = new Paint();
-    legendPaint.textSize = 13;
     const labelPaint = new Paint();
     labelPaint.textSize = 13;
     labelPaint.setTextAlign(Align.CENTER);
@@ -59,8 +50,8 @@
 </script>
 
 <script lang="ts">
-    let { colorBackground, colorOnSurface, colorOnSurfaceVariant, colorOutline, colorPrimary } = $colors;
-    $: ({ colorBackground, colorOnSurface, colorOnSurfaceVariant, colorOutline, colorPrimary } = $colors);
+    let { colorOnSurfaceVariant, colorOutline, colorPrimary } = $colors;
+    $: ({ colorOnSurfaceVariant, colorOutline, colorPrimary } = $colors);
     $: modern = $designStyle === 'modern';
     $: dataIcon = styledDataIcon($designStyle, getWeatherDataIcon(item.id));
 
@@ -72,7 +63,7 @@
         timestamp: number;
         hidden: string[];
     }
-    export let item: Item & { startingSide: string };
+    export let item: Item;
     export let screenOrientation: string = null;
     export let weatherLocation: FavoriteLocation;
     // modern: the page model chips are the legend, and the chart can fill the page
@@ -87,17 +78,14 @@
     // export let startingSide;
 
     let chartView: NativeViewElementNode<CombinedChart>;
-    let drawer: DrawerElement;
     let chartInitialized = false;
-
-    $: if (drawer) {
-        drawer.nativeView.on('open', () => (item.startingSide = 'top'));
-        drawer.nativeView.on('close', () => (item.startingSide = null));
-    }
 
     // we need a factor cause using timestamp means
     // using 64bit data which canvas does not support (android Matrix specifically)
     const legends = new ObservableArray([]);
+    // modern: plain copy of the legends for the chips under the chart (an ObservableArray is not reactive)
+    let legendChips = [];
+    const updateLegendChips = () => (legendChips = Array.from({ length: legends.length }, (unused, index) => legends.getItem(index)));
     let lastKey: string;
     let globalStartTimestamp = Number.MAX_SAFE_INTEGER;
     let nightRanges: { from: number; to: number }[] = [];
@@ -235,6 +223,7 @@
                 xAxis.axisMinimum = -1.5;
                 xAxis.axisMaximum = xAxisMaximum + 1.5;
                 legends.splice(0, legends.length, ...newLegends);
+                updateLegendChips();
                 // DEV_LOG && console.log('legends', JSON.stringify(legends));
                 switch (chartType) {
                     case 'scatterchart':
@@ -285,42 +274,6 @@
     }
     fontScale.subscribe(redraw);
 
-    function swipeMenuTranslationFunction(side, width, value, delta, progress) {
-        const result = {
-            topDrawer: {
-                translateY: -value
-                //    translateX: side === 'right' ? -delta : delta
-            },
-            backDrop: {
-                // translateX: side === 'right' ? -delta : delta,
-                opacity: 0
-            }
-        } as any;
-
-        return result;
-    }
-    function onDrawLegend({ color, enabled, id, name, subtitle }: { id: string; subtitle: string; name: string; color: string; enabled: boolean }, { canvas }: { canvas: Canvas }) {
-        if (modern) {
-            drawLegendChip(canvas, { color, enabled, name, subtitle }, colorOnSurface, textFontFamily($designStyle), $fontScale);
-            return;
-        }
-        const h = canvas.getHeight();
-        legendIconPaint.color = color;
-        legendPaint.color = color;
-        if (enabled) {
-            // legendIconPaint.setStyle(enabled ? Style.FILL : Style.STROKE);
-
-            canvas.drawRect(0, 0, 5, h, legendIconPaint);
-        }
-        // const nameAndKey = name.split(': ');
-        if (subtitle) {
-            canvas.drawText(name, 15, h / 2 - 3, legendPaint);
-            canvas.drawText(subtitle, 15, h / 2 - mFontMetricsBuffer.ascent, legendPaint);
-        } else {
-            canvas.drawText(name, 15, h / 2 - mFontMetricsBuffer.ascent / 2, legendPaint);
-        }
-    }
-
     function toggleLegend(legendItem, event) {
         try {
             legendItem.enabled = !legendItem.enabled;
@@ -351,6 +304,7 @@
                     chart.invalidate();
                 }
                 legends.setItem(index, legendItem);
+                updateLegendChips();
             }
         } catch (error) {
             showError(error);
@@ -424,72 +378,58 @@
     });
 </script>
 
-<drawer
-    bind:this={drawer}
-    closeAnimationDuration={100}
-    gestureEnabled={false}
-    openAnimationDuration={100}
-    startingSide={item.startingSide}
-    topDrawerMode="over"
-    topSwipeDistance={200}
-    translationFunction={swipeMenuTranslationFunction}
-    {...$$restProps}>
-    <gridlayout prop:mainContent rows="auto,*">
-        {#if modern}
-            <!-- data icon and title, the forecast as a chip, then the legend toggle -->
-            <ModernCardTitle
-                icon={dataIcon?.icon}
-                iconColor={modernDataColor(item.id)}
-                iconFontFamily={$fonts[dataIcon?.fontFamily]}
-                paddingRight={4}
-                title={`${getWeatherDataTitle(item.id)} ${getUnit(item.id) || ''}`}>
-                <mdbutton class="actionBarButton" col={2} text={fullscreen ? 'mdi-fullscreen-exit' : 'mdi-fullscreen'} variant="text" verticalAlignment="center" on:tap={() => onFullscreen?.()} />
-            </ModernCardTitle>
-        {:else}
-            <label class="sectionHeader" paddingTop={10} text={`${getWeatherDataTitle(item.id)} ${getUnit(item.id) || ''} (${lc(item.forecast)})`} />
-            <mdbutton class="mdi" horizontalAlignment="right" text="mdi-format-list-bulleted-square" variant="text" on:tap={() => drawer.toggle()} />
-        {/if}
+<gridlayout rows="auto,*,auto" {...$$restProps}>
+    {#if modern}
+        <!-- data icon and title, then the fullscreen button -->
+        <ModernCardTitle
+            icon={dataIcon?.icon}
+            iconColor={modernDataColor(item.id)}
+            iconFontFamily={$fonts[dataIcon?.fontFamily]}
+            paddingRight={4}
+            title={`${getWeatherDataTitle(item.id)} ${getUnit(item.id) || ''}`}>
+            <mdbutton class="actionBarButton" col={2} text={fullscreen ? 'mdi-fullscreen-exit' : 'mdi-fullscreen'} variant="text" verticalAlignment="center" on:tap={() => onFullscreen?.()} />
+        </ModernCardTitle>
+    {:else}
+        <label class="sectionHeader" paddingTop={10} text={`${getWeatherDataTitle(item.id)} ${getUnit(item.id) || ''} (${lc(item.forecast)})`} />
+    {/if}
 
-        <!-- horizontal pans only: vertical moves fail fast to let the page scroll -->
-        <BaseChart
-            height={chartHeight}
-            {highlightCard}
-            highlightFilter={(set) => item.hidden.indexOf(set['modelId']) === -1}
-            {nightRanges}
-            {nowHours}
-            {onLayoutChanged}
-            panGestureOptions={{
-                activeOffsetXStart: -10,
-                activeOffsetXEnd: 10,
-                failOffsetYStart: -10,
-                failOffsetYEnd: 10
-            }}
-            row={1}
-            startTimestamp={globalStartTimestamp}
-            {timezoneOffset}
-            verticalAlignment={chartHeight ? 'center' : 'stretch'}
-            bind:chartView />
-        <!-- <label
-            backgroundColor={new Color(colorBackground).setAlpha(200)}
-            borderRadius={10}
-            horizontalAlignment="right"
-            margin="0 10 25 0"
-            row={1}
-            textAlignment="right"
-            verticalAlignment="bottom"
-            visibility={highlighted && highlighted.length ? 'visible' : 'hidden'}>
-            <cspan text={highlighted && highlighted.length ? dayjs(highlighted[0].timestamp).format('L LT') : null} />
-            {#each highlighted as high}
-                <cspan color={high.color} fontWeight="bold" text={'\n' + '-- '} />
-                <cspan text={high.y + getUnit(item.id)} />
+    <!-- horizontal pans only: vertical moves fail fast to let the page scroll -->
+    <BaseChart
+        height={chartHeight}
+        {highlightCard}
+        highlightFilter={(set) => item.hidden.indexOf(set['modelId']) === -1}
+        {nightRanges}
+        {nowHours}
+        {onLayoutChanged}
+        panGestureOptions={{
+            activeOffsetXStart: -10,
+            activeOffsetXEnd: 10,
+            failOffsetYStart: -10,
+            failOffsetYEnd: 10
+        }}
+        row={1}
+        startTimestamp={globalStartTimestamp}
+        {timezoneOffset}
+        verticalAlignment={chartHeight ? 'center' : 'stretch'}
+        bind:chartView />
+    <!-- one chip per compared model, a tap shows / hides it in the chart -->
+    <scrollview orientation="horizontal" row={2}>
+        <stacklayout orientation="horizontal" padding="4 11 8 11">
+            {#each legendChips as legend (legend.id)}
+                <label
+                    class={modern ? 'modernChip' : null}
+                    borderColor={legend.color}
+                    borderRadius={15}
+                    borderWidth={1}
+                    margin={3}
+                    opacity={legend.enabled ? 1 : 0.45}
+                    padding="5 12 5 12"
+                    verticalAlignment="center"
+                    on:tap={() => toggleLegend(legend, null)}>
+                    <cspan color={legend.color} fontFamily={$fonts.mdi} fontSize={10 * $fontScale} text="mdi-circle" />
+                    <cspan text={' ' + (legend.subtitle || legend.name)} />
+                </label>
             {/each}
-        </label> -->
-    </gridlayout>
-    <gridlayout prop:topDrawer columns="*" height={40 + 36} rows="36,*">
-        <collectionview backgroundColor={new Color(colorBackground).setAlpha(200)} colWidth={150} height="40" items={legends} orientation="horizontal" row={1} verticalAlignment="top">
-            <Template let:item>
-                <canvasview rippleColor={item.color} on:draw={(event) => onDrawLegend(item, event)} on:tap={(event) => toggleLegend(item, event)} />
-            </Template>
-        </collectionview>
-    </gridlayout>
-</drawer>
+        </stacklayout>
+    </scrollview>
+</gridlayout>

@@ -1,15 +1,12 @@
 <script context="module" lang="ts">
-    import { Align, Canvas, FontMetrics, Paint } from '@nativescript-community/ui-canvas';
-    import DrawerElement from '@nativescript-community/ui-drawer/svelte';
+    import { Align, FontMetrics, Paint } from '@nativescript-community/ui-canvas';
     import { Application, ApplicationSettings, Color, ObservableArray, OrientationChangedEventData } from '@nativescript/core';
     import { showError } from '@shared/utils/showError';
-    import { Template } from '@nativescript-community/svelte-native/components';
     import type { NativeViewElementNode } from '@nativescript-community/svelte-native/dom';
     import { l, lc } from '~/helpers/locale';
     import type { WeatherData } from '~/services/providers/weather';
-    import { accentFontWeight, colors, designStyle, fontScale, fonts, screenWidthDips, windowInset } from '~/variables';
-    import { drawLegendChip } from '~/helpers/legendChip';
-    import { styledDataIcon, textFontFamily } from '~/utils/design/designStyle';
+    import { accentFontWeight, colors, designStyle, fontScale, fonts, screenWidthDips } from '~/variables';
+    import { styledDataIcon } from '~/utils/design/designStyle';
     import { modernColors } from '~/helpers/modernTheme';
 
     // modern zoom presets (hours visible at once); null keeps the default zoom, a huge one shows all
@@ -31,12 +28,6 @@
     import HourlyChartView from './HourlyChartView.svelte';
     import { isLandscape } from '~/utils/ui';
 
-    const legendIconPaint = new Paint();
-    legendIconPaint.textSize = 13;
-
-    legendIconPaint.strokeWidth = 2;
-    const legendPaint = new Paint();
-    legendPaint.textSize = 13;
     const labelPaint = new Paint();
     labelPaint.textSize = 13;
     labelPaint.setTextAlign(Align.CENTER);
@@ -45,8 +36,8 @@
 </script>
 
 <script lang="ts">
-    let { colorBackground, colorOnSurface, colorOutline } = $colors;
-    $: ({ colorBackground, colorOnSurface, colorOutline } = $colors);
+    let { colorOnSurface, colorOutline } = $colors;
+    $: ({ colorOnSurface, colorOutline } = $colors);
     $: modern = $designStyle === 'modern';
     let zoomHours = 48;
     export let weatherLocation: FavoriteLocation;
@@ -70,7 +61,6 @@
     let chartView: HourlyChartView;
 
     let chartInitialized;
-    let drawer: DrawerElement;
     const hidden: string[] = [];
     let legends: ObservableArray<any>;
     // modern legend chips: a plain array copy for {#each}, with the data icons
@@ -120,41 +110,6 @@
     }
     fontScale.subscribe(updatePaint);
 
-    function swipeMenuTranslationFunction(side, width, value, delta, progress) {
-        const result = {
-            bottomDrawer: {
-                translateY: side === 'left' ? -value : value
-                //    translateX: side === 'right' ? -delta : delta
-            },
-            backDrop: {
-                // translateX: side === 'right' ? -delta : delta,
-                opacity: progress * 0.05
-            }
-        } as any;
-
-        return result;
-    }
-    function onDrawLegend({ color, enabled, id, name, subtitle }: { id: string; subtitle: string; name: string; color: string; enabled: boolean }, { canvas }: { canvas: Canvas }) {
-        if (modern) {
-            drawLegendChip(canvas, { color, enabled, name, subtitle }, colorOnSurface, textFontFamily($designStyle), $fontScale);
-            return;
-        }
-        const h = canvas.getHeight();
-        legendIconPaint.color = color || colorOnSurface;
-        legendPaint.color = color || colorOnSurface;
-        if (enabled) {
-            // legendIconPaint.setStyle(enabled ? Style.FILL : Style.STROKE);
-
-            canvas.drawRect(0, 0, 5, h, legendIconPaint);
-        }
-        if (subtitle) {
-            canvas.drawText(name, 15, h / 2 - 3, legendPaint);
-            canvas.drawText(subtitle, 15, h / 2 - mFontMetricsBuffer.ascent, legendPaint);
-        } else {
-            canvas.drawText(name, 15, h / 2 - mFontMetricsBuffer.ascent / 2, legendPaint);
-        }
-    }
-
     function toggleLegend(legendItem, event) {
         try {
             legendItem.enabled = !legendItem.enabled;
@@ -195,74 +150,45 @@
         {#if !networkConnected && !weatherData}
             <label horizontalAlignment="center" row={1} text={l('no_network').toUpperCase()} verticalAlignment="middle" />
         {:else}
-            <drawer
-                bind:this={drawer}
-                bottomDrawerMode="over"
-                bottomSwipeDistance={200}
-                closeAnimationDuration={100}
-                gestureEnabled={false}
-                openAnimationDuration={100}
-                row={1}
-                translationFunction={swipeMenuTranslationFunction}
-                {...$$restProps}>
-                <!-- modern: zoom chips, the chart, then its legend chips always visible under it -->
-                <!-- modern: zoom switch, the chart filling the page, then its legend chips (wrapped) under it -->
-                <gridlayout prop:mainContent rows={modern ? 'auto,*,auto' : 'auto,*'}>
-                    <!-- <label class="sectionHeader" paddingTop={10} text={`${item.id} ${getUnit(item.id) || ''} (${lc(item.forecast)})`} /> -->
-                    {#if modern}
-                        <gridlayout class="modernSegmented modernSegmentedOnPage" columns="auto,auto,auto,auto" horizontalAlignment="left" margin="4 14 8 14">
-                            {#each ZOOM_PRESETS as preset, index}
-                                <label
-                                    class={zoomHours === preset.hours ? 'modernSegment modernSegmentCompact modernSegmentSelected' : 'modernSegment modernSegmentCompact'}
-                                    col={index}
-                                    text={preset.hours > 1000 ? lc(preset.label) : preset.label}
-                                    on:tap={() => (zoomHours = preset.hours)} />
-                            {/each}
-                        </gridlayout>
-                    {/if}
-                    <HourlyChartView
-                        bind:this={chartView}
-                        {dataToShow}
-                        height={modern ? 'auto' : chartHeight}
-                        hourly={weatherData.hourly}
-                        row={1}
-                        verticalAlignment={chartHeight && !modern ? 'center' : 'stretch'}
-                        visibleHours={modern ? zoomHours : null}
-                        bind:legends
-                        bind:chartInitialized />
-                    {#if modern}
-                        <wraplayout padding="4 11 8 11" row={2}>
-                            {#each legendItems as legend (legend.id)}
-                                <label
-                                    class="modernChip"
-                                    backgroundColor={legend.enabled ? new Color(legend.color || colorOnSurface).setAlpha(40).hex : $modernColors.colorModernCard}
-                                    margin={3}
-                                    opacity={legend.enabled ? 1 : 0.5}
-                                    on:tap={(event) => toggleLegend(legend, event)}>
-                                    <cspan color={legend.color} fontFamily={$fonts[legendIcon(legend.id).fontFamily]} fontSize={16 * $fontScale} text={legendIcon(legend.id).icon} />
-                                    <cspan text={' ' + legend.name} />
-                                </label>
-                            {/each}
-                        </wraplayout>
-                    {/if}
-                    <!-- <combinedchart
-                        bind:this={chartView}
-                        height={chartHeight}
-                        iosOverflowSafeArea={false}
-                        row={1}
-                        verticalAlignment={chartHeight ? 'center' : 'stretch'}
-                        on:layoutChanged={onLayoutChanged} /> -->
-                </gridlayout>
-                {#if !modern}
-                    <gridlayout prop:bottomDrawer backgroundColor={new Color(colorBackground).setAlpha(200)} columns="*" height={40 + $windowInset.bottom} rows="*">
-                        <collectionview colWidth={150} height="40" items={legends} orientation="horizontal" verticalAlignment="top">
-                            <Template let:item>
-                                <canvasview rippleColor={item.color || colorOnSurface} on:draw={(event) => onDrawLegend(item, event)} on:tap={(event) => toggleLegend(item, event)} />
-                            </Template>
-                        </collectionview>
+            <!-- modern: zoom switch, the chart filling the page. Then the legend chips (wrapped) under the chart -->
+            <gridlayout row={1} rows="auto,*,auto" {...$$restProps}>
+                {#if modern}
+                    <gridlayout class="modernSegmented modernSegmentedOnPage" columns="auto,auto,auto,auto" horizontalAlignment="left" margin="4 14 8 14">
+                        {#each ZOOM_PRESETS as preset, index}
+                            <label
+                                class={zoomHours === preset.hours ? 'modernSegment modernSegmentCompact modernSegmentSelected' : 'modernSegment modernSegmentCompact'}
+                                col={index}
+                                text={preset.hours > 1000 ? lc(preset.label) : preset.label}
+                                on:tap={() => (zoomHours = preset.hours)} />
+                        {/each}
                     </gridlayout>
                 {/if}
-            </drawer>
+                <HourlyChartView
+                    bind:this={chartView}
+                    {dataToShow}
+                    height={modern ? 'auto' : chartHeight}
+                    hourly={weatherData.hourly}
+                    row={1}
+                    verticalAlignment={chartHeight && !modern ? 'center' : 'stretch'}
+                    visibleHours={modern ? zoomHours : null}
+                    bind:legends
+                    bind:chartInitialized />
+                <wraplayout padding="4 11 8 11" row={2}>
+                    {#each legendItems as legend (legend.id)}
+                        <label
+                            class={modern ? 'modernChip' : null}
+                            backgroundColor={legend.enabled ? new Color(legend.color || colorOnSurface).setAlpha(40).hex : $modernColors.colorModernCard}
+                            borderRadius={15}
+                            margin={3}
+                            opacity={legend.enabled ? 1 : 0.5}
+                            padding="5 12 5 12"
+                            on:tap={(event) => toggleLegend(legend, event)}>
+                            <cspan color={legend.color} fontFamily={$fonts[legendIcon(legend.id).fontFamily]} fontSize={16 * $fontScale} text={legendIcon(legend.id).icon} />
+                            <cspan text={' ' + legend.name} />
+                        </label>
+                    {/each}
+                </wraplayout>
+            </gridlayout>
         {/if}
         <CActionBar showMenuIcon titleProps={{ visibility: 'visible' }}>
             <span slot="subtitle" fontWeight={$accentFontWeight} text={weatherLocation && weatherLocation.name} />
@@ -276,7 +202,6 @@
             {#if modern}
                 <mdbutton class="actionBarButton" text="mdi-restore" variant="text" on:tap={() => chartView?.resetVisibleHours()} />
             {/if}
-            <mdbutton class="actionBarButton" text="mdi-format-list-bulleted-square" variant="text" visibility={modern ? 'collapse' : 'visible'} on:tap={() => drawer.toggle()} />
         </CActionBar>
     </gridlayout>
 </page>
