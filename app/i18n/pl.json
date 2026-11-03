@@ -356,6 +356,7 @@
     "provider_marine": {
         "meteoconsult": "MétéoConsult",
         "none": "Brak",
+        "openmeteo": "Open-Meteo",
         "title": "Dostawca pogody morskiej"
     },
     "providers": "Dostawcy",
@@ -459,6 +460,7 @@
     "tide_high": "Przypływ",
     "tide_low": "Odpływ",
     "tides": "Pływy",
+    "tides_msl_warning": "Wysokości pływów w serwisie Open-Meteo są podawane względem średniego poziomu morza: wartości ujemne są zjawiskiem normalnym.",
     "timeout_error": "Żądanie przekroczyło limit czasu. Sprawdź połączenie internetowe i spróbuj ponownie",
     "turkish": "Turecki",
     "uchinaguchi": "Okinawa",
