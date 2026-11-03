@@ -21,7 +21,8 @@
     import { metarSeries } from '~/utils/metar';
     import type { MetarReport, MetarSeriesProp } from '~/utils/metar';
     import { onMount } from 'svelte';
-    import { accentFontWeight, colors, designStyle, fontScale, hourlyViewData, hourlyViewMode, onFontScaleChanged, weatherDataLayout } from '~/variables';
+    import { MarineProviders } from '~/services/providers/weatherproviderfactory';
+    import { accentFontWeight, actionBarHeight, colors, designStyle, fontScale, hourlyViewData, hourlyViewMode, onFontScaleChanged, weatherDataLayout } from '~/variables';
     import { textFontFamily } from '~/utils/designStyle';
     import DailyView from './DailyView.svelte';
     import CActionBar from './common/CActionBar.svelte';
@@ -139,6 +140,9 @@
     $: ({ colorOnSurface, colorOnSurfaceVariant, colorOutline } = $colors);
     // modern: the daily row header on top, then each section in a light card
     $: modern = $designStyle === 'modern';
+    // the date of the day is at the top of the page: scrolled a bit, the action bar shows it under the location
+    let scrollY = 0;
+    $: dateScrolledOut = scrollY > $actionBarHeight * $fontScale;
 
     /** Tides that fall within the current day (start of day → end of day) */
     $: dayTides = (() => {
@@ -432,7 +436,7 @@
 
 <page bind:this={page} actionBarHidden={true}>
     <gridlayout class="pageContent" rows="auto,*">
-        <scrollview row={1}>
+        <scrollview row={1} on:scroll={(event) => (scrollY = event.scrollY)}>
             <stacklayout bind:this={stackHolder}>
                 {#if modern}
                     <gridlayout on:swipe={onSwipe}>
@@ -566,6 +570,9 @@
                             <label color="#0288d1" fontSize={17} fontWeight="bold" padding={10} text={lc('tides')} />
                         {/if}
                         <TidesChartView {startTime} tides={dayTides} {timezoneOffset} />
+                        {#if weatherLocation?.providerMarine === MarineProviders.OpenMeteo}
+                            <label class={modern ? 'modernSubtitle' : ''} color={colorOnSurfaceVariant} fontSize={12} margin="2 10 10 10" text={lc('tides_msl_warning')} textWrap={true} />
+                        {/if}
                     </stacklayout>
                 {/if}
                 {#if isCurrentDay && metarCharts.length > 0}
@@ -588,7 +595,9 @@
                 </stacklayout>
             </stacklayout>
         </scrollview>
-        <CActionBar title={weatherLocation && weatherLocation.name} on:swipe={onSwipe}>
+        <CActionBar titleProps={{ visibility: 'visible' }} on:swipe={onSwipe}>
+            <span slot="subtitle" fontWeight={$accentFontWeight} text={weatherLocation && weatherLocation.name} />
+            <span slot="subtitle2" color={colorOutline} fontSize={12} fontWeight="normal" text={dateScrolledOut && item?.time ? '\n' + formatDate(item.time, 'dddd LL', timezoneOffset) : ''} />
             {#if modern}
                 <!-- previous / next day, like swiping the header -->
                 <mdbutton class="actionBarButton" isEnabled={itemIndex > minIndex} text="mdi-chevron-left" variant="text" on:tap={() => onSwipe({ direction: 1 })} />

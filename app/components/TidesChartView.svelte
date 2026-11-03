@@ -2,21 +2,33 @@
     import { Align, Canvas, Paint } from '@nativescript-community/ui-canvas';
     import { CombinedChart } from '@nativescript-community/ui-chart';
     import { AxisBase } from '@nativescript-community/ui-chart/components/AxisBase';
+    import { AxisDependency } from '@nativescript-community/ui-chart/components/YAxis';
     import { XAxisPosition } from '@nativescript-community/ui-chart/components/XAxis';
     import { CombinedData } from '@nativescript-community/ui-chart/data/CombinedData';
     import { LineData } from '@nativescript-community/ui-chart/data/LineData';
     import { LineDataSet, Mode } from '@nativescript-community/ui-chart/data/LineDataSet';
     import type { Highlight } from '@nativescript-community/ui-chart/highlight/Highlight';
+    import { Color } from '@nativescript/core';
     import BaseChart from '~/components/common/BaseChart.svelte';
     import type { HighlightCardContent } from '~/utils/chartDraw';
     import type { NativeViewElementNode } from '@nativescript-community/svelte-native/dom';
     import { formatTime, getStartOfDay, lc } from '~/helpers/locale';
+    import { modernColors } from '~/helpers/modernTheme';
     import type { Tide } from '~/services/providers/weather';
-    import { colors, fontScale, onFontScaleChanged } from '~/variables';
+    import { tideCurve } from '~/utils/tides';
+    import { colors, designStyle, fontScale, onFontScaleChanged } from '~/variables';
     import { onThemeChanged } from '~/helpers/theme';
+    import { get } from 'svelte/store';
 
     const labelPaint = new Paint();
     labelPaint.setTextAlign(Align.CENTER);
+    const underwaterPaint = new Paint();
+    const seaLevelPaint = new Paint();
+    // x values are 10 minutes since the start of the day, like the astronomy chart
+    const MINUTES_PER_X = 10;
+    const DAY_X = (24 * 60) / MINUTES_PER_X;
+    const HIGH_COLOR = '#0288d1';
+    const LOW_COLOR = '#80cbc4';
 </script>
 
 <script lang="ts">
@@ -28,11 +40,21 @@
 
     let { colorOnSurface } = $colors;
     $: ({ colorOnSurface } = $colors);
+    $: modern = $designStyle === 'modern';
 
     let chartView: NativeViewElementNode<CombinedChart>;
     let chartInitialized = false;
 
+    function updateTheme() {
+        // below the sea level the curve and its fill are dimmed by the card color, like below the horizon in the astronomy chart
+        underwaterPaint.color = $designStyle === 'modern' ? new Color(get(modernColors).colorModernCard).setAlpha(150) : new Color($colors.colorBackground).setAlpha(120);
+        seaLevelPaint.color = new Color($colors.colorOnSurface).setAlpha($designStyle === 'modern' ? 60 : 150);
+        seaLevelPaint.strokeWidth = 1;
+    }
+    updateTheme();
+
     onThemeChanged(() => {
+        updateTheme();
         const chart = chartView?.nativeView;
         if (chart) {
             const newColor = $colors.colorOnSurface;
@@ -57,12 +79,17 @@
         return getStartOfDay(startTime, timezoneOffset);
     }
 
-    function tidesToEntries() {
-        const computeStartTime = Math.min(getComputeStartTime().valueOf(), tides[0].time);
-        return tides.map((tide) => ({
-            x: (tide.time - computeStartTime) / 60000,
-            y: tide.height
-        }));
+    function tideX(tide: Tide) {
+        return (tide.time - getComputeStartTime().valueOf()) / (MINUTES_PER_X * 60000);
+    }
+
+    function curveEntries() {
+        const dayStart = getComputeStartTime().valueOf();
+        return tideCurve(tides, dayStart, dayStart + 24 * 3600 * 1000, MINUTES_PER_X * 60000).map((point) => ({ x: (point.time - dayStart) / (MINUTES_PER_X * 60000), y: point.height }));
+    }
+
+    function tideEntries() {
+        return tides.map((tide) => ({ x: tideX(tide), y: tide.height }));
     }
 
     function updateChartData() {
@@ -71,8 +98,11 @@
         }
 
         const chart = chartView.nativeView;
-        const computeStartTime = getComputeStartTime();
-        const entries = tidesToEntries();
+        const curve = curveEntries();
+        const entries = tideEntries();
+        const heights = tides.map((tide) => tide.height);
+        // the sea level (0) stays in the chart, with room for the value labels
+        const margin = Math.max(0.4, (Math.max(...heights, 0) - Math.min(...heights, 0)) * 0.25);
 
         if (!chartInitialized) {
             chartInitialized = true;
@@ -81,20 +111,18 @@
             const xAxis = chart.xAxis;
 
             leftAxis.textColor = xAxis.textColor = colorOnSurface;
+            if (modern) {
+                xAxis.textColor = $colors.colorOnSurfaceVariant;
+                xAxis.textSize = 11 * $fontScale;
+            }
             chart.setExtraOffsets(0, 10, 0, 40);
             chart.minOffset = 0;
+            // the values are only drawn when the chart shows fewer points than this: the curve has one every 10 minutes
+            chart.maxVisibleValueCount = 10000;
             chart.clipDataToContent = false;
-            const heights = tides.map((t) => t.height);
-            const minH = Math.max(0, Math.min(...heights) - 0.5);
-            const maxH = Math.max(...heights) + 0.3;
-
             leftAxis.drawLabels = false;
             leftAxis.drawGridLines = false;
             leftAxis.drawAxisLine = false;
-            // leftAxis.axisMinimum = minH;
-            // leftAxis.axisMaximum = maxH;
-            // leftAxis.spaceBottom = 100;
-            // leftAxis.spaceTop = 100;
 
             xAxis.position = XAxisPosition.BOTTOM_INSIDE;
             xAxis.drawAxisLine = false;
@@ -102,64 +130,62 @@
             xAxis.ensureVisible = true;
             xAxis.labelTextAlign = Align.CENTER;
             xAxis.drawLabels = true;
-            xAxis.forceLabelsEnabled = true;
-            xAxis.labelCount = tides.length;
-            xAxis.spaceMin = 100;
-            xAxis.spaceMax = 100;
-
-            labelPaint.textSize = 13 * $fontScale;
-            labelPaint.color = colorOnSurface;
-            labelPaint.setTextAlign(Align.CENTER);
-            xAxis.customRenderer = {
-                drawLabel: (c: Canvas, axis: AxisBase, text: string, x: number, y: number, paint: Paint, anchor, angleDegrees?: number) => {
-                    const w = c.getWidth();
-                    const h = chart.getHighlightByTouchPoint(x, y);
-                    const tide = tides[h.entryIndex];
-                    const timeStr = formatTime(tide.time, undefined, timezoneOffset);
-                    const heightStr = tide.height.toFixed(0) + 'm' + (tide.coef != null ? ` (${tide.coef})` : '');
-                    const isHigh = tide.type === 'high';
-                    labelPaint.color = isHigh ? '#0288d1' : '#80cbc4';
-                    c.drawText((isHigh ? '▲ ' : '▼ ') + timeStr, h.xPx, y + 35 - 2 * $fontScale, labelPaint);
-                    labelPaint.color = colorOnSurface;
-                    c.drawText(heightStr, h.xPx, y + 35 + 14 * $fontScale, labelPaint);
+            xAxis.forcedInterval = 24;
+            xAxis.axisMinimum = 0;
+            xAxis.axisMaximum = DAY_X;
+            xAxis.valueFormatter = {
+                getAxisLabel(value: any, axis: AxisBase) {
+                    const time = getComputeStartTime()
+                        .add(value * MINUTES_PER_X, 'minutes')
+                        .valueOf();
+                    // modern: hours only, like the hourly chart
+                    return formatTime(time, modern ? 'HH' : undefined, timezoneOffset);
                 }
             };
 
-            const set = new LineDataSet(entries, 'tides', 'x', 'y');
-            set.fillFormatter = {
-                getFillLinePosition: (dataSet, dataProvider) => minH
+            // the curve, filled down to the sea level
+            const curveSet = new LineDataSet(curve.length ? curve : entries, 'tides', 'x', 'y');
+            curveSet.fillFormatter = {
+                getFillLinePosition: (dataSet, dataProvider) => 0
             };
-            set.fillColor = '#0288d1';
-            set.color = '#0288d1';
-            set.fillAlpha = 50;
-            set.drawFilledEnabled = true;
-            set.lineWidth = 3;
-            set.mode = Mode.CUBIC_BEZIER;
-            set.drawCirclesEnabled = true;
-            set.circleRadius = 5;
-            // set.setCircleColor('#0288d1');
-            set.drawValuesEnabled = true;
-            set.valueTextSize = 11 * $fontScale;
-            set.valueTextColor = colorOnSurface;
-            set.valueFormatter = {
+            curveSet.fillColor = HIGH_COLOR;
+            curveSet.color = HIGH_COLOR;
+            curveSet.fillAlpha = 50;
+            curveSet.drawFilledEnabled = true;
+            curveSet.lineWidth = 3;
+            curveSet.mode = Mode.LINEAR;
+            curveSet.drawCirclesEnabled = false;
+            curveSet.drawValuesEnabled = false;
+
+            // the tides: a point and the height of each
+            const tidesSet = new LineDataSet(entries, 'extremes', 'x', 'y');
+            tidesSet.lineWidth = 0;
+            tidesSet.color = HIGH_COLOR;
+            tidesSet.drawCirclesEnabled = true;
+            tidesSet.circleRadius = 5;
+            tidesSet.drawValuesEnabled = true;
+            tidesSet.valueTextSize = 11 * $fontScale;
+            tidesSet.valueTextColor = colorOnSurface;
+            tidesSet.valueFormatter = {
                 getFormattedValue(value: number, entry?) {
                     return value.toFixed(2) + 'm';
                 }
             } as any;
 
             const data = new CombinedData();
-            data.lineData = new LineData([set]);
+            data.lineData = new LineData([curveSet, tidesSet]);
             chart.data = data;
         } else {
-            const dataSet = chart.lineData?.getDataSetByIndex(0);
-            if (dataSet) {
-                dataSet.values = entries;
-                dataSet.notifyDataSetChanged();
-                chart.data.notifyDataChanged();
-                chart.notifyDataSetChanged();
-                chart.invalidate();
-            }
+            const lineData = chart.lineData;
+            lineData.getDataSetByIndex(0).values = curve.length ? curve : entries;
+            lineData.getDataSetByIndex(1).values = entries;
+            lineData.dataSets.forEach((dataSet) => dataSet.notifyDataSetChanged());
+            chart.data.notifyDataChanged();
         }
+        chart.leftAxis.axisMinimum = Math.min(...heights, 0) - margin;
+        chart.leftAxis.axisMaximum = Math.max(...heights, 0) + margin;
+        chart.notifyDataSetChanged();
+        chart.invalidate();
     }
 
     $: {
@@ -172,44 +198,90 @@
         }
     }
 
-    // time, height and coefficient of the highlighted tide
-    function highlightCard(highlights: Highlight[]): HighlightCardContent {
-        const tide = tides[highlights[0].entryIndex];
-        if (!tide) {
-            return null;
-        }
-        const isHigh = tide.type === 'high';
-        return {
-            title: formatTime(tide.time, undefined, timezoneOffset),
-            rows: [{ name: lc(isHigh ? 'tide_high' : 'tide_low'), color: isHigh ? '#0288d1' : '#80cbc4', text: tide.height.toFixed(2) + 'm', extra: tide.coef != null ? `(${tide.coef})` : undefined }]
-        };
+    // time of the tide at the touched time (within 15 minutes), its height otherwise
+    function tideAt(x: number) {
+        return tides.find((tide) => Math.abs(tideX(tide) - x) <= 1.5);
     }
 
-    function drawTideLabels({ canvas }: { canvas: Canvas }) {
-        if (!tides.length) return;
-        const w = canvas.getWidth();
-        const h = canvas.getHeight();
-        const padding = 10;
-        const colWidth = (w - 2 * padding) / tides.length;
-
-        labelPaint.textSize = 13 * $fontScale;
-        labelPaint.color = colorOnSurface;
-        labelPaint.setTextAlign(Align.CENTER);
-
-        tides.forEach((tide, index) => {
-            const x = padding + index * colWidth + colWidth / 2;
-            const timeStr = formatTime(tide.time, undefined, timezoneOffset);
-            const heightStr = tide.height.toFixed(2) + 'm' + (tide.coef != null ? ` (${tide.coef})` : '');
+    function highlightCard(highlights: Highlight[], chart: CombinedChart): HighlightCardContent {
+        const x = highlights[0].x;
+        const time = getComputeStartTime()
+            .add(x * MINUTES_PER_X, 'minutes')
+            .valueOf();
+        const tide = tideAt(x);
+        if (tide) {
             const isHigh = tide.type === 'high';
-            labelPaint.color = isHigh ? '#0288d1' : '#80cbc4';
-            canvas.drawText((isHigh ? '▲ ' : '▼ ') + timeStr, x, h / 2 - 2 * $fontScale, labelPaint);
+            return {
+                title: formatTime(tide.time, undefined, timezoneOffset),
+                rows: [{ name: lc(isHigh ? 'tide_high' : 'tide_low'), color: isHigh ? HIGH_COLOR : LOW_COLOR, text: tide.height.toFixed(2) + 'm', extra: tide.coef != null ? `(${tide.coef})` : undefined }]
+            };
+        }
+        return { title: formatTime(time, undefined, timezoneOffset), rows: [{ name: lc('tides'), color: HIGH_COLOR, text: highlights[0].entry['y'].toFixed(2) + 'm' }] };
+    }
+
+    // the curve only is highlighted: its points are every 10 minutes
+    function isCurve(dataSet) {
+        return dataSet.label === 'tides';
+    }
+
+    // the height of a tide at the start or the end of the day stays in the chart
+    const customRenderer = {
+        drawValue(canvas: Canvas, chart: CombinedChart, dataSet, dataSetIndex: number, entry, entryIndex: number, valueText: string, x: number, y: number, color: string | Color, paint: Paint) {
+            const content = chart.viewPortHandler.contentRect;
+            const halfWidth = paint.measureText(valueText) / 2;
+            paint.setColor(color);
+            canvas.drawText(valueText, Math.min(Math.max(x, content.left + halfWidth), content.right - halfWidth), y, paint);
+        }
+    };
+
+    // under the sea level over the curve, and the time and the height of each tide under the chart
+    function drawSeaLevel(canvas: Canvas, chart: CombinedChart) {
+        const content = chart.viewPortHandler.contentRect;
+        const seaLevelY = chart.getTransformer(AxisDependency.LEFT).getPixelForValues(0, 0).y;
+        if (seaLevelY < content.bottom) {
+            canvas.drawRect(content.left, Math.max(seaLevelY, content.top), content.right, content.bottom, underwaterPaint);
+        }
+        canvas.drawLine(content.left, seaLevelY, content.right, seaLevelY, seaLevelPaint);
+        labelPaint.textSize = 12 * $fontScale;
+        tides.forEach((tide) => {
+            const isHigh = tide.type === 'high';
+            const timeText = (isHigh ? '▲ ' : '▼ ') + formatTime(tide.time, undefined, timezoneOffset);
+            const heightText = tide.height.toFixed(1) + 'm' + (tide.coef != null ? ` (${tide.coef})` : '');
+            const pointX = chart.getTransformer(AxisDependency.LEFT).getPixelForValues(tideX(tide), 0).x;
+            const halfWidth = Math.max(labelPaint.measureText(timeText), labelPaint.measureText(heightText)) / 2;
+            // a tide at the start or the end of the day keeps its labels in the chart: against its edge
+            let x = pointX;
+            labelPaint.setTextAlign(Align.CENTER);
+            if (pointX - halfWidth < content.left) {
+                x = content.left + 2;
+                labelPaint.setTextAlign(Align.LEFT);
+            } else if (pointX + halfWidth > content.right) {
+                x = content.right - 2;
+                labelPaint.setTextAlign(Align.RIGHT);
+            }
+            labelPaint.color = isHigh ? HIGH_COLOR : LOW_COLOR;
+            canvas.drawText(timeText, x, content.bottom + 18 * $fontScale, labelPaint);
             labelPaint.color = colorOnSurface;
-            canvas.drawText(heightStr, x, h / 2 + 14 * $fontScale, labelPaint);
+            canvas.drawText(heightText, x, content.bottom + 34 * $fontScale, labelPaint);
+            labelPaint.setTextAlign(Align.CENTER);
         });
     }
 </script>
 
-<BaseChart height={200} {highlightCard} highlightPerDrag={true} styleAxes={false} timeGrid={false} {timezoneOffset} bind:chartView {...$$restProps} />
-<!-- {#if tides.length}
-        <canvasview padding="0 10 0 10" row={1} on:draw={drawTideLabels} />
-    {/if} -->
+<BaseChart
+    {customRenderer}
+    height={200}
+    {highlightCard}
+    highlightFilter={isCurve}
+    highlightPerDrag={true}
+    onDrawn={drawSeaLevel}
+    panGestureOptions={{
+        minDist: 50,
+        failOffsetYStart: -40,
+        failOffsetYEnd: 40
+    }}
+    styleAxes={false}
+    timeGrid={false}
+    {timezoneOffset}
+    bind:chartView
+    {...$$restProps} />

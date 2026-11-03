@@ -61,6 +61,7 @@
     export let onHighlight: (highlight: Highlight) => void = null;
 
     let highlighted: Highlight[] = [];
+    let highlightedBeforeEvent = false;
     let lineDrawn = false;
     let classicAxisLineColor: string;
     let hasNowLine = false;
@@ -166,8 +167,16 @@
         canvas.drawCircle(highlight.drawX, highlight.drawY, 4, highlightDotPaint);
     }
 
+    // the chart highlights on a tap before it tells about it: a tap while something was highlighted clears it
+    function onTap() {
+        if (highlightEnabled && highlightedBeforeEvent) {
+            clearHighlight();
+        }
+    }
+
     // a tap highlights every series at that time (the chart only keeps the closest one)
     function handleHighlight({ highlight, object: chart }: { object: CombinedChart; highlight: Highlight }) {
+        highlightedBeforeEvent = highlighted.length > 0;
         const atSameX = highlight ? chart.getHighlightByXValue(highlight.x) : null;
         // the chart draws, and so gives a drawX to, only its own highlight object: the one of a single series
         highlighted = !highlight ? [] : atSameX?.length > 1 ? atSameX : [highlight];
@@ -223,6 +232,7 @@
     on:draw={onChartDraw}
     on:postDraw={onChartDrawn}
     on:highlight={handleHighlight}
+    on:tap={onTap}
     on:pan={clearHighlight}
     on:zoom={clearHighlight}
     on:layoutChanged={(event) => onLayoutChanged?.(event.object)}
