@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DAY_X, labelPlacement, tideAtX, tideChartData, tideCurve } from './TidesChartView.logic';
+import { DAY_X, labelPlacement, tideAtX, tideChartData, tideCurve } from './TidesChart';
 
 const HOUR = 3600 * 1000;
 

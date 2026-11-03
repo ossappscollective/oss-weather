@@ -17,7 +17,7 @@
     import type { Tide } from '~/services/providers/weather';
     import { colors, designStyle, fontScale, onFontScaleChanged } from '~/variables';
     import { onThemeChanged } from '~/helpers/theme';
-    import { DAY_X, MINUTES_PER_X, labelPlacement, tideAtX, tideChartData, tideX } from './TidesChartView.logic';
+    import { DAY_X, MINUTES_PER_X, labelPlacement, tideAtX, tideChartData, tideX } from './TidesChart';
     import { get } from 'svelte/store';
 
     const labelPaint = new Paint();
