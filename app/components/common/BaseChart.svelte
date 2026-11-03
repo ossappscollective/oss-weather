@@ -63,6 +63,7 @@
     let highlighted: Highlight[] = [];
     let highlightedBeforeEvent = false;
     let lineDrawn = false;
+    let shadingCanvas: Canvas = null;
     let classicAxisLineColor: string;
     let hasNowLine = false;
     onDestroy(chartScrolled.subscribe(() => clearHighlight()));
@@ -192,10 +193,29 @@
             return;
         }
         lineDrawn = false;
+        // after a data change the chart recalculates its offsets and value matrix in its own draw, after this
+        // event: shading drawn now would use the old ones. It waits for firstOffsetsCalculated instead, which
+        // comes right before the chart draws its grid and data
+        if (chart['offsetsCalculated']) {
+            drawNight(canvas, chart);
+        } else {
+            shadingCanvas = canvas;
+        }
+        onDraw?.(canvas, chart);
+    }
+
+    function drawNight(canvas: Canvas, chart: CombinedChart) {
         if (modern && nightRanges.length) {
             drawNightShading(canvas, chart, nightRanges, colorOnSurface);
         }
-        onDraw?.(canvas, chart);
+    }
+
+    function handleFirstOffsetsCalculated(chart: CombinedChart) {
+        if (shadingCanvas) {
+            drawNight(shadingCanvas, chart);
+            shadingCanvas = null;
+        }
+        onFirstOffsetsCalculated?.(chart);
     }
 
     function onChartDrawn({ canvas }: { canvas: Canvas }) {
@@ -236,4 +256,4 @@
     on:pan={clearHighlight}
     on:zoom={clearHighlight}
     on:layoutChanged={(event) => onLayoutChanged?.(event.object)}
-    on:firstOffsetsCalculated={(event) => onFirstOffsetsCalculated?.(event.object)} />
+    on:firstOffsetsCalculated={(event) => handleFirstOffsetsCalculated(event.object)} />
