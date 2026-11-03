@@ -298,7 +298,7 @@ if (__ANDROID__) {
     });
 }
 
-export { l, lc, lt, lu };
+export { l, lc, lt, lu, titlecase };
 export const sl = derived([$lang], () => l);
 export const slc = derived([$lang], () => lc);
 export const slt = derived([$lang], () => lt);

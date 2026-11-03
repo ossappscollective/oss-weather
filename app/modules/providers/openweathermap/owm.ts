@@ -1,12 +1,11 @@
-import { lc, titlecase } from '@nativescript-community/l';
 import { ApplicationSettings } from '@nativescript/core';
 import { FEELS_LIKE_TEMPERATURE, NB_DAYS_FORECAST, NB_HOURS_FORECAST } from '~/helpers/constants';
 import { WeatherDataType, weatherDataIconColors } from '~/helpers/formatter';
-import { getStartOfDay, lang } from '~/helpers/locale';
+import { getStartOfDay, lang, lc, titlecase } from '~/helpers/locale';
 import { WeatherLocation, request } from '~/services/api';
 import { prefs } from '~/services/preferences';
-import { CityWeather, Coord, OneCallResult } from './openweathermap';
-import { buildOwmAlerts } from './owmAlerts';
+import { Alert as OWMAlert, CityWeather, Coord, OneCallResult } from './openweathermap';
+import { AlertSeverity } from '~/services/providers/alerts';
 import { Alert, Currently, DailyData, Hourly, WeatherData } from '~/services/providers/weather';
 import { GetWeatherOptions, WeatherProvider } from '~/services/providers/weatherprovider';
 
@@ -241,4 +240,22 @@ prefs.on(`key:${API_KEY_SETTING}`, (event) => {
 interface OWMParams extends Partial<Coord> {
     id?: number; // cityId
     q?: string; // search query
+}
+
+/**
+ * One Call alert mapping. * One Call gives `start`/`end` in seconds and no severity.
+ */
+export function buildOwmAlerts(alerts: OWMAlert[]): Alert[] {
+    if (!alerts?.length) {
+        return [];
+    }
+    return alerts.map((alert) => ({
+        sender_name: alert.sender_name,
+        event: alert.event,
+        start: alert.start * 1000,
+        end: alert.end * 1000,
+        description: alert.description,
+        tags: alert.tags,
+        severity: AlertSeverity.UNKNOWN
+    }));
 }

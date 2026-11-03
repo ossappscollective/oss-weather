@@ -1,6 +1,24 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+// the provider imports the NativeScript runtime and the app services: only its pure functions are tested here
+// webpack DefinePlugin global read when the module loads
+vi.hoisted(() => {
+    globalThis['MF_DEFAULT_KEY'] = '';
+});
+vi.mock('@nativescript/core', () => ({ ApplicationSettings: { getString: () => '', getNumber: () => 0, getBoolean: () => false, remove: () => {}, setString: () => {}, hasKey: () => false } }));
+vi.mock('@nativescript/core/application-settings', () => ({ getString: () => '' }));
+vi.mock('~/helpers/constants', () => ({}));
+vi.mock('~/helpers/formatter', () => ({}));
+vi.mock('~/helpers/locale', () => ({}));
+vi.mock('~/services/api', () => ({}));
+vi.mock('~/services/preferences', () => ({ prefs: { on: () => {} } }));
+vi.mock('~/services/providers/weatherprovider', () => ({ WeatherProvider: class {} }));
+vi.mock('@nativescript-community/https', () => ({}));
+vi.mock('@shared/utils/curlify', () => ({}));
+vi.mock('dayjs', () => ({ default: {} }));
+
 import { AlertSeverity, colorFromSeverity } from '~/services/providers/alerts';
-import { MFWarningLabels, buildAlertsFromWarnings, buildOverseasAlerts, getMfDomain } from './mfWarnings';
+import { MFWarningLabels, buildAlertsFromWarnings, buildOverseasAlerts, getMfDomain } from './mf';
 import type { MFWarningDictionary, MFWarnings, MFWarningsOverseas } from './meteofrance';
 
 // Fixtures follow the real `v3/warning/full` (metropolitan) and `v2/warning/full` (overseas)

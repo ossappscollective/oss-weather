@@ -1,5 +1,16 @@
-import { describe, expect, it } from 'vitest';
-import { buildOwmAlerts } from './owmAlerts';
+import { describe, expect, it, vi } from 'vitest';
+
+// the provider imports the NativeScript runtime and the app services: only its pure functions are tested here
+vi.mock('@nativescript/core', () => ({ ApplicationSettings: { getString: () => '', getNumber: () => 0, getBoolean: () => false, remove: () => {}, setString: () => {}, hasKey: () => false } }));
+vi.mock('@nativescript/core/application-settings', () => ({ getString: () => '' }));
+vi.mock('~/helpers/constants', () => ({}));
+vi.mock('~/helpers/formatter', () => ({}));
+vi.mock('~/helpers/locale', () => ({}));
+vi.mock('~/services/api', () => ({}));
+vi.mock('~/services/preferences', () => ({ prefs: { on: () => {} } }));
+vi.mock('~/services/providers/weatherprovider', () => ({ WeatherProvider: class {} }));
+
+import { buildOwmAlerts } from './owm';
 
 describe('buildOwmAlerts', () => {
     // One Call returns `start`/`end` as Unix seconds, the app works in milliseconds.

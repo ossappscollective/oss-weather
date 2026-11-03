@@ -1,5 +1,18 @@
-import { describe, expect, it } from 'vitest';
-import { buildAccuAlerts } from './accuAlerts';
+import { describe, expect, it, vi } from 'vitest';
+
+// the provider imports the NativeScript runtime and the app services: only its pure functions are tested here
+vi.mock('@nativescript/core', () => ({ ApplicationSettings: { getString: () => '', getNumber: () => 0, getBoolean: () => false, remove: () => {}, setString: () => {}, hasKey: () => false } }));
+vi.mock('@nativescript/core/application-settings', () => ({ getString: () => '' }));
+vi.mock('~/helpers/constants', () => ({}));
+vi.mock('~/helpers/formatter', () => ({}));
+vi.mock('~/helpers/locale', () => ({}));
+vi.mock('~/services/api', () => ({}));
+vi.mock('~/services/preferences', () => ({ prefs: { on: () => {} } }));
+vi.mock('~/services/providers/weatherprovider', () => ({ WeatherProvider: class {} }));
+vi.mock('~/services/airQualityData', () => ({ Pollutants: new Proxy({}, { get: (_, key) => key }) }));
+vi.mock('~/services/providers/airqualityprovider', () => ({ AirQualityProvider: class {} }));
+
+import { buildAccuAlerts } from './accuweather';
 import { AlertSeverity } from '~/services/providers/alerts';
 
 describe('buildAccuAlerts', () => {
