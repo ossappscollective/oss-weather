@@ -21,13 +21,23 @@
     import { accentFontWeight, actionBarButtonHeight, colors, designStyle, fontScale, fonts, screenWidthDips, windowInset } from '~/variables';
     import ModernCardTitle from '~/components/common/ModernCardTitle.svelte';
     import { modernDataColor, styledDataIcon } from '~/utils/designStyle';
-    import { modelSpread } from '~/utils/modelSpread';
     import { showPopoverMenu } from '~/utils/ui';
     import { showBottomSheet } from '@nativescript-community/ui-bottomsheet/svelte';
     import { VerticalPosition } from '@nativescript-community/ui-popover';
     import ListItemAutoSize from '../common/ListItemAutoSize.svelte';
     import CompareLineChart from './CompareLineChart.svelte';
     import CompareWeatherIcons from './CompareWeatherIcons.svelte';
+
+    // lowest and highest value across the compared models (at one time), and the gap between them
+    function modelSpread(values: number[]) {
+        const known = values.filter((value) => Number.isFinite(value));
+        if (known.length < 2) {
+            return null;
+        }
+        const min = Math.min(...known);
+        const max = Math.max(...known);
+        return { min, max, spread: max - min, count: known.length };
+    }
 
     let dataToCompare: any = JSON.parse(ApplicationSettings.getString('compare_data_single', '{"id":"temperature","type":"linechart","forecast":"hourly"}'));
     const screenOrientation = ApplicationSettings.getBoolean('charts_landscape', CHARTS_LANDSCAPE) ? 'landscape' : undefined;

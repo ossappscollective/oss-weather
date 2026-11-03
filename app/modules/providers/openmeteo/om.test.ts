@@ -5,7 +5,6 @@ vi.mock('@nativescript/core', () => ({ ApplicationSettings: {} }));
 vi.mock('~/helpers/constants', () => ({}));
 vi.mock('~/helpers/formatter', () => ({}));
 vi.mock('~/helpers/locale', () => ({}));
-vi.mock('~/utils/dailyTrim', () => ({}));
 vi.mock('~/services/airQualityData', () => ({ Pollutants: new Proxy({}, { get: (_, key) => key }), prepareAirQualityData: () => ({}) }));
 vi.mock('~/services/api', () => ({}));
 vi.mock('~/services/weatherData', () => ({ WeatherProps: new Proxy({}, { get: (_, key) => key }), weatherDataService: {} }));

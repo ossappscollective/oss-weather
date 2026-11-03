@@ -10,9 +10,7 @@
     import { SETTINGS_DAILY_PAGE_HOURLY_MODE, SETTINGS_SHOW_CURRENT_DAY_DAILY, SHOW_CURRENT_DAY_DAILY } from '~/helpers/constants';
     import { formatDate, isSameDay, lc } from '~/helpers/locale';
     import { POLLENS_POLLUTANTS_TITLES, Pollutants, getPollutantIndex } from '~/services/airQualityData';
-    import { AQI_LEVEL_KEYS, AQI_THRESHOLDS, MODERN_LEVEL_COLORS, POLLEN_THRESHOLDS, levelIndex } from '~/utils/airQualityLevel';
     import { mixColors } from '~/utils/modernThemeColors';
-    import { levelFraction } from '~/utils/levelFraction';
     import { WeatherLocation } from '~/services/api';
     import { iconService, onIconAnimationsChanged } from '~/services/icon';
     import type { DailyData, Hourly, Tide } from '~/services/providers/weather';
@@ -31,6 +29,31 @@
     import HourlyView from './HourlyView.svelte';
     import TidesChartView from './TidesChartView.svelte';
     import WeatherIcon from './WeatherIcon.svelte';
+
+    // lower bounds of the levels above the first one: european AQI bands (good, fair, moderate, poor,
+    // very poor, extremely poor), pollen bands (none/low up to very high)
+    const AQI_THRESHOLDS = [20, 40, 60, 80, 100];
+    const POLLEN_THRESHOLDS = [1, 25, 50, 75, 100];
+
+    // i18n keys and modern (muted) colors of the levels
+    const AQI_LEVEL_KEYS = ['aqi_good', 'aqi_fair', 'aqi_moderate', 'aqi_poor', 'aqi_very_poor', 'aqi_extremely_poor'];
+    const MODERN_LEVEL_COLORS = ['#639922', '#97C459', '#EF9F27', '#D85A30', '#E24B4A', '#7F77DD'];
+
+    function levelIndex(value: number | null, thresholds: number[]) {
+        if (value === null || !Number.isFinite(value)) {
+            return null;
+        }
+        const index = thresholds.findIndex((threshold) => value < threshold);
+        return index === -1 ? thresholds.length : index;
+    }
+
+    // filled part of a level bar (air quality, pollens): value on a 0..max scale, clamped
+    function levelFraction(value: number | null, max: number) {
+        if (value === null || !Number.isFinite(value)) {
+            return 0;
+        }
+        return Math.min(1, Math.max(0, value / max));
+    }
     const weatherIconSize = 70;
     const PADDING_LEFT = 7;
 

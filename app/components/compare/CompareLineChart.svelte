@@ -33,7 +33,14 @@
     import type { HighlightCardContent } from '~/utils/chartDraw';
     import BaseChart from '~/components/common/BaseChart.svelte';
     import { isLandscape } from '~/utils/ui';
-    import { highlightRows } from '~/utils/highlightRows';
+
+    // compare chart highlight: the value of each model at the touched time, highest first
+    function highlightRows<Tint>(models: { name: string; color: Tint; value: number }[], unit: string) {
+        return models
+            .filter((model) => Number.isFinite(model.value))
+            .sort((first, second) => second.value - first.value)
+            .map(({ color, name, value }) => ({ name, color, text: Math.round(value * 10) / 10 + unit }));
+    }
 
     const legendIconPaint = new Paint();
     legendIconPaint.textSize = 13;

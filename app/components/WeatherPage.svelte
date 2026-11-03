@@ -85,7 +85,6 @@
     import { accentFontWeight, actionBarHeight, colors, designStyle, fontScale, fonts, onFontScaleChanged, onSettingsChanged, windowInset } from '~/variables';
     import { groupPosition } from '~/utils/settingsGroups';
     import { groupRowClass } from '~/utils/groupClass';
-    import { timeDifferenceLabel } from '~/utils/timeDifference';
     import type { MetarStation } from '~/utils/metarStations';
     import { searchStations } from '~/services/metar';
     import IconButton from './common/IconButton.svelte';
@@ -93,6 +92,15 @@
     import { isLibreWXRSource } from '~/services/providers/librewxr';
     import { MaptilerProvider } from '~/services/providers/maptiler';
     import WeatherIcon from '~/components/WeatherIcon.svelte';
+
+    // "+7 h" / "−6 h": time zone of a location compared to the selected one (offsets in hours)
+    function timeDifferenceLabel(offsetHours: number, currentOffsetHours: number) {
+        if (!Number.isFinite(offsetHours) || !Number.isFinite(currentOffsetHours) || offsetHours === currentOffsetHours) {
+            return '';
+        }
+        const difference = offsetHours - currentOffsetHours;
+        return `${difference > 0 ? '+' : '−'}${Math.abs(difference)} h`;
+    }
 
     const gps: GPS = new GPS();
     const gpsAvailable = gps.hasGPS();

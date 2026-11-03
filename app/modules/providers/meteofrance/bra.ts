@@ -7,9 +7,17 @@ import type { FeatureCollection, MultiPolygon } from 'geojson';
 import PolygonLookup from 'polygon-lookup';
 import { lc } from '~/helpers/locale';
 import type { LocationAction } from '~/modules/registry';
+import type { WeatherLocation } from '~/services/api';
 import { hideLoading, showLoading, showToast } from '~/utils/ui';
-import { isBRALocation } from './braBounds';
 import { MFProvider } from './mf';
+
+const BRA_BOUNDS = [-4.855957, 41.310824, 9.645996, 51.124213];
+
+/** mountain avalanche bulletins (BRA) exist for the French territory only */
+function isBRALocation(location: Pick<WeatherLocation, 'coord' | 'timezone'>) {
+    const { lat, lon } = location.coord;
+    return location.timezone === 'Europe/Paris' && lon >= BRA_BOUNDS[0] && lon <= BRA_BOUNDS[2] && lat >= BRA_BOUNDS[1] && lat <= BRA_BOUNDS[3];
+}
 
 let franceGeoJSON: FeatureCollection<MultiPolygon>;
 let franceGeoJSONLookup: PolygonLookup;
