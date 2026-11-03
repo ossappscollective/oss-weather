@@ -1,5 +1,10 @@
-import { describe, expect, it } from 'vitest';
-import { hasMarineData, isMarineSearchCacheValid, localDayStart, pickMarineLocation } from './marineForecast';
+import { describe, expect, it, vi } from 'vitest';
+
+vi.mock('@nativescript/core', () => ({ ApplicationSettings: {} }));
+vi.mock('../api', () => ({}));
+vi.mock('~/services/providers/marineweatherprovider', () => ({ MarineWeatherProvider: class {} }));
+
+import { hasMarineData, isMarineSearchCacheValid, localDayStart, pickMarineLocation } from './meteoconsult';
 
 const empty = { avis: null, marees: [], previs: { simple: [{ hauteurvague: null }], detail: [{ teau: null, hauteurvague: null, hauteurvaguemax: null, hauteurhoule: null }] } };
 
