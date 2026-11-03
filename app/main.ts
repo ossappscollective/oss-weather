@@ -30,6 +30,8 @@ import { fixFontCloneTypeface } from '~/helpers/fontClone';
 import { installVariableFontWeights } from '~/helpers/variableFont';
 import { start as startDefaultFont } from '~/helpers/defaultFont';
 
+import metar from '~/modules/features/metar/module';
+import meteoblue from '~/modules/features/meteoblue/module';
 import accuweather from '~/modules/providers/accuweather/module';
 import atmo from '~/modules/providers/atmo/module';
 import meteoconsult from '~/modules/providers/meteoconsult/module';
@@ -42,7 +44,7 @@ import { navigate } from '@shared/utils/svelte/ui';
 import { SETTINGS_ENABLE_CRASH_REPORT } from '~/helpers/constants';
 
 // to remove a module, drop its import and entry here, then delete its folder
-[openmeteo, meteofrance, openweathermap, accuweather, atmo, meteoconsult].forEach(registerModule);
+[openmeteo, meteofrance, openweathermap, accuweather, atmo, meteoconsult, metar, meteoblue].forEach(registerModule);
 // the default provider, its weather codes feed the METAR overlay
 assertModulesPresent(['openmeteo']);
 

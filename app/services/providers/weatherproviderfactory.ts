@@ -1,17 +1,13 @@
 import { ApplicationSettings } from '@nativescript/core';
 import { createGlobalEventListener, globalObservable } from '@shared/utils/svelte/ui';
 import { SETTINGS_PROVIDER, SETTINGS_PROVIDER_AQI, SETTINGS_PROVIDER_MARINE } from '~/helpers/constants';
-import { getProviderClass as getRegisteredProviderClass, getProviderKeys, resolveProviderKey } from '~/modules/registry';
+import { getProviderClass as getRegisteredProviderClass, getProviderKeys, getWeatherOverlays, resolveProviderKey } from '~/modules/registry';
 import { MarineWeatherProvider } from '~/services/providers/marineweatherprovider';
-import { WeatherDataType, weatherDataIconColors } from '~/helpers/formatter';
-import { fetchLatestMetar } from '~/services/metar';
 import { WeatherProps, mergeWeatherData, weatherDataService } from '~/services/weatherData';
-import { MetarReport, applyMetarToCurrently } from '~/utils/weather/metar';
 import { WeatherLocation } from '../api';
 import { prefs } from '../preferences';
-import { OMProvider } from '~/modules/providers/openmeteo/om';
 import { AirQualityProvider } from './airqualityprovider';
-import { AirQualityData, AqiProviderType, Currently, MarineProviderType, ProviderType, WeatherData } from './weather';
+import { AirQualityData, AqiProviderType, MarineProviderType, ProviderType, WeatherData } from './weather';
 import { GetWeatherOptions, WeatherProvider } from './weatherprovider';
 
 export function getWeatherProviderKeys() {
@@ -112,8 +108,8 @@ function getCacheKey(weatherType: WeatherType, providerId: string, weatherLocati
     const { ignoreCache, ...optionsForKey } = options;
 
     const optionsStr = options ? JSON.stringify(optionsForKey) : '';
-    const metarStr = weatherType === 'main' && weatherLocation.metarStation ? `_${weatherLocation.metarStation.icao}` : '';
-    return `${WEATHER_CACHE_PREFIX}${weatherType === 'main' ? '' : `${weatherType}_`}${providerId}_${coord.lat}_${coord.lon}_${optionsStr}${metarStr}`;
+    const overlaysStr = weatherType === 'main' ? getWeatherOverlays().map((overlay) => overlay.cacheKey?.(weatherLocation) ?? '').join('') : '';
+    return `${WEATHER_CACHE_PREFIX}${weatherType === 'main' ? '' : `${weatherType}_`}${providerId}_${coord.lat}_${coord.lon}_${optionsStr}${overlaysStr}`;
 }
 
 /**
@@ -195,17 +191,6 @@ export function clearAllWeatherCaches(): void {
     }
 }
 
-// a METAR problem must never fail the forecast: it is flagged on `currently` instead
-function overlayMetar(currently: Currently, report: MetarReport | null, icao: string, weatherLocation: WeatherLocation) {
-    try {
-        const result = applyMetarToCurrently(currently, report, icao, Date.now(), OMProvider.getWeatherCodeDescription);
-        return result.metar.failed ? result : weatherDataIconColors(result, WeatherDataType.CURRENT, weatherLocation.coord);
-    } catch (error) {
-        console.error('overlayMetar', error);
-        return { ...currently, metar: { icao, failed: true } };
-    }
-}
-
 export async function getWeather(weatherLocation: WeatherLocation, options?: GetWeatherOptions & { ignoreCache?: boolean }, providerType?: ProviderType) {
     const provider = providerType ? getProviderForType(providerType) : getWeatherProvider();
     const providerId = provider.id;
@@ -218,11 +203,13 @@ export async function getWeather(weatherLocation: WeatherLocation, options?: Get
     }
 
     // Fetch fresh data
-    const station = weatherLocation.metarStation;
-    const [data, report] = await Promise.all([provider.getWeather(weatherLocation, options), station ? fetchLatestMetar(station.icao).catch(() => null) : null]);
-    if (station && data.currently) {
-        data.currently = overlayMetar(data.currently, report, station.icao, weatherLocation);
-    }
+    const overlays = getWeatherOverlays();
+    const [data, results] = await Promise.all([provider.getWeather(weatherLocation, options), Promise.all(overlays.map((overlay) => overlay.fetch(weatherLocation)?.catch(() => null)))]);
+    overlays.forEach((overlay, index) => {
+        if (results[index] !== undefined) {
+            overlay.apply(data, results[index], weatherLocation);
+        }
+    });
     // Save to cache
     setCachedWeather('main', providerId, weatherLocation, data, options);
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Currently } from '~/services/providers/weather';
-import { MetarReport, applyMetarToCurrently, cloudCoverFromCover, humidityFromDewpoint, isMetarIndicatorShown, knotsToKmh, metarSeries, weatherCodeFromMetar } from './metar';
+import { MetarReport, applyMetarToCurrently, cloudCoverFromCover, humidityFromDewpoint, isMetarIndicatorShown, knotsToKmh, metarSeries, weatherCodeFromMetar } from './report';
 
 const OBS_TIME = 1793393460;
 const OBS_MS = OBS_TIME * 1000;

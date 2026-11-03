@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 // the service imports the app request helper: only its station helpers are tested here
-vi.mock('./api', () => ({}));
+vi.mock('~/services/api', () => ({}));
 
 import { MetarStation, bboxAround, isStationCode, sortByDistance, stationFromInfo } from './metar';
 

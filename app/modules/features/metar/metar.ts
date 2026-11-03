@@ -1,6 +1,6 @@
-import { Photon } from '../../typings/photon';
-import { MetarReport } from '~/utils/weather/metar';
-import { request } from './api';
+import { Photon } from '../../../../typings/photon';
+import { MetarReport } from './report';
+import { request } from '~/services/api';
 
 export interface MetarStation {
     icao: string;
