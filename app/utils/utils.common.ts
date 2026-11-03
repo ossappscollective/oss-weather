@@ -2,7 +2,6 @@ import { loadImageSync } from '@akylas/nativescript-app-utils';
 import { LinearGradient, TileMode } from '@nativescript-community/ui-canvas';
 import { Application, Color, Device, Frame, ImageSource, Utils } from '@nativescript/core';
 import { Dayjs } from 'dayjs';
-import { FavoriteLocation } from '~/helpers/favorites';
 import { lc } from '~/helpers/locale';
 
 export { restartApp } from '@akylas/nativescript-app-utils';
@@ -52,12 +51,6 @@ export async function pickDate(currentDate: Dayjs) {
     }
 }
 
-const BRA_BOUNDS = [-4.855957, 41.310824, 9.645996, 51.124213];
-export function isBRABounds(location: FavoriteLocation) {
-    const coords = location.coord;
-    // DEV_LOG && console.log('isBRABounds', JSON.stringify(coords));
-    return coords.lon >= BRA_BOUNDS[0] && coords.lon <= BRA_BOUNDS[2] && coords.lat >= BRA_BOUNDS[1] && coords.lat <= BRA_BOUNDS[3];
-}
 export function tempColor(t, min, max) {
     // Map the temperature to a 0-1 range
     let a = (t - min) / (max - min);

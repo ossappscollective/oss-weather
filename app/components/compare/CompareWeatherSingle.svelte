@@ -16,7 +16,7 @@
     import { isDarkTheme, onThemeChanged } from '~/helpers/theme';
     import { NetworkConnectionStateEvent, NetworkConnectionStateEventData, networkService } from '~/services/api';
     import type { ProviderType } from '~/services/providers/weather';
-    import { getProviderForType, getWeather, providers } from '~/services/providers/weatherproviderfactory';
+    import { getProviderForType, getWeather, getWeatherProviderKeys } from '~/services/providers/weatherproviderfactory';
     import { AVAILABLE_COMPARE_WEATHER_DATA, WeatherProps, convertWeatherValueToUnit, getWeatherDataIcon, getWeatherDataTitle } from '~/services/weatherData';
     import { accentFontWeight, actionBarButtonHeight, colors, designStyle, fontScale, fonts, screenWidthDips, windowInset } from '~/variables';
     import ModernCardTitle from '~/components/common/ModernCardTitle.svelte';
@@ -85,7 +85,7 @@
         modelsCollectionView?.nativeElement.refreshVisibleItems();
     }
     const modelsList = new ObservableArray<Model>(
-        providers.reduce((acc, val) => {
+        getWeatherProviderKeys().reduce((acc, val) => {
             const provider = getProviderForType(val);
             const models = provider.getModels();
             const keys = Object.keys(models);

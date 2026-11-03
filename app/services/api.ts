@@ -14,7 +14,7 @@ import { NominatimResult } from '../../typings/nominatim';
 import { Photon, PhotonProperties } from '../../typings/photon';
 import { AqiProviderType, MarineProviderType, ProviderType, WeatherData } from './providers/weather';
 import { WeatherProps } from './weatherData';
-import { OpenMeteoModels } from './providers/om';
+import { OpenMeteoModels } from '~/modules/providers/openmeteo/om';
 import type { MetarStation } from '~/utils/metarStations';
 
 type HTTPSOptions = https.HttpsRequestOptions;

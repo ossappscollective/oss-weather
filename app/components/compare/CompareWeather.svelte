@@ -16,7 +16,7 @@
     import { l, lc, slc } from '~/helpers/locale';
     import { NetworkConnectionStateEvent, NetworkConnectionStateEventData, networkService } from '~/services/api';
     import type { ProviderType } from '~/services/providers/weather';
-    import { getProviderForType, getWeather, providers } from '~/services/providers/weatherproviderfactory';
+    import { getProviderForType, getWeather, getWeatherProviderKeys } from '~/services/providers/weatherproviderfactory';
     import { AVAILABLE_COMPARE_WEATHER_DATA, WeatherProps, getWeatherDataIcon, getWeatherDataTitle } from '~/services/weatherData';
     import { actionBarButtonHeight, colors, windowInset } from '~/variables';
     import CompareLineChart from './CompareLineChart.svelte';
@@ -50,7 +50,7 @@
         shortName: string;
     }
 
-    const modelsList: Model[] = providers.reduce((acc, val) => {
+    const modelsList: Model[] = getWeatherProviderKeys().reduce((acc, val) => {
         const provider = getProviderForType(val);
         const models = provider.getModels();
         const keys = Object.keys(models);

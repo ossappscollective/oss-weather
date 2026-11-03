@@ -8,7 +8,7 @@
     import { FavoriteLocation, favoriteIcon, favoriteIconColor, toggleFavorite } from '~/helpers/favorites';
     import { l, lc } from '~/helpers/locale';
     import { WeatherLocation, getTimezone, networkService, prepareItems } from '~/services/api';
-    import { getAqiProvider, getMarineProvider, getProviderType, getWeather, getWeatherProvider, onProviderChanged, providers } from '~/services/providers/weatherproviderfactory';
+    import { getAqiProvider, getMarineProvider, getProviderType, getWeather, getWeatherProvider, getWeatherProviderKeys, onProviderChanged } from '~/services/providers/weatherproviderfactory';
     import { WeatherProps, mergeWeatherData, weatherDataService } from '~/services/weatherData';
     import { actionBarButtonHeight, colors } from '~/variables';
 
@@ -94,6 +94,7 @@
     });
 
     function onSwipe(e) {
+        const providers = getWeatherProviderKeys();
         const currentProviderIndex = providers.indexOf(provider);
         let newIndex = currentProviderIndex + (e.direction === 1 ? -1 : 1);
         if (newIndex < 0) {

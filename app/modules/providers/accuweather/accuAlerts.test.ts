@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildAccuAlerts } from './accuAlerts';
-import { AlertSeverity } from './alerts';
+import { AlertSeverity } from '~/services/providers/alerts';
 
 describe('buildAccuAlerts', () => {
     const ACCU_ALERT = {
