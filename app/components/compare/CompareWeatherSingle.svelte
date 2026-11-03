@@ -460,7 +460,7 @@
                             </gridlayout>
                         {:else}
                             <gridlayout class="modernCard">
-                                <CompareLineChart height={screenWidthDips + 56} item={currentItem} onFullscreen={() => (chartFullscreen = true)} {screenOrientation} {weatherLocation} />
+                                <CompareLineChart height={screenWidthDips + 56 + 52} item={currentItem} onFullscreen={() => (chartFullscreen = true)} {screenOrientation} {weatherLocation} />
                             </gridlayout>
                             <gridlayout class="modernCard">
                                 <CompareWeatherIcons
