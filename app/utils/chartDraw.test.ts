@@ -1,5 +1,11 @@
-import { describe, expect, it } from 'vitest';
-import { cardLayout, cardLeft, ellipsize } from './highlightCard';
+import { describe, expect, it, vi } from 'vitest';
+
+// the drawing functions of the module need the canvas runtime: only its layout functions are tested here
+vi.mock('@nativescript-community/ui-canvas', () => ({ Align: {}, Canvas: class {}, Cap: {}, DashPathEffect: class {}, Paint: class { constructor() { return new Proxy({}, { get: () => () => {}, set: () => true }); } }, Rect: class {}, RectF: class {}, Style: {} }));
+vi.mock('@nativescript-community/ui-chart/components/YAxis', () => ({ AxisDependency: {} }));
+vi.mock('~/variables', () => ({ accentFontWeight: {} }));
+
+import { cardLayout, cardLeft, ellipsize } from './chartDraw';
 
 describe('cardLeft', () => {
     it('sits right of the highlight line when it fits', () => {

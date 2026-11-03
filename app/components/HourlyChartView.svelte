@@ -31,7 +31,7 @@
     import { iconService } from '~/services/icon';
     import { WeatherProps, appPaint, convertWeatherValueToUnit, defaultPropUnit, getWeatherDataColor, getWeatherDataTitle, propToUnit, wdPaint, weatherDataService } from '~/services/weatherData';
     import { contentGradientRange, extremaIndexes, highlightHour, highlightedAlpha, nightSpans, plotPadding } from '~/utils/chartLabels';
-    import { ValueRange, computeDataRange, getNaturalRange, makeScaler, pickReferenceProp, resolveRange, visibleHoursScale } from '~/utils/chartScale';
+    import { ValueRange, computeDataRange, getNaturalRange, makeScaler, pickReferenceProp, resolveRange, visibleHoursScale } from './HourlyChart';
     import { hourlyCardContent } from '~/utils/hourlyCard';
     import { generateGradient, loadImage, tempColor } from '~/utils/utils.common';
 

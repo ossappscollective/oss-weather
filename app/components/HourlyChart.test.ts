@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { computeDataRange, getNaturalRange, makeScaler, pickReferenceProp, resolveRange, visibleHoursScale } from './chartScale';
+import { computeDataRange, getNaturalRange, makeScaler, pickReferenceProp, resolveRange, visibleHoursScale } from './HourlyChart';
 
 describe('getNaturalRange', () => {
     it('returns the fixed scale of a bounded metric', () => {

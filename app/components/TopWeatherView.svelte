@@ -42,7 +42,7 @@
     import { drawChips, prepareChips } from '~/helpers/chips';
     import { getEInkShader } from '~/helpers/einkShader';
     import { TOP_GRID_OPTIONS, drawCenteredValue, drawGrid, prepareGrid } from '~/helpers/dataGrid';
-    import { minutelyAxisLabel, minutelyAxisTicks, minutelyIntensity, minutelySummary } from '~/utils/minutelySummary';
+    import { minutelyAxisLabel, minutelyAxisTicks, minutelyIntensity, minutelySummary } from './TopWeather';
     import HourlyChartView from './HourlyChartView.svelte';
     import BaseChart from '~/components/common/BaseChart.svelte';
     import WindyView from './WindyView.svelte';
