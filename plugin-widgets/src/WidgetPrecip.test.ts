@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { precipBars, precipTexts } from './widgetPrecip';
+import { precipBars, precipTexts } from './WidgetPrecip';
 
 describe('precipBars', () => {
     it('draws one bar from the amount, like the app hourly item', () => {

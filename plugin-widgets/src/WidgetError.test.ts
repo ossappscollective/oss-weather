@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { classifyWidgetError, widgetErrorMessage } from './widgetError';
+import { classifyWidgetError, widgetErrorMessage } from './WidgetError';
 
 describe('classifyWidgetError', () => {
     it('treats the typed network errors as network', () => {

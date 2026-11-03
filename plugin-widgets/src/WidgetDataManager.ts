@@ -6,20 +6,52 @@ import { ALWAYS_SHOW_PRECIP_PROB, DATA_INTENSITY, NB_DAYS_FORECAST, SETTINGS_ALW
 import { clock_24, formatDate, formatTime, getStartOfDay, lc } from '~/helpers/locale';
 import { WeatherLocation, prepareItems } from '~/services/api';
 import { iconService, iconThemesFolder } from '~/services/icon';
-import { CommonWeatherData, WeatherData } from '~/services/providers/weather';
+import { CommonWeatherData, ProviderType, WeatherData } from '~/services/providers/weather';
 import { getCachedWeather, getProviderForType, getWeather, getWeatherProvider } from '~/services/providers/weatherproviderfactory';
 import { CommonData, WeatherProps, formatWeatherValue, weatherDataService } from '~/services/weatherData';
 import { modernDataColor, windSpeedColor } from '~/utils/designStyle';
-import { curvePositions, rangePositions } from '~/utils/widgetCurve';
-import { widgetChip } from '~/utils/widgetChips';
-import { upcomingDays } from '~/utils/widgetDays';
-import { precipBars, precipTexts } from '~/utils/widgetPrecip';
+import { widgetChip } from './WidgetChips';
+import { precipBars, precipTexts } from './WidgetPrecip';
 import { splitValueUnit } from '~/utils/valueUnit';
-import { widgetSourceKey, widgetWeatherSource } from '~/utils/widgetSource';
-import { staleForecast } from '~/utils/widgetStale';
+import { staleForecast } from './WidgetStale';
 import { renderWidgetIcon } from './WidgetIcons';
 import { ForecastData, WeatherWidgetData, WidgetChip, WidgetConfig } from './WidgetTypes';
 import { queryTimezone } from '~/helpers/favorites';
+
+interface WidgetWeatherSource {
+    provider?: ProviderType;
+    model?: string;
+}
+
+// what the app shows for a location: the widget own choice first, then the provider and model saved on the location
+function widgetWeatherSource(config: WidgetWeatherSource, location: { provider?: ProviderType; omModel?: string } | null): WidgetWeatherSource {
+    return { provider: config.provider ?? location?.provider, model: config.model ?? location?.omModel };
+}
+
+function widgetSourceKey(coord: { lat: number; lon: number }, source: WidgetWeatherSource) {
+    return `${coord.lat}_${coord.lon}_${source.provider}_${source.model}`;
+}
+
+// providers can start the daily forecast before today: widgets start at today, like the app
+function upcomingDays<T extends { time: number }>(days: T[], startOfDay: number): T[] {
+    const firstIndex = days.findIndex((day) => day.time >= startOfDay);
+    return firstIndex >= 0 ? days.slice(firstIndex) : [];
+}
+
+// hourly widget temperature curve: each value as a height between the lowest (0) and the highest (1)
+function curvePositions(values: number[]) {
+    const known = values.filter((value) => Number.isFinite(value));
+    const min = Math.min(...known);
+    const range = Math.max(...known) - min;
+    return values.map((value) => (Number.isFinite(value) && range > 0 ? (value - min) / range : 0.5));
+}
+
+// daily widget range bars: each day min / max on the range of the whole period (0-1)
+function rangePositions(lows: number[], highs: number[]) {
+    const min = Math.min(...lows.filter((value) => Number.isFinite(value)));
+    const range = Math.max(...highs.filter((value) => Number.isFinite(value))) - min;
+    return lows.map((low, index) => (range > 0 ? { start: (low - min) / range, end: (highs[index] - min) / range } : { start: 0, end: 1 }));
+}
 
 export function isDefaultLocation(locationName: string) {
     return !locationName || locationName === 'current' || locationName === 'default';

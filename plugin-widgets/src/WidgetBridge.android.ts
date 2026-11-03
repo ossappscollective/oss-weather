@@ -2,8 +2,8 @@
 // Android-specific widget bridge using shared logic
 
 import { Utils } from '@nativescript/core';
-import { classifyWidgetError, widgetErrorMessage } from '~/utils/widgetError';
-import { createUpdateDeduper } from '~/utils/widgetUpdates';
+import { classifyWidgetError, widgetErrorMessage } from './WidgetError';
+import { createUpdateDeduper } from './WidgetUpdates';
 import WidgetBridgeBase from './WidgetBridge.common';
 import { WidgetConfigManager } from './WidgetConfigManager';
 import { WidgetDataManager, isDefaultLocation } from './WidgetDataManager';

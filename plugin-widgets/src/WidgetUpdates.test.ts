@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createUpdateDeduper } from './widgetUpdates';
+import { createUpdateDeduper } from './WidgetUpdates';
 
 describe('createUpdateDeduper', () => {
     it('shares one task between concurrent runs of the same key', async () => {

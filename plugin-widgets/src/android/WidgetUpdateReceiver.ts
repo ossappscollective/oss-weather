@@ -1,7 +1,7 @@
 import { Application } from '@nativescript/core';
 import { widgetService } from '../WidgetBridge';
 import { renderWidgetErrorIcon } from '../WidgetIcons';
-import { classifyWidgetError, widgetErrorMessage } from '~/utils/widgetError';
+import { classifyWidgetError, widgetErrorMessage } from '../WidgetError';
 
 /**
  * Native BroadcastReceiver that can be registered in AndroidManifest.xml

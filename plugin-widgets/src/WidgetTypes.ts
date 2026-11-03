@@ -2,10 +2,10 @@
 // Shared types and interfaces for both Android and iOS widgets
 
 import { ProviderType } from '~/services/providers/weather';
-import type { WidgetChip } from '~/utils/widgetChips';
-import type { PrecipBar } from '~/utils/widgetPrecip';
-export type { WidgetChip } from '~/utils/widgetChips';
-export type { PrecipBar } from '~/utils/widgetPrecip';
+import type { WidgetChip } from './WidgetChips';
+import type { PrecipBar } from './WidgetPrecip';
+export type { WidgetChip } from './WidgetChips';
+export type { PrecipBar } from './WidgetPrecip';
 
 export interface WidgetConfig {
     locationName: string;
