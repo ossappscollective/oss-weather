@@ -12,7 +12,7 @@
     import type { Hourly } from '~/services/providers/weather';
     import { WeatherProps, appPaint, getWeatherDataIcon, mdiPaint, wdPaint, wiPaint } from '~/services/weatherData';
     import { colors, designStyle, fontScale, onUnitsChanged } from '~/variables';
-    import { modernDataColor, styledDataIcon } from '~/utils/designStyle';
+    import { modernDataColor, styledDataIcon } from '~/utils/design/designStyle';
     const HEADER_WIDTH = 40;
     export const ICON_ROW_SCALE = 2;
 

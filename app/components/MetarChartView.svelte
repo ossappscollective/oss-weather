@@ -14,10 +14,10 @@
     import BaseChart from '~/components/common/BaseChart.svelte';
     import { modernColors } from '~/helpers/modernTheme';
     import { WeatherProps, defaultPropUnit, getWeatherDataIcon, getWeatherDataTitle, propToUnit } from '~/services/weatherData';
-    import { modernDataColor, modernLineStyle, styledDataIcon, textFontFamily } from '~/utils/designStyle';
-    import type { MetarPoint } from '~/utils/metar';
+    import { modernDataColor, modernLineStyle, styledDataIcon, textFontFamily } from '~/utils/design/designStyle';
+    import type { MetarPoint } from '~/utils/weather/metar';
     import { accentFontWeight, colors, designStyle, fontScale, fonts } from '~/variables';
-    import type { HighlightCardContent } from '~/utils/chartDraw';
+    import type { HighlightCardContent } from '~/utils/charts/chartDraw';
 
     // same look as the hourly chart: temperature is the thick reference line, the other metrics are thinner
     const TEMPERATURE_LINE_WIDTH = 3;

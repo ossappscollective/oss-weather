@@ -7,11 +7,11 @@
     import { getLocalTime } from '~/helpers/locale';
     import { modernColors } from '~/helpers/modernTheme';
     import { onDestroy } from 'svelte';
-    import { chartScrolled } from '~/utils/chartEvents';
+    import { chartScrolled } from '~/utils/charts/chartEvents';
     import { colors, designStyle, fontScale } from '~/variables';
-    import { MODERN_NOW_COLOR, createTimeAxisRenderer, drawHighlightCard, drawNightShading } from '~/utils/chartDraw';
-    import type { HighlightCardContent } from '~/utils/chartDraw';
-    import { textFontFamily } from '~/utils/designStyle';
+    import { MODERN_NOW_COLOR, createTimeAxisRenderer, drawHighlightCard, drawNightShading } from '~/utils/charts/chartDraw';
+    import type { HighlightCardContent } from '~/utils/charts/chartDraw';
+    import { textFontFamily } from '~/utils/design/designStyle';
 
     const highlightLinePaint = new Paint();
     highlightLinePaint.strokeWidth = 1;

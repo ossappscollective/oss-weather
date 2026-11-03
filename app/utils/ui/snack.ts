@@ -1,7 +1,7 @@
 import { SnackBar, SnackBarOptions } from '@nativescript-community/ui-snackbar';
 import { Color, Font, Utils } from '@nativescript/core';
 import { get } from 'svelte/store';
-import { textFontFamily } from '~/utils/designStyle';
+import { textFontFamily } from '~/utils/design/designStyle';
 import { accentFontWeight, colors, designStyle } from '~/variables';
 
 const MODERN_SNACK_RADIUS = 12;

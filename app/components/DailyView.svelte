@@ -9,10 +9,10 @@
     import { createEventDispatcher } from '@shared/utils/svelte/ui';
     import { accentFontWeight, colors, dailyDataAlignment, dailyDateFormat, dataIntensity, designStyle, fontScale, showEmptyData, weatherDataLayout, windowSize } from '~/variables';
     import { isDarkTheme, isEInk } from '~/helpers/theme';
-    import { cardBackgroundAlpha, dataTextStyle, headerTextStyle, textFontFamily } from '~/utils/designStyle';
+    import { cardBackgroundAlpha, dataTextStyle, headerTextStyle, textFontFamily } from '~/utils/design/designStyle';
     import { drawChips, prepareChips } from '~/helpers/chips';
-    import { chipsAlignment } from '~/utils/chipsLayout';
-    import { rangeBarSpan } from '~/utils/dataGrid';
+    import { chipsAlignment } from '~/utils/design/chipsLayout';
+    import { rangeBarSpan } from '~/utils/design/dataGrid';
     import { DAILY_GRID_OPTIONS, drawCenteredValue, drawGrid, prepareGrid } from '~/helpers/dataGrid';
 
     // classic daily row: the header (day, date, temperatures) takes the top, small icons the bottom left

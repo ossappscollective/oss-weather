@@ -3,7 +3,7 @@ import { showingDialogs } from '@nativescript-community/ui-dialogs/index-common'
 import { AlertOptions, Color, ConfirmOptions, Font } from '@nativescript/core';
 import { get } from 'svelte/store';
 import { modernColors } from '~/helpers/modernTheme';
-import { textFontFamily } from '~/utils/designStyle';
+import { textFontFamily } from '~/utils/design/designStyle';
 import { accentFontWeight, colors, designStyle } from '~/variables';
 
 // used as is by the shared code (see sharedForks in app.webpack.config.js)

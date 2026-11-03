@@ -102,11 +102,11 @@
         unitsSettings,
         windowInset
     } from '~/variables';
-    import { groupPosition } from '~/utils/settingsGroups';
-    import { groupRowClass } from '~/utils/groupClass';
+    import { groupPosition } from '~/utils/settings/settingsGroups';
+    import { groupRowClass } from '~/utils/settings/groupClass';
     import { get } from 'svelte/store';
     import { styleModernSwitch } from '~/utils/ui/modernSwitch';
-    import { modernDataColor, styledDataIcon } from '~/utils/designStyle';
+    import { modernDataColor, styledDataIcon } from '~/utils/design/designStyle';
     import IconButton from '../common/IconButton.svelte';
 
     enum PromptOutcome {

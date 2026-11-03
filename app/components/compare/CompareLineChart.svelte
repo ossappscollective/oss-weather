@@ -28,9 +28,9 @@
     import ModernCardTitle from '~/components/common/ModernCardTitle.svelte';
     import { colors, designStyle, fontScale, fonts, screenWidthDips } from '~/variables';
     import { drawLegendChip } from '~/helpers/legendChip';
-    import { modernDataColor, styledDataIcon, textFontFamily } from '~/utils/designStyle';
-    import { nightSpans } from '~/utils/chartLabels';
-    import type { HighlightCardContent } from '~/utils/chartDraw';
+    import { modernDataColor, styledDataIcon, textFontFamily } from '~/utils/design/designStyle';
+    import { nightSpans } from '~/utils/charts/chartLabels';
+    import type { HighlightCardContent } from '~/utils/charts/chartDraw';
     import BaseChart from '~/components/common/BaseChart.svelte';
     import { isLandscape } from '~/utils/ui';
 

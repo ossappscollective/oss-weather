@@ -10,7 +10,7 @@
     import type { Highlight } from '@nativescript-community/ui-chart/highlight/Highlight';
     import { Color } from '@nativescript/core';
     import BaseChart from '~/components/common/BaseChart.svelte';
-    import type { HighlightCardContent } from '~/utils/chartDraw';
+    import type { HighlightCardContent } from '~/utils/charts/chartDraw';
     import type { NativeViewElementNode } from '@nativescript-community/svelte-native/dom';
     import { formatTime, getStartOfDay, lc } from '~/helpers/locale';
     import { modernColors } from '~/helpers/modernTheme';

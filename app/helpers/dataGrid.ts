@@ -1,12 +1,12 @@
 import { Align, Canvas, Paint } from '@nativescript-community/ui-canvas';
 import type { Color } from '@nativescript/core';
 import type { CommonData } from '~/services/weatherData';
-import { centeredBaseline, gridColumnCount, gridMinCellWidth, layoutGrid } from '~/utils/dataGrid';
+import { centeredBaseline, gridColumnCount, gridMinCellWidth, layoutGrid } from '~/utils/design/dataGrid';
 import { get } from 'svelte/store';
-import { DesignStyle, dataTextStyle, textFontFamily, tintAlpha } from '~/utils/designStyle';
+import { DesignStyle, dataTextStyle, textFontFamily, tintAlpha } from '~/utils/design/designStyle';
 import { isDarkTheme, isEInk } from '~/helpers/theme';
 import { accentFontWeight, dataIntensity, designStyle } from '~/variables';
-import { splitValueUnit } from '~/utils/valueUnit';
+import { splitValueUnit } from '~/utils/weather/valueUnit';
 
 const ICON_SCALE = 1;
 const ICON_GAP = 6;

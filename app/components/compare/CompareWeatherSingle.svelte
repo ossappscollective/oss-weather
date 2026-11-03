@@ -20,7 +20,7 @@
     import { AVAILABLE_COMPARE_WEATHER_DATA, WeatherProps, convertWeatherValueToUnit, getWeatherDataIcon, getWeatherDataTitle } from '~/services/weatherData';
     import { accentFontWeight, actionBarButtonHeight, colors, designStyle, fontScale, fonts, screenWidthDips, windowInset } from '~/variables';
     import ModernCardTitle from '~/components/common/ModernCardTitle.svelte';
-    import { modernDataColor, styledDataIcon } from '~/utils/designStyle';
+    import { modernDataColor, styledDataIcon } from '~/utils/design/designStyle';
     import { showPopoverMenu } from '~/utils/ui';
     import { showBottomSheet } from '@nativescript-community/ui-bottomsheet/svelte';
     import { VerticalPosition } from '@nativescript-community/ui-popover';

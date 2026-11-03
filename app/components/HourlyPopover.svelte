@@ -7,11 +7,11 @@
     import { iconService } from '~/services/icon';
     import type { CommonWeatherData } from '~/services/providers/weather';
     import { CommonData, WeatherProps } from '~/services/weatherData';
-    import { hourlyCardData } from '~/utils/hourlyCard';
+    import { hourlyCardData } from '~/utils/charts/hourlyCard';
     import { accentFontWeight, colors, designStyle, fontScale } from '~/variables';
-    import { dataTextStyle, modernDataColor, modernLineStyle, precipitationFill, textFontFamily } from '~/utils/designStyle';
+    import { dataTextStyle, modernDataColor, modernLineStyle, precipitationFill, textFontFamily } from '~/utils/design/designStyle';
     import { tempColor } from '~/utils/utils.common';
-    import { splitValueUnit } from '~/utils/valueUnit';
+    import { splitValueUnit } from '~/utils/weather/valueUnit';
     import WeatherIcon from './WeatherIcon.svelte';
     import { NativeViewElementNode } from '@nativescript-community/svelte-native/dom';
     import { WeatherDataType } from '~/helpers/formatter';

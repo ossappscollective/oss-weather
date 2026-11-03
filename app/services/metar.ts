@@ -1,6 +1,6 @@
 import { Photon } from '../../typings/photon';
-import { MetarReport } from '~/utils/metar';
-import { MetarStation, StationInfo, bboxAround, isStationCode, sortByDistance, stationFromInfo } from '~/utils/metarStations';
+import { MetarReport } from '~/utils/weather/metar';
+import { MetarStation, StationInfo, bboxAround, isStationCode, sortByDistance, stationFromInfo } from '~/utils/weather/metarStations';
 import { request } from './api';
 
 const AVIATION_WEATHER_URL = 'https://aviationweather.gov/api/data';

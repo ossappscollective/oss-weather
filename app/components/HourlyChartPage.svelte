@@ -9,7 +9,7 @@
     import type { WeatherData } from '~/services/providers/weather';
     import { accentFontWeight, colors, designStyle, fontScale, fonts, screenWidthDips, windowInset } from '~/variables';
     import { drawLegendChip } from '~/helpers/legendChip';
-    import { styledDataIcon, textFontFamily } from '~/utils/designStyle';
+    import { styledDataIcon, textFontFamily } from '~/utils/design/designStyle';
     import { modernColors } from '~/helpers/modernTheme';
 
     // modern zoom presets (hours visible at once); null keeps the default zoom, a huge one shows all

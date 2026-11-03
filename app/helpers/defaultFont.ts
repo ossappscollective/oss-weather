@@ -1,6 +1,6 @@
 import { Paint } from '@nativescript-community/ui-canvas';
 import { Font } from '@nativescript/core/ui/styling/font';
-import { textFontFamily } from '~/utils/designStyle';
+import { textFontFamily } from '~/utils/design/designStyle';
 import { designStyle } from '~/variables';
 
 // the default font follows the design style (Inter in modern), so canvas texts (paints, chart axis

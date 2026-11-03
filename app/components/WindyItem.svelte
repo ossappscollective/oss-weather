@@ -10,7 +10,7 @@
     import { colorForAqi } from '~/services/airQualityData';
     import { generateGradient, windSpeedColor } from '~/utils/utils.common';
     import { accentFontWeight, colors, designStyle, fontScale, nightColor, rainColor } from '~/variables';
-    import { modernDataColor, modernPrecipColor, windSpeedColor as modernWindSpeedColor, precipKind, styledDataIcon } from '~/utils/designStyle';
+    import { modernDataColor, modernPrecipColor, windSpeedColor as modernWindSpeedColor, precipKind, styledDataIcon } from '~/utils/design/designStyle';
     import { textAttributedString } from '~/utils/ui/attributedString';
     import { ICON_ROW_SCALE, getRowUnits } from '~/components/WindyView.svelte';
     import { Color } from '@nativescript/core';

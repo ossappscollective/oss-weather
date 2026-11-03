@@ -5,7 +5,7 @@ import { Daily, Tide, WeatherData } from '~/services/providers/weather';
 import { DailyData, Hourly } from '~/services/providers/weather';
 import { MarineWeatherProvider } from '~/services/providers/marineweatherprovider';
 import { GetWeatherOptions } from '~/services/providers/weatherprovider';
-import { startOfDay } from '~/utils/dayBounds';
+import { startOfDay } from '~/utils/time/dayBounds';
 
 const BASE_URL = 'https://ws.meteoconsult.fr/meteoconsultmarine';
 const SEARCH_URL = `${BASE_URL}/android/100/fr/v30/recherche.php`;

@@ -14,7 +14,7 @@
     import { getProviderType, getWeatherProviderKeys } from '~/services/providers/weatherproviderfactory';
     import { hideLoading, selectValue, showPopoverMenu } from '~/utils/ui';
     import { actionBarHeight, colors, designStyle, fontScale, fonts, onFontScaleChanged, windowInset } from '~/variables';
-    import { groupPosition } from '~/utils/settingsGroups';
+    import { groupPosition } from '~/utils/settings/settingsGroups';
     import { styleModernSwitch } from '~/utils/ui/modernSwitch';
 
     import { CheckBox } from '@nativescript-community/ui-checkbox';

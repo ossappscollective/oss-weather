@@ -55,7 +55,7 @@
     import { formatDate, formatTime, getEndOfDay, getStartOfDay, l, lc, lu, onLanguageChanged, sl, slc } from '~/helpers/locale';
     import { onThemeChanged } from '~/helpers/theme';
     import { NetworkConnectionStateEvent, NetworkConnectionStateEventData, WeatherLocation, geocodeAddress, networkService, prepareItems } from '~/services/api';
-    import { hasEnoughForecast } from '~/utils/forecastCoverage';
+    import { hasEnoughForecast } from '~/utils/weather/forecastCoverage';
     import { gadgetbridgeService } from '~/services/gadgetbridge';
     import { findLocationAction, getLocationActions } from '~/modules/registry';
     import { onIconPackChanged } from '~/services/icon';
@@ -83,9 +83,9 @@
     import { parseUrlQueryParameters } from '~/utils/http';
     import { hideLoading, selectValue, showLoading, showPopoverMenu, showToast, tryCatchFunction } from '~/utils/ui';
     import { accentFontWeight, actionBarHeight, colors, designStyle, fontScale, fonts, onFontScaleChanged, onSettingsChanged, windowInset } from '~/variables';
-    import { groupPosition } from '~/utils/settingsGroups';
-    import { groupRowClass } from '~/utils/groupClass';
-    import type { MetarStation } from '~/utils/metarStations';
+    import { groupPosition } from '~/utils/settings/settingsGroups';
+    import { groupRowClass } from '~/utils/settings/groupClass';
+    import type { MetarStation } from '~/utils/weather/metarStations';
     import { searchStations } from '~/services/metar';
     import IconButton from './common/IconButton.svelte';
     import { WeatherProvider } from '~/services/providers/weatherprovider';

@@ -4,7 +4,7 @@
     import { Color } from '@nativescript/core';
     import { colors, designStyle, fontScale, fonts } from '~/variables';
     import { IListItem } from './OptionSelect.svelte';
-    import { textFontFamily } from '~/utils/designStyle';
+    import { textFontFamily } from '~/utils/design/designStyle';
 </script>
 
 <script lang="ts">

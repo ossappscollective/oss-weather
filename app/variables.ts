@@ -35,7 +35,7 @@ import {
 import { DEFAULT_IMPERIAL_UINTS, DEFAULT_METRIC_UINTS } from '~/helpers/units';
 import { prefs } from '~/services/preferences';
 import { WeatherProps } from '~/services/weatherData';
-import type { DesignStyle } from '~/utils/designStyle';
+import type { DesignStyle } from '~/utils/design/designStyle';
 
 export * from '@shared/variables';
 

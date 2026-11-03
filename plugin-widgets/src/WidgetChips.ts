@@ -1,5 +1,5 @@
-import { tintAlpha } from '~/utils/designStyle';
-import { splitValueUnit } from '~/utils/valueUnit';
+import { tintAlpha } from '~/utils/design/designStyle';
+import { splitValueUnit } from '~/utils/weather/valueUnit';
 
 export interface WidgetChip {
     // the data icon, drawn by the app in its color

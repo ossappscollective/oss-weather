@@ -11,8 +11,8 @@
     import { lc } from '~/helpers/locale';
     import { photonSearch } from '~/services/api';
     import { actionBarButtonHeight, colors, designStyle, fontScale, windowInset } from '~/variables';
-    import { groupPosition } from '~/utils/settingsGroups';
-    import { groupRowClass } from '~/utils/groupClass';
+    import { groupPosition } from '~/utils/settings/settingsGroups';
+    import { groupRowClass } from '~/utils/settings/groupClass';
     import IconButton from './common/IconButton.svelte';
     import ListItemAutoSize from './common/ListItemAutoSize.svelte';
 

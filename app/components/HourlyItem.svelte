@@ -13,8 +13,8 @@
     import { WeatherProps, formatWeatherValue, showHourlyPopover, weatherDataService } from '~/services/weatherData';
     import { generateGradient } from '~/utils/utils.common';
     import { accentFontWeight, alwaysShowPrecipProb, colors, designStyle, fontScale, rainColor, snowColor } from '~/variables';
-    import { modernDataColor, precipKind, precipitationFill, splitTimePeriod, textFontFamily, windSpeedColor } from '~/utils/designStyle';
-    import { splitValueUnit } from '~/utils/valueUnit';
+    import { modernDataColor, precipKind, precipitationFill, splitTimePeriod, textFontFamily, windSpeedColor } from '~/utils/design/designStyle';
+    import { splitValueUnit } from '~/utils/weather/valueUnit';
 
     const MODERN_BAR_INSET = 3;
     const MODERN_BAR_RADIUS = 4;
