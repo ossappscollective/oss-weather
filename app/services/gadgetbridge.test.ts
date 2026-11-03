@@ -1,5 +1,12 @@
-import { describe, expect, it } from 'vitest';
-import { buildGadgetbridgePayload } from './gadgetbridgePayload';
+import { describe, expect, it, vi } from 'vitest';
+
+// the service imports the NativeScript runtime: only the payload builder is tested here
+vi.mock('@nativescript/core', () => ({ ApplicationSettings: { getBoolean: () => false, setBoolean: () => {} }, Utils: {} }));
+vi.mock('@shared/utils/showError', () => ({ showError: () => {} }));
+vi.mock('~/helpers/locale', () => ({ lc: () => '' }));
+vi.mock('./api', () => ({}));
+
+import { buildGadgetbridgePayload } from './gadgetbridge';
 import type { WeatherLocation } from '~/services/api';
 import type { CommonWeatherData, Currently, DailyData, Hourly, WeatherData } from '~/services/providers/weather';
 

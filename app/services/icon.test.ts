@@ -1,7 +1,14 @@
 import { readdirSync } from 'fs';
 import { join } from 'path';
 import { describe, expect, it, vi } from 'vitest';
-import { buildIconMap, fillIconMap, resolveIconName } from './iconMapping';
+
+// the service imports the NativeScript runtime: only the icon mapping functions are tested here
+vi.mock('@nativescript/core', () => ({ ApplicationSettings: { getString: () => '', getBoolean: () => false, getNumber: () => 0 }, File: { fromPath: () => ({ readTextSync: () => '{}' }) }, Folder: { exists: () => false, fromPath: () => ({ getEntitiesSync: () => [] }) }, Observable: class {}, Utils: {}, knownFolders: { currentApp: () => ({ path: '' }) }, path: { join: (...parts: string[]) => parts.join('/') } }));
+vi.mock('@shared/utils/svelte/ui', () => ({ createGlobalEventListener: () => () => {}, globalObservable: {} }));
+vi.mock('~/helpers/constants', () => ({ ANIMATIONS_ENABLED: false, PROVIDER_PADDING: 0 }));
+vi.mock('./preferences', () => ({ prefs: { on: () => {} } }));
+
+import { buildIconMap, fillIconMap, resolveIconName } from './icon';
 import { convertWeatherCodeToIcon } from './providers/omIcons';
 
 const ICON_THEMES_FOLDER = join(__dirname, '../assets/icon_themes');
