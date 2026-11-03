@@ -16,7 +16,7 @@
     import type { DailyData, Hourly, Tide } from '~/services/providers/weather';
     import { WeatherProps, formatWeatherValue, getWeatherDataShortTitle, weatherDataService } from '~/services/weatherData';
     import { onMount } from 'svelte';
-    import { accentFontWeight, actionBarHeight, colors, designStyle, fontScale, hourlyViewData, hourlyViewMode, onFontScaleChanged, weatherDataLayout } from '~/variables';
+    import { accentFontWeight, actionBarHeight, colors, designStyle, fontScale, hourlyViewData, hourlyViewMode, onFontScaleChanged, weatherDataLayout, windowInset } from '~/variables';
     import { textFontFamily } from '~/utils/design/designStyle';
     import DailyView from './DailyView.svelte';
     import CActionBar from './common/CActionBar.svelte';
@@ -432,7 +432,7 @@
 </script>
 
 <page bind:this={page} actionBarHidden={true}>
-    <gridlayout class="pageContent" rows="auto,*">
+    <gridlayout class="pageContent" rows="auto,*" android:paddingBottom={$windowInset.bottom}>
         <scrollview row={1} on:scroll={(event) => (scrollY = event.scrollY)}>
             <stacklayout bind:this={stackHolder}>
                 {#if modern}

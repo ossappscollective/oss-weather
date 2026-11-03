@@ -15,7 +15,7 @@
     import { share } from '@akylas/nativescript-app-utils/share';
     import { hideLoading, onBackButton, openLink, showLoading, showPopoverMenu } from '~/utils/ui';
     import { modernColors } from '~/helpers/modernTheme';
-    import { accentFontWeight, actionBarButtonHeight, actionBarHeight, colors, designStyle, imperial, systemFontScale } from '~/variables';
+    import { accentFontWeight, actionBarButtonHeight, actionBarHeight, colors, designStyle, imperial, systemFontScale, windowInset } from '~/variables';
 
     function parseUrl(str) {
         const [url, query] = str.split('?');
@@ -280,7 +280,7 @@
 </script>
 
 <page bind:this={page} actionBarHidden={true} on:navigatedTo={onNavigatedTo}>
-    <gridlayout rows="auto,auto,*">
+    <gridlayout rows="auto,auto,*" android:paddingBottom={$windowInset.bottom}>
         <CActionBar titleProps={{ visibility: 'visible' }}>
             <span slot="subtitle" fontWeight={$accentFontWeight} text="meteoblue" />
             <span slot="subtitle2" color={colorOnSurfaceVariant} fontSize={12} fontWeight="normal" text={'\n' + weatherLocation.name} />

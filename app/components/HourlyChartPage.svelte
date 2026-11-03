@@ -5,7 +5,7 @@
     import type { NativeViewElementNode } from '@nativescript-community/svelte-native/dom';
     import { l, lc } from '~/helpers/locale';
     import type { WeatherData } from '~/services/providers/weather';
-    import { accentFontWeight, colors, designStyle, fontScale, fonts, screenWidthDips } from '~/variables';
+    import { accentFontWeight, colors, designStyle, fontScale, fonts, screenWidthDips, windowInset } from '~/variables';
     import { styledDataIcon } from '~/utils/design/designStyle';
     import { modernColors } from '~/helpers/modernTheme';
 
@@ -146,7 +146,7 @@
 </script>
 
 <page bind:this={page} id="comparesingle" actionBarHidden={true} {screenOrientation} on:navigatedTo={onNavigatedTo}>
-    <gridlayout class="pageContent" rows="auto,*">
+    <gridlayout class="pageContent" rows="auto,*" android:paddingBottom={$windowInset.bottom}>
         {#if !networkConnected && !weatherData}
             <label horizontalAlignment="center" row={1} text={l('no_network').toUpperCase()} verticalAlignment="middle" />
         {:else}
