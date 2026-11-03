@@ -15,7 +15,6 @@ import { createGlobalEventListener, globalObservable } from '@shared/utils/svelt
 import { dataTint, modernPrecipColor, precipKind, styledDataIcon } from '~/utils/designStyle';
 import { getMoonIlluminationPercent } from '~/helpers/moon';
 import { getIndexedColor, tempColor } from '~/utils/utils';
-import { marineValueDigits } from '~/utils/valueUnit';
 import { cloudyColor, designStyle, fontScale, fonts, rainColor, scatteredCloudyColor, snowColor, sunnyColor, unitsSettings } from '~/variables';
 import { colorForAqi } from './airQualityData';
 import { iconService } from './icon';
@@ -981,6 +980,13 @@ export async function showHourlyPopover(
         },
         onCreated
     );
+}
+
+// sea temperature and waves change by tenths from an hour to the next: rounded to the unit, a chart line goes up and down while its value stays the same
+const SEA_VALUE_KEYS: string[] = [WeatherProps.seaTemperature, WeatherProps.waveHeight, WeatherProps.waveHeightMax, WeatherProps.swellHeight];
+// digits factor for the rounding of the value (10 is one decimal), undefined for the usual rounding
+function marineValueDigits(key: string): number | undefined {
+    return SEA_VALUE_KEYS.indexOf(key) !== -1 ? 10 : undefined;
 }
 
 export function convertWeatherValueToUnit(

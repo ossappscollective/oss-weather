@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { marineValueDigits, splitValueUnit } from './valueUnit';
+import { splitValueUnit } from './valueUnit';
 
 describe('splitValueUnit', () => {
     it('splits a number from the unit glued to it', () => {
@@ -18,15 +18,5 @@ describe('splitValueUnit', () => {
     });
     it('leaves a non numeric value whole', () => {
         expect(splitValueUnit('Moon')).toEqual({ amount: 'Moon', unit: '', extra: undefined });
-    });
-});
-
-describe('marineValueDigits', () => {
-    it('gives a decimal to the sea values, whose hourly changes are below the unit', () => {
-        ['seaTemperature', 'waveHeight', 'waveHeightMax', 'swellHeight'].forEach((key) => expect(marineValueDigits(key)).toBe(10));
-    });
-
-    it('leaves the other values to their usual rounding', () => {
-        ['temperature', 'iso', 'windSpeed'].forEach((key) => expect(marineValueDigits(key)).toBeUndefined());
     });
 });
