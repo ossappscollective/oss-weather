@@ -12,7 +12,7 @@
     import { cardBackgroundAlpha, dataTextStyle, headerTextStyle, textFontFamily } from '~/utils/designStyle';
     import { drawChips, prepareChips } from '~/helpers/chips';
     import { chipsAlignment } from '~/utils/chipsLayout';
-    import { CLASSIC_DEFAULT_BLOCK_HEIGHT, classicDataRow, headerTextSamples, iconsFitting } from '~/utils/dailyRow';
+    import { CLASSIC_DEFAULT_BLOCK_HEIGHT, classicDataRow } from '~/utils/dailyRow';
     import { rangeBarSpan } from '~/utils/dataGrid';
     import { DAILY_GRID_OPTIONS, drawCenteredValue, drawGrid, prepareGrid } from '~/helpers/dataGrid';
 
@@ -111,6 +111,20 @@
         return shortened + '…';
     }
 
+    // how many of the small icons, drawn in a row from `start`, end before `limit`
+    function iconsFitting(widths: number[], start: number, limit: number) {
+        let right = start;
+        let count = 0;
+        for (const width of widths) {
+            right += width;
+            if (right > limit) {
+                break;
+            }
+            count++;
+        }
+        return count;
+    }
+
     function drawModernHeader(canvas: Canvas, w: number) {
         // the weather icon (native view) is at the left: same place on every row for a quick glance
         const left = MODERN_PADDING + (MODERN_ICON_SIZE + MODERN_ICON_GAP) * $fontScale;
@@ -137,12 +151,16 @@
 
         // small icons (and beaufort) after the widest day and date, so they line up on every row, or after the description
         // when the date leaves no room for them
-        const samples = headerTextSamples((time, pattern) => formatDate(time, pattern, item.timezoneOffset), item.time, fullDate ? 'dddd' : 'ddd', fullDate ? 'D MMMM' : dailyDateFormat, fullDate);
         const widest = (texts: string[]) => Math.max(...texts.map((text) => textPaint.measureText(text)));
-        const dateWidth = widest(samples.dates);
+        // a numeric date has the same format every day, only its digits change: a month name does
+        const dateWidth = widest(
+            fullDate
+                ? Array.from({ length: 12 }, (_, month) => formatDate(Date.UTC(2026, month, 28), 'D MMMM', item.timezoneOffset))
+                : [formatDate(item.time, dailyDateFormat, item.timezoneOffset).replace(/\d/g, '8')]
+        );
         textPaint.setTextSize(header.daySize);
         textPaint.setFontWeight(header.dayWeight);
-        const dayWidth = widest(samples.days);
+        const dayWidth = widest(Array.from({ length: 7 }, (_, index) => formatDate(item.time + index * 24 * 3600 * 1000, fullDate ? 'dddd' : 'ddd', item.timezoneOffset)));
         const iconsLeft = left + dayWidth + 5 * $fontScale + dateWidth + 10 * $fontScale;
         const windBeaufortData = weatherDataService.getItemData(WeatherProps.windBeaufort, item);
         const smallItems = weatherDataService.getSmallIconsData({ item, type: 'daily' }).concat(windBeaufortData ? [windBeaufortData] : []);
