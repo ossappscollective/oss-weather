@@ -8,9 +8,11 @@ import { WeatherProps, weatherDataService } from '../weatherData';
 import { AirQualityProvider } from './airqualityprovider';
 import { convertWeatherCodeToIcon } from './omIcons';
 import { Forecast } from './openmeteo';
-import { AirQualityCurrently, AirQualityData, CommonAirQualityData, Currently, DailyData, Hourly, MinutelyData, WeatherData } from './weather';
+import { AirQualityCurrently, AirQualityData, CommonAirQualityData, Currently, DailyData, Hourly, MinutelyData, Tide, WeatherData } from './weather';
+import type { MarineWeatherProvider } from './marineweatherprovider';
 import { WeatherProvider } from './weatherprovider';
 import { keptDayCount } from '~/utils/dailyTrim';
+import { startOfDay } from '~/utils/dayBounds';
 // import { Coord, Dailyforecast, Forecast, MFCurrent, MFForecastResult, MFMinutely, MFWarnings, Probabilityforecast } from './meteofrance';
 
 // const mfApiKey = getString('mfApiKey', MF_DEFAULT_KEY);
@@ -123,6 +125,9 @@ export const API_KEY_VALUES = {
             (currentData.includes(WeatherProps.relativeHumidity) ? ',relative_humidity_2m_mean' : '') +
             (currentData.includes(WeatherProps.windGust) ? ',windgusts_10m_max' : '')
     }),
+    marine: () => ({
+        hourly: 'wave_height,swell_wave_height,sea_surface_temperature,sea_level_height_msl'
+    }),
     'air-quality': ({ current }) => ({
         hourly: 'pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen',
         current: current !== false ? 'pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone' : undefined
@@ -137,6 +142,10 @@ export const API_MAX_VALUES = {
     'air-quality': {
         forecast_days: 7,
         forecast_hours: 168
+    },
+    marine: {
+        forecast_days: 16,
+        forecast_hours: 384
     }
 };
 
@@ -144,7 +153,7 @@ export function getOMPreferredModel() {
     return ApplicationSettings.getString(SETTINGS_OM_PREFERED_MODEL, DEFAULT_OM_PREFERED_MODEL) as OpenMeteoModels;
 }
 
-export class OMProvider extends WeatherProvider implements AirQualityProvider {
+export class OMProvider extends WeatherProvider implements AirQualityProvider, MarineWeatherProvider {
     static id = 'openmeteo';
     id = OMProvider.id;
     getModels() {
@@ -612,6 +621,19 @@ export class OMProvider extends WeatherProvider implements AirQualityProvider {
         return r;
     }
 
+    // https://open-meteo.com/en/docs/marine-weather-api
+    async getMarineWeather(weatherLocation: WeatherLocation): Promise<Partial<WeatherData>> {
+        const { lat, lon } = weatherLocation.coord;
+        // the whole days of the forecast: the tides of a day are needed even when the hourly forecast is shorter
+        const days = Math.min(API_MAX_VALUES.marine.forecast_days, ApplicationSettings.getNumber('forecast_nb_days', NB_DAYS_FORECAST));
+        try {
+            const result = await this.fetch<{ hourly: OpenMeteoMarineHourly }>('marine', { latitude: lat, longitude: lon, forecast_days: days, forecast_hours: days * 24 }, {}, 'marine-api');
+            return openMeteoMarineData(result.content.hourly, weatherLocation.timezoneOffset);
+        } catch (error) {
+            console.error('openmeteo getMarineWeather error', error);
+        }
+    }
+
     // private isDay(time: number, lat: number, lon: number) {
     //     const times = getTimes(new Date(time), lat, lon);
     //     return time > times.sunrise.valueOf() && time < times.sunsetStart.valueOf();
@@ -622,4 +644,104 @@ interface OMParams {
     latitude?: number;
     longitude?: number;
     [k: string]: any;
+}
+
+// high and low tides of an hourly sea level, put between the samples with a parabola through the extremum and its neighbours
+export function tideExtremes(times: number[], heights: number[]): Tide[] {
+    const tides: Tide[] = [];
+    for (let index = 1; index < heights.length - 1; index++) {
+        const before = heights[index - 1];
+        const at = heights[index];
+        const after = heights[index + 1];
+        if (![before, at, after].every(Number.isFinite)) {
+            continue;
+        }
+        const isHigh = at > before && at >= after;
+        const isLow = at < before && at <= after;
+        if (!isHigh && !isLow) {
+            continue;
+        }
+        const curvature = before - 2 * at + after;
+        const offset = curvature === 0 ? 0 : (0.5 * (before - after)) / curvature;
+        tides.push({
+            time: Math.round(times[index] + (offset * (times[index + 1] - times[index - 1])) / 2),
+            height: at - 0.25 * (before - after) * offset,
+            type: isHigh ? 'high' : 'low'
+        });
+    }
+    return tides;
+}
+
+interface OpenMeteoMarineHourly {
+    time: number[];
+    wave_height?: number[];
+    swell_wave_height?: number[];
+    sea_surface_temperature?: number[];
+    sea_level_height_msl?: number[];
+}
+
+function average(values: number[]) {
+    return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : undefined;
+}
+
+// Open-Meteo marine hourly (time in seconds) as the marine data of the app: hourly, and per local day the sea
+// temperature, waves and tides (from the sea level). undefined for a point without sea data, like an inland one
+export function openMeteoMarineData(hourly: OpenMeteoMarineHourly, timezoneOffset?: number): Partial<WeatherData> | undefined {
+    const keys = ['wave_height', 'swell_wave_height', 'sea_surface_temperature', 'sea_level_height_msl'];
+    if (!keys.some((key) => hourly[key]?.some((value: number) => Number.isFinite(value)))) {
+        return undefined;
+    }
+    const times = hourly.time.map((time) => time * 1000);
+    const days = new Map<number, { waves: number[]; swells: number[]; temperatures: number[]; tides: Tide[] }>();
+    const hourlyData = times.map((time, index) => {
+        const entry = { time } as Hourly;
+        const day = startOfDay(time, timezoneOffset).valueOf();
+        if (!days.has(day)) {
+            days.set(day, { waves: [], swells: [], temperatures: [], tides: [] });
+        }
+        const dayValues = days.get(day);
+        const waveHeight = hourly.wave_height?.[index];
+        const swellHeight = hourly.swell_wave_height?.[index];
+        const seaTemperature = hourly.sea_surface_temperature?.[index];
+        if (Number.isFinite(waveHeight)) {
+            entry.waveHeight = waveHeight;
+            dayValues.waves.push(waveHeight);
+        }
+        if (Number.isFinite(swellHeight)) {
+            entry.swellHeight = swellHeight;
+            dayValues.swells.push(swellHeight);
+        }
+        if (Number.isFinite(seaTemperature)) {
+            entry.seaTemperature = seaTemperature;
+            dayValues.temperatures.push(seaTemperature);
+        }
+        return entry;
+    });
+    tideExtremes(times, hourly.sea_level_height_msl ?? []).forEach((tide) => days.get(startOfDay(tide.time, timezoneOffset).valueOf())?.tides.push(tide));
+    return {
+        time: Date.now(),
+        daily: {
+            data: [...days.entries()].map(([time, { swells, tides, temperatures, waves }]) => {
+                const day = { time } as DailyData;
+                const seaTemperature = average(temperatures);
+                const waveHeight = average(waves);
+                const swellHeight = average(swells);
+                if (seaTemperature !== undefined) {
+                    day.seaTemperature = seaTemperature;
+                }
+                if (waveHeight > 0) {
+                    day.waveHeight = waveHeight;
+                    day.waveHeightMax = Math.max(...waves);
+                }
+                if (swellHeight > 0) {
+                    day.swellHeight = swellHeight;
+                }
+                if (tides.length) {
+                    day.tides = tides;
+                }
+                return day;
+            })
+        },
+        hourly: hourlyData
+    } as Partial<WeatherData>;
 }

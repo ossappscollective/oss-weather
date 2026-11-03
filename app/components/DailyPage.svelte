@@ -21,6 +21,7 @@
     import { metarSeries } from '~/utils/metar';
     import type { MetarReport, MetarSeriesProp } from '~/utils/metar';
     import { onMount } from 'svelte';
+    import { MarineProviders } from '~/services/providers/weatherproviderfactory';
     import { accentFontWeight, colors, designStyle, fontScale, hourlyViewData, hourlyViewMode, onFontScaleChanged, weatherDataLayout } from '~/variables';
     import { textFontFamily } from '~/utils/designStyle';
     import DailyView from './DailyView.svelte';
@@ -566,6 +567,9 @@
                             <label color="#0288d1" fontSize={17} fontWeight="bold" padding={10} text={lc('tides')} />
                         {/if}
                         <TidesChartView {startTime} tides={dayTides} {timezoneOffset} />
+                        {#if weatherLocation?.providerMarine === MarineProviders.OpenMeteo}
+                            <label class={modern ? 'modernSubtitle' : ''} color={colorOnSurfaceVariant} fontSize={12} margin="2 10 10 10" text={lc('tides_msl_warning')} textWrap={true} />
+                        {/if}
                     </stacklayout>
                 {/if}
                 {#if isCurrentDay && metarCharts.length > 0}

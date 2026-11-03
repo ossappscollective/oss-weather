@@ -32,7 +32,7 @@ export enum AirQualityProviders {
 }
 
 export enum MarineProviders {
-    // OpenMeteo = 'openmeteo',
+    OpenMeteo = 'openmeteo',
     MeteoConsult = 'meteoconsult'
 }
 
@@ -125,6 +125,8 @@ export function getAqiProviderForType(newType: AqiProviderType): AirQualityProvi
 export function getMarineProviderForType(newType: MarineProviderType): MarineWeatherProvider {
     if (newType) {
         switch (newType) {
+            case MarineProviders.OpenMeteo:
+                return OMProvider.getInstance();
             case MarineProviders.MeteoConsult:
             default:
                 return MeteoConsultProvider.getInstance();

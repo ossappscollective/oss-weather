@@ -872,6 +872,7 @@
     async function selectMarineProvider(location: WeatherLocation) {
         const marineProviders: { data: MarineProviderType; title: string }[] = [
             { data: null, title: lc('provider_marine.none') },
+            { data: MarineProviders.OpenMeteo, title: lc('provider_marine.openmeteo') },
             { data: MarineProviders.MeteoConsult, title: lc('provider_marine.meteoconsult') }
         ];
         const current: MarineProviderType = location.providerMarine ?? null;
