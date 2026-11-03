@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { minutelyAxisLabel, minutelyAxisTicks, minutelyIntensity, minutelySummary } from './minutelySummary';
+import { minutelyAxisLabel, minutelyAxisTicks, minutelyIntensity, minutelySummary } from './TopWeather';
 
 const now = 1_000_000_000_000;
 const minutes = (count: number) => now + count * 60 * 1000;

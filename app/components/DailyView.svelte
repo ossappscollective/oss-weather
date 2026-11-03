@@ -12,9 +12,21 @@
     import { cardBackgroundAlpha, dataTextStyle, headerTextStyle, textFontFamily } from '~/utils/designStyle';
     import { drawChips, prepareChips } from '~/helpers/chips';
     import { chipsAlignment } from '~/utils/chipsLayout';
-    import { CLASSIC_DEFAULT_BLOCK_HEIGHT, classicDataRow } from '~/utils/dailyRow';
     import { rangeBarSpan } from '~/utils/dataGrid';
     import { DAILY_GRID_OPTIONS, drawCenteredValue, drawGrid, prepareGrid } from '~/helpers/dataGrid';
+
+    // classic daily row: the header (day, date, temperatures) takes the top, small icons the bottom left
+    const CHIPS_UNDER_HEADER_TOP = 40;
+    const CHIPS_UNDER_HEADER_BOTTOM = 26;
+    const MIN_ROW_HEIGHT = 100;
+
+    function classicDataRow(blockHeight: number, fontScale: number) {
+        const rowHeight = Math.max(MIN_ROW_HEIGHT * fontScale, blockHeight + (CHIPS_UNDER_HEADER_TOP + CHIPS_UNDER_HEADER_BOTTOM) * fontScale);
+        return { rowHeight, blockTop: Math.max(CHIPS_UNDER_HEADER_TOP * fontScale, (rowHeight - blockHeight) / 2) };
+    }
+
+    // icon, value and subvalue of the default layout, drawn from the block top
+    const CLASSIC_DEFAULT_BLOCK_HEIGHT = 50;
 
     let textPaint: Paint;
     let textIconPaint: Paint;
