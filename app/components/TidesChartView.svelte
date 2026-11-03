@@ -17,50 +17,15 @@
     import type { Tide } from '~/services/providers/weather';
     import { colors, designStyle, fontScale, onFontScaleChanged } from '~/variables';
     import { onThemeChanged } from '~/helpers/theme';
+    import { DAY_X, MINUTES_PER_X, labelPlacement, tideAtX, tideChartData, tideX } from './TidesChartView.logic';
     import { get } from 'svelte/store';
 
     const labelPaint = new Paint();
     labelPaint.setTextAlign(Align.CENTER);
     const underwaterPaint = new Paint();
     const seaLevelPaint = new Paint();
-    // x values are 10 minutes since the start of the day, like the astronomy chart
-    const MINUTES_PER_X = 10;
-    const DAY_X = (24 * 60) / MINUTES_PER_X;
     const HIGH_COLOR = '#0288d1';
     const LOW_COLOR = '#80cbc4';
-
-    // The sea level every step from `from` to `to`, going from a tide to the next one on a cosine, like the real tide does.
-    // Before the first and after the last tide of the day the pattern goes on with the same intervals and heights.
-    function tideCurve(tides: Tide[], from: number, to: number, step: number): { time: number; height: number }[] {
-        if (tides.length < 2) {
-            return [];
-        }
-        const extremes = tides.map(({ height, time }) => ({ height, time }));
-        // tides not in time order would never reach the ends of the day
-        if (extremes.some((extreme, index) => index > 0 && extreme.time <= extremes[index - 1].time)) {
-            return [];
-        }
-        while (extremes[0].time > from) {
-            extremes.unshift({ time: extremes[0].time - (extremes[1].time - extremes[0].time), height: extremes[1].height });
-        }
-        while (extremes[extremes.length - 1].time < to) {
-            const last = extremes[extremes.length - 1];
-            const previous = extremes[extremes.length - 2];
-            extremes.push({ time: last.time + (last.time - previous.time), height: previous.height });
-        }
-        const curve: { time: number; height: number }[] = [];
-        let segment = 0;
-        for (let time = from; time <= to; time += step) {
-            while (extremes[segment + 1].time < time) {
-                segment++;
-            }
-            const start = extremes[segment];
-            const end = extremes[segment + 1];
-            const progress = (time - start.time) / (end.time - start.time);
-            curve.push({ time, height: start.height + ((end.height - start.height) * (1 - Math.cos(Math.PI * progress))) / 2 });
-        }
-        return curve;
-    }
 </script>
 
 <script lang="ts">
@@ -111,30 +76,13 @@
         return getStartOfDay(startTime, timezoneOffset);
     }
 
-    function tideX(tide: Tide) {
-        return (tide.time - getComputeStartTime().valueOf()) / (MINUTES_PER_X * 60000);
-    }
-
-    function curveEntries() {
-        const dayStart = getComputeStartTime().valueOf();
-        return tideCurve(tides, dayStart, dayStart + 24 * 3600 * 1000, MINUTES_PER_X * 60000).map((point) => ({ x: (point.time - dayStart) / (MINUTES_PER_X * 60000), y: point.height }));
-    }
-
-    function tideEntries() {
-        return tides.map((tide) => ({ x: tideX(tide), y: tide.height }));
-    }
-
     function updateChartData() {
         if (!chartView || !tides.length) {
             return;
         }
 
         const chart = chartView.nativeView;
-        const curve = curveEntries();
-        const entries = tideEntries();
-        const heights = tides.map((tide) => tide.height);
-        // the sea level (0) stays in the chart, with room for the value labels
-        const margin = Math.max(0.4, (Math.max(...heights, 0) - Math.min(...heights, 0)) * 0.25);
+        const { axisMaximum, axisMinimum, line, points } = tideChartData(tides, getComputeStartTime().valueOf());
 
         if (!chartInitialized) {
             chartInitialized = true;
@@ -176,7 +124,7 @@
             };
 
             // the curve, filled down to the sea level
-            const curveSet = new LineDataSet(curve.length ? curve : entries, 'tides', 'x', 'y');
+            const curveSet = new LineDataSet(line, 'tides', 'x', 'y');
             curveSet.fillFormatter = {
                 getFillLinePosition: (dataSet, dataProvider) => 0
             };
@@ -190,7 +138,7 @@
             curveSet.drawValuesEnabled = false;
 
             // the tides: a point and the height of each
-            const tidesSet = new LineDataSet(entries, 'extremes', 'x', 'y');
+            const tidesSet = new LineDataSet(points, 'extremes', 'x', 'y');
             tidesSet.lineWidth = 0;
             tidesSet.color = HIGH_COLOR;
             tidesSet.drawCirclesEnabled = true;
@@ -209,13 +157,13 @@
             chart.data = data;
         } else {
             const lineData = chart.lineData;
-            lineData.getDataSetByIndex(0).values = curve.length ? curve : entries;
-            lineData.getDataSetByIndex(1).values = entries;
+            lineData.getDataSetByIndex(0).values = line;
+            lineData.getDataSetByIndex(1).values = points;
             lineData.dataSets.forEach((dataSet) => dataSet.notifyDataSetChanged());
             chart.data.notifyDataChanged();
         }
-        chart.leftAxis.axisMinimum = Math.min(...heights, 0) - margin;
-        chart.leftAxis.axisMaximum = Math.max(...heights, 0) + margin;
+        chart.leftAxis.axisMinimum = axisMinimum;
+        chart.leftAxis.axisMaximum = axisMaximum;
         chart.notifyDataSetChanged();
         chart.invalidate();
     }
@@ -230,17 +178,12 @@
         }
     }
 
-    // time of the tide at the touched time (within 15 minutes), its height otherwise
-    function tideAt(x: number) {
-        return tides.find((tide) => Math.abs(tideX(tide) - x) <= 1.5);
-    }
-
     function highlightCard(highlights: Highlight[], chart: CombinedChart): HighlightCardContent {
         const x = highlights[0].x;
         const time = getComputeStartTime()
             .add(x * MINUTES_PER_X, 'minutes')
             .valueOf();
-        const tide = tideAt(x);
+        const tide = tideAtX(tides, getComputeStartTime().valueOf(), x);
         if (tide) {
             const isHigh = tide.type === 'high';
             return {
@@ -277,22 +220,16 @@
         }
         canvas.drawLine(content.left, seaLevelY, content.right, seaLevelY, seaLevelPaint);
         labelPaint.textSize = 12 * $fontScale;
+        const dayStart = getComputeStartTime().valueOf();
         tides.forEach((tide) => {
             const isHigh = tide.type === 'high';
             const timeText = (isHigh ? '▲ ' : '▼ ') + formatTime(tide.time, undefined, timezoneOffset);
             const heightText = tide.height.toFixed(1) + 'm' + (tide.coef != null ? ` (${tide.coef})` : '');
-            const pointX = chart.getTransformer(AxisDependency.LEFT).getPixelForValues(tideX(tide), 0).x;
+            const pointX = chart.getTransformer(AxisDependency.LEFT).getPixelForValues(tideX(tide, dayStart), 0).x;
             const halfWidth = Math.max(labelPaint.measureText(timeText), labelPaint.measureText(heightText)) / 2;
             // a tide at the start or the end of the day keeps its labels in the chart: against its edge
-            let x = pointX;
-            labelPaint.setTextAlign(Align.CENTER);
-            if (pointX - halfWidth < content.left) {
-                x = content.left + 2;
-                labelPaint.setTextAlign(Align.LEFT);
-            } else if (pointX + halfWidth > content.right) {
-                x = content.right - 2;
-                labelPaint.setTextAlign(Align.RIGHT);
-            }
+            const { align, x } = labelPlacement(pointX, halfWidth, content.left, content.right);
+            labelPaint.setTextAlign(align === 'left' ? Align.LEFT : align === 'right' ? Align.RIGHT : Align.CENTER);
             labelPaint.color = isHigh ? HIGH_COLOR : LOW_COLOR;
             canvas.drawText(timeText, x, content.bottom + 18 * $fontScale, labelPaint);
             labelPaint.color = colorOnSurface;
