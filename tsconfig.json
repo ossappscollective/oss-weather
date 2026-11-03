@@ -16,5 +16,5 @@
         }
     },
     "include": ["app/**/*", "plugin-widgets/src/**/*", "tools/app/**/*", "typings/*.d.ts", "plugin-widgets/typings/*.d.ts"],
-    "exclude": ["node_modules", "tools/app/db"]
+    "exclude": ["node_modules", "tools/app/db", "app/**/*.test.ts"]
 }
