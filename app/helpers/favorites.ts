@@ -9,7 +9,6 @@ import { AqiProviderType, MarineProviderType, ProviderType } from '~/services/pr
 import { SETTINGS_FAVORITES } from './constants';
 import { OpenMeteoModels } from '~/modules/providers/openmeteo/om';
 import { confirm } from '~/utils/ui/dialogs';
-import type { MetarStation } from '~/services/metar';
 import { l, lc } from '@nativescript-community/l';
 
 export const EVENT_FAVORITE = 'favorite';
@@ -86,8 +85,6 @@ export function favoriteIconColor(item: FavoriteLocation) {
         return item.isFavorite ? '#EFB644' : get(colors).colorOnSurfaceVariant;
     }
 }
-export function saveFavorite(item: FavoriteLocation) {}
-
 export function favoriteIcon(item: FavoriteLocation) {
     if (item) {
         return item.isFavorite ? 'mdi-star' : 'mdi-star-outline';
@@ -152,11 +149,10 @@ export async function setFavoriteMarineProvider(item: FavoriteLocation, provider
         globalObservable.notify({ eventName: EVENT_FAVORITE, data: item });
     }
 }
-export async function setFavoriteMetarStation(item: FavoriteLocation, station: MetarStation | undefined) {
+export async function saveFavorite(item: FavoriteLocation) {
     const key = getFavoriteKey(item);
     const index = favoritesKeys.indexOf(key);
     if (index !== -1) {
-        item.metarStation = station;
         updateOnSettingChanged = false;
         favorites.setItem(index, item);
         globalObservable.notify({ eventName: EVENT_FAVORITE, data: item });

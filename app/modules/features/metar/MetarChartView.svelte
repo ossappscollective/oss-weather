@@ -15,7 +15,7 @@
     import { modernColors } from '~/helpers/modernTheme';
     import { WeatherProps, defaultPropUnit, getWeatherDataIcon, getWeatherDataTitle, propToUnit } from '~/services/weatherData';
     import { modernDataColor, modernLineStyle, styledDataIcon, textFontFamily } from '~/utils/design/designStyle';
-    import type { MetarPoint } from '~/utils/weather/metar';
+    import type { MetarPoint } from './report';
     import { accentFontWeight, colors, designStyle, fontScale, fonts } from '~/variables';
     import type { HighlightCardContent } from '~/utils/charts/chartDraw';
 

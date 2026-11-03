@@ -38,7 +38,6 @@
         MAIN_CHART_NB_HOURS,
         MAIN_CHART_VISIBLE_HOURS,
         MAX_NB_DAYS_FORECAST,
-        METEOBLUE_ENABLED,
         MIN_UV_INDEX,
         NB_DAYS_FORECAST,
         NB_HOURS_FORECAST,
@@ -58,7 +57,6 @@
         SETTINGS_LANGUAGE,
         SETTINGS_MAIN_CHART_NB_HOURS,
         SETTINGS_MAIN_CHART_VISIBLE_HOURS,
-        SETTINGS_METEOBLUE_ENABLED,
         SETTINGS_METRIC_CM_TO_MM,
         SETTINGS_METRIC_TEMP_DECIMAL,
         SETTINGS_MIN_UV_INDEX,
@@ -84,6 +82,7 @@
     import { iconService } from '~/services/icon';
     import { getLibreWXRSettings, getWeatherMapSourceSetting } from '~/services/providers/librewxr';
     import { MaptilerProvider, getWeatherMapSettings } from '~/services/providers/maptiler';
+    import { getModuleSettings } from '~/modules/registry';
     import { getAqiProviderKeys, getAqiProviderType, getProviderSettins, getProviderType, getWeatherProviderKeys } from '~/services/providers/weatherproviderfactory';
     import { AVAILABLE_WEATHER_DATA, AVAILABLE_WEATHER_DATA_MAIN_HOURLY, WeatherProps, getWeatherDataIcon, getWeatherDataTitle, weatherDataService } from '~/services/weatherData';
     import { confirmRestartApp, createView, getDateFormatHTMLArgs, hideLoading, openLink, selectValue, showLoading, showSliderPopover } from '~/utils/ui';
@@ -581,13 +580,7 @@
                             description: lc('swipe_actionbar_provider_desc'),
                             value: ApplicationSettings.getBoolean(SETTINGS_SWIPE_ACTION_BAR_PROVIDER, SWIPE_ACTION_BAR_PROVIDER)
                         },
-                        {
-                            type: 'switch',
-                            id: SETTINGS_METEOBLUE_ENABLED,
-                            title: lc('meteoblue'),
-                            description: lc('meteoblue_enabled_desc'),
-                            value: ApplicationSettings.getBoolean(SETTINGS_METEOBLUE_ENABLED, METEOBLUE_ENABLED)
-                        }
+                        ...getModuleSettings()
                     ] as any[];
                     [...getWeatherProviderKeys()].sort().forEach((provider) => {
                         const providerSettings = getProviderSettins(provider);

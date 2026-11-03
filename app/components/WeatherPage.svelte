@@ -22,10 +22,8 @@
     import CActionBar from '~/components/common/CActionBar.svelte';
     import {
         DATA_VERSION,
-        METEOBLUE_ENABLED,
         NB_DAYS_FORECAST,
         SETTINGS_FEELS_LIKE_TEMPERATURES,
-        SETTINGS_METEOBLUE_ENABLED,
         SETTINGS_SHOW_CURRENT_DAY_DAILY,
         SETTINGS_SHOW_DAILY_IN_CURRENTLY,
         SETTINGS_SWIPE_ACTION_BAR_PROVIDER,
@@ -44,15 +42,15 @@
         isFavorite,
         queryTimezone,
         renameFavorite,
+        saveFavorite,
         setFavoriteAqiProvider,
         setFavoriteMarineProvider,
-        setFavoriteMetarStation,
         setFavoriteOMProviderModel,
         setFavoriteProvider,
         toggleFavorite
     } from '~/helpers/favorites';
     import { getLocationName } from '~/helpers/formatter';
-    import { formatDate, formatTime, getEndOfDay, getStartOfDay, l, lc, lu, onLanguageChanged, sl, slc } from '~/helpers/locale';
+    import { formatDate, formatTime, getEndOfDay, getStartOfDay, l, lc, onLanguageChanged, sl, slc } from '~/helpers/locale';
     import { onThemeChanged } from '~/helpers/theme';
     import { NetworkConnectionStateEvent, NetworkConnectionStateEventData, WeatherLocation, geocodeAddress, networkService, prepareItems } from '~/services/api';
     import { hasEnoughForecast } from '~/utils/weather/forecastCoverage';
@@ -85,8 +83,6 @@
     import { accentFontWeight, actionBarHeight, colors, designStyle, fontScale, fonts, onFontScaleChanged, onSettingsChanged, windowInset } from '~/variables';
     import { groupPosition } from '~/utils/settings/settingsGroups';
     import { groupRowClass } from '~/utils/settings/groupClass';
-    import type { MetarStation } from '~/services/metar';
-    import { searchStations } from '~/services/metar';
     import IconButton from './common/IconButton.svelte';
     import { WeatherProvider } from '~/services/providers/weatherprovider';
     import { isLibreWXRSource } from '~/services/providers/librewxr';
@@ -153,7 +149,7 @@
     let page: NativeViewElementNode<Page>;
     // modern menus: provider values on the right (long ones stay under the title), colored provider
     // icons, groups separated by a line
-    const MODERN_MENU_ICON_COLORS = { provider: '#378ADD', om_model: '#888780', provider_aqi: '#97C459', provider_marine: '#378ADD', metar_station: '#378ADD' };
+    const MODERN_MENU_ICON_COLORS = { provider: '#378ADD', om_model: '#888780', provider_aqi: '#97C459', provider_marine: '#378ADD' };
     const MODERN_MENU_MAX_RIGHT_VALUE = 14;
     // short titles so that the value fits next to them
     const MODERN_MENU_SHORT_NAMES = { provider_marine: () => lc('marine_provider'), provider_aqi: () => lc('air_quality'), om_model: () => lc('model') };
@@ -172,7 +168,7 @@
                 title: MODERN_MENU_SHORT_NAMES[option.id]?.() ?? option.title,
                 rightValue: valueOnRight ? option.subtitle : undefined,
                 subtitle: valueOnRight ? undefined : option.subtitle,
-                iconColor: MODERN_MENU_ICON_COLORS[option.id],
+                iconColor: MODERN_MENU_ICON_COLORS[option.id] ?? option.iconColor,
                 groupStart: groupStartIds.indexOf(option.id) !== -1
             };
         });
@@ -226,26 +222,11 @@
                             id: 'map',
                             name: lc('map')
                         },
-                        ...(ApplicationSettings.getBoolean(SETTINGS_METEOBLUE_ENABLED, METEOBLUE_ENABLED)
-                            ? [
-                                  {
-                                      icon: 'mdi-chart-line',
-                                      id: 'meteo_blue',
-                                      name: lc('meteoblue')
-                                  }
-                              ]
-                            : []),
                         {
                             icon: 'mdi-waves',
                             id: 'provider_marine',
                             subtitle: lc('provider_marine.' + (weatherLocation?.providerMarine ?? 'none')),
                             name: lc('provider_marine.title')
-                        },
-                        {
-                            icon: 'mdi-airplane',
-                            id: 'metar_station',
-                            subtitle: weatherLocation?.metarStation ? `${weatherLocation.metarStation.name} (${weatherLocation.metarStation.icao})` : lc('metar_station_none'),
-                            name: lc('metar_station')
                         }
                     ] as any)
                 );
@@ -253,7 +234,9 @@
                     options.push({
                         icon: action.icon,
                         id: action.id,
-                        name: lu(action.nameKey),
+                        name: lc(action.nameKey),
+                        iconColor: action.iconColor,
+                        subtitle: action.subtitle?.(weatherLocation),
                         onLongPress: action.runLongPress && tryCatchFunction(action.runLongPress)
                     })
                 );
@@ -296,18 +279,11 @@
                                 case 'select_map':
                                     await selectLocationOnMap();
                                     break;
-                                case 'meteo_blue':
-                                    const MeteoBlue = (await import('~/components/MeteoBlue.svelte')).default;
-                                    navigate({ page: MeteoBlue, props: { weatherLocation } });
-                                    break;
                                 case 'provider_marine':
                                     await selectMarineProvider(weatherLocation);
                                     break;
-                                case 'metar_station':
-                                    await selectMetarStation(weatherLocation);
-                                    break;
                                 default:
-                                    await findLocationAction(item.id)?.run(weatherLocation);
+                                    await runLocationAction(item.id, weatherLocation);
                             }
                         }
                     } catch (error) {
@@ -871,25 +847,14 @@
         }
     }
 
-    async function selectMetarStation(location: WeatherLocation) {
-        const SelectCity = (await import('~/components/SelectCity.svelte')).default;
-        const station = await showModal<MetarStation | null, any>({
-            page: SelectCity,
-            animated: true,
-            fullscreen: true,
-            props: {
-                title: lc('metar_station'),
-                hint: lc('metar_station_hint'),
-                search: searchStations,
-                getInfo: (item: MetarStation) => ({ title: `${item.name} (${item.icao})`, lines: [item.country].filter((text) => !!text) }),
-                icon: 'mdi-airplane',
-                showFavorite: false,
-                clearable: !!location.metarStation
+    async function runLocationAction(id: string, location: WeatherLocation) {
+        if (await findLocationAction(id)?.run(location)) {
+            saveWeatherLocation();
+            if (isFavorite(location)) {
+                saveFavorite(location);
+            } else if (isCurrentLocation(location)) {
+                refreshWeather();
             }
-        });
-        // undefined is a cancel, null removes the station
-        if (station !== undefined) {
-            setWeatherLocationMetarStation(station ?? undefined, location);
         }
     }
 
@@ -957,16 +922,6 @@
         saveWeatherLocation();
         if (isFavorite(location)) {
             setFavoriteMarineProvider(location, provider);
-        } else if (isCurrentLocation(location)) {
-            refreshWeather();
-        }
-    }
-
-    function setWeatherLocationMetarStation(station: MetarStation | undefined, location: WeatherLocation = weatherLocation) {
-        location.metarStation = station;
-        saveWeatherLocation();
-        if (isFavorite(location)) {
-            setFavoriteMetarStation(location, station);
         } else if (isCurrentLocation(location)) {
             refreshWeather();
         }
@@ -1109,12 +1064,6 @@
                     name: lc('provider_marine.title')
                 },
                 {
-                    icon: 'mdi-airplane',
-                    id: 'metar_station',
-                    subtitle: favItem?.metarStation ? `${favItem.metarStation.name} (${favItem.metarStation.icao})` : lc('metar_station_none'),
-                    name: lc('metar_station')
-                },
-                {
                     icon: 'mdi-chart-bar',
                     id: 'compare',
                     name: lc('compare_models')
@@ -1129,15 +1078,6 @@
                     id: 'map',
                     name: lc('map')
                 },
-                ...(ApplicationSettings.getBoolean(SETTINGS_METEOBLUE_ENABLED, METEOBLUE_ENABLED)
-                    ? [
-                          {
-                              icon: 'mdi-chart-line',
-                              id: 'meteo_blue',
-                              name: lc('meteoblue')
-                          }
-                      ]
-                    : []),
                 {
                     icon: 'mdi-trash-can',
                     id: 'delete',
@@ -1150,7 +1090,7 @@
                     name: lc('duplicate')
                 }
             ];
-            options.splice(options.length - 2, 0, ...getLocationActions(favItem).map((action) => ({ icon: action.icon, id: action.id, name: l(action.nameKey) }) as any));
+            options.splice(options.length - 2, 0, ...getLocationActions(favItem).map((action) => ({ icon: action.icon, id: action.id, name: lc(action.nameKey), iconColor: action.iconColor, subtitle: action.subtitle?.(favItem) }) as any));
 
             await showPopoverMenu({
                 options: modernMenuOptions(options, ['provider', 'compare', options.some((option) => option.id === 'bra') ? 'bra' : 'delete']),
@@ -1180,11 +1120,6 @@
                                     const HourlyChart = (await import('~/components/HourlyChartPage.svelte')).default;
                                     navigate({ page: HourlyChart, props: { weatherLocation: favItem, weatherData } });
                                     break;
-                                case 'meteo_blue':
-                                    const MeteoBlue = (await import('~/components/MeteoBlue.svelte')).default;
-                                    navigate({ page: MeteoBlue, props: { weatherLocation: favItem } });
-                                    break;
-
                                 case 'provider':
                                     await selectProvider(favItem);
                                     break;
@@ -1200,9 +1135,6 @@
                                 case 'duplicate':
                                     await duplicateFavorite(favItem);
                                     break;
-                                case 'metar_station':
-                                    await selectMetarStation(favItem);
-                                    break;
                                 case 'rename':
                                     result = await prompt({
                                         title: lc('rename'),
@@ -1216,7 +1148,7 @@
                                     }
                                     break;
                                 default:
-                                    await findLocationAction(item.id)?.run(favItem);
+                                    await runLocationAction(item.id, favItem);
                             }
                         }
                     } catch (error) {

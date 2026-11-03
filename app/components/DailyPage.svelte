@@ -14,18 +14,15 @@
     import { WeatherLocation } from '~/services/api';
     import { iconService, onIconAnimationsChanged } from '~/services/icon';
     import type { DailyData, Hourly, Tide } from '~/services/providers/weather';
-    import { fetchMetarReports } from '~/services/metar';
     import { WeatherProps, formatWeatherValue, getWeatherDataShortTitle, weatherDataService } from '~/services/weatherData';
-    import { metarSeries } from '~/utils/weather/metar';
-    import type { MetarReport, MetarSeriesProp } from '~/utils/weather/metar';
     import { onMount } from 'svelte';
     import { accentFontWeight, actionBarHeight, colors, designStyle, fontScale, hourlyViewData, hourlyViewMode, onFontScaleChanged, weatherDataLayout } from '~/variables';
     import { textFontFamily } from '~/utils/design/designStyle';
     import DailyView from './DailyView.svelte';
     import CActionBar from './common/CActionBar.svelte';
     import ModernCardTitle from './common/ModernCardTitle.svelte';
+    import { getDailySections } from '~/modules/registry';
     import HourlyChartView from './HourlyChartView.svelte';
-    import MetarChartView from './MetarChartView.svelte';
     import HourlyView from './HourlyView.svelte';
     import TidesChartView from './TidesChartView.svelte';
     import WeatherIcon from './WeatherIcon.svelte';
@@ -118,7 +115,8 @@
         }
     }
     // modern card icons, in the data palette
-    const MODERN_SECTION_COLORS = { hourly: '#378ADD', airQuality: '#97C459', tides: '#0288D1', astronomy: '#EF9F27', metar: '#378ADD' };
+    const dailySections = getDailySections();
+    const MODERN_SECTION_COLORS = { hourly: '#378ADD', airQuality: '#97C459', tides: '#0288D1', astronomy: '#EF9F27' };
     // modern: the hourly card switches between the views without changing the setting
     const HOURLY_MODES = ['classic', 'chart', 'windy'];
     const storedHourlyMode = ApplicationSettings.getString(SETTINGS_DAILY_PAGE_HOURLY_MODE, null);
@@ -173,29 +171,6 @@
         const end = startTime.endOf('day').valueOf();
         return item.tides.filter((t) => t.time >= start && t.time <= end);
     })();
-
-    const METAR_CHARTS: { series: MetarSeriesProp; weatherProp: WeatherProps }[] = [
-        { series: 'temperature', weatherProp: WeatherProps.temperature },
-        { series: 'windSpeed', weatherProp: WeatherProps.windSpeed },
-        { series: 'sealevelPressure', weatherProp: WeatherProps.sealevelPressure }
-    ];
-    let metarReports: MetarReport[] = [];
-    $: metarCharts = METAR_CHARTS.map((chart) => ({ ...chart, points: metarSeries(metarReports, chart.series) })).filter((chart) => chart.points.length > 1);
-    $: metarTitle = `METAR ${weatherLocation?.metarStation?.icao}`;
-
-    onMount(async () => {
-        const station = weatherLocation?.metarStation;
-        // the chart only shows on today's page
-        if (!station || !isCurrentDay) {
-            return;
-        }
-        try {
-            metarReports = await fetchMetarReports(station.icao, 24, 10000);
-        } catch (error) {
-            // the observed charts are optional, nothing to show without them
-            DEV_LOG && console.error('fetchMetarReports', error);
-        }
-    });
 
     onIconAnimationsChanged((event) => (animated = event.animated));
     onFontScaleChanged(redraw);
@@ -604,16 +579,11 @@
                         {/if}
                     </stacklayout>
                 {/if}
-                {#if isCurrentDay && metarCharts.length > 0}
-                    <stacklayout class={modern ? 'modernCard' : ''}>
-                        {#if modern}
-                            <ModernCardTitle icon="mdi-airplane" iconColor={MODERN_SECTION_COLORS.metar} title={metarTitle} />
-                        {:else}
-                            <label class="sectionHeader" paddingTop={10} text={metarTitle} />
-                        {/if}
-                        <MetarChartView series={metarCharts} {timezoneOffset} />
-                    </stacklayout>
-                {/if}
+                {#each dailySections as section (section.id)}
+                    {#await section.component() then { default: SectionComponent }}
+                        <svelte:component this={SectionComponent} {isCurrentDay} {timezoneOffset} {weatherLocation} />
+                    {/await}
+                {/each}
                 <stacklayout class={modern ? 'modernCard' : ''}>
                     {#if modern}
                         <ModernCardTitle icon="mdi-theme-light-dark" iconColor={MODERN_SECTION_COLORS.astronomy} title={lc('sun_and_moon')} />

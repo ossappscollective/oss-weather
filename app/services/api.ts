@@ -15,7 +15,7 @@ import { Photon, PhotonProperties } from '../../typings/photon';
 import { AqiProviderType, MarineProviderType, ProviderType, WeatherData } from './providers/weather';
 import { WeatherProps } from './weatherData';
 import { OpenMeteoModels } from '~/modules/providers/openmeteo/om';
-import type { MetarStation } from '~/services/metar';
+import type { MetarStation } from '~/modules/features/metar/metar';
 
 type HTTPSOptions = https.HttpsRequestOptions;
 

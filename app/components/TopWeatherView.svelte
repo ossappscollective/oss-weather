@@ -20,7 +20,7 @@
     import { isDarkTheme, isEInk, onThemeChanged } from '~/helpers/theme';
     import { prefs } from '~/services/preferences';
     import type { Currently, Hourly, MinutelyData } from '~/services/providers/weather';
-    import { isMetarIndicatorShown } from '~/utils/weather/metar';
+    import { getCurrentIndicators } from '~/modules/registry';
     import { WeatherProps, formatWeatherValue, mdiPaint, wdPaint, weatherDataService } from '~/services/weatherData';
     import {
         accentFontWeight,
@@ -534,8 +534,8 @@
                 x += paint.measureText(c.icon) + 8 * $fontScale;
             }
         }
-        if (isMetarIndicatorShown(item.metar)) {
-            drawMetarIcon(canvas, x, sunBaseline + 1, Align.LEFT, 16);
+        for (const indicator of getCurrentIndicators().filter((candidate) => candidate.isShown(item))) {
+            x += drawIndicatorIcon(canvas, indicator.icon, x, sunBaseline + 1, Align.LEFT, 16);
         }
         textPaint.setTextAlign(Align.RIGHT);
         textPaint.setTextSize(12 * $fontScale);
@@ -664,19 +664,20 @@
                 iconRight += 24 * $fontScale;
             }
         }
-        if (isMetarIndicatorShown(item.metar)) {
-            drawMetarIcon(canvas, w - iconRight, h - iconsBottom, Align.RIGHT);
+        for (const indicator of getCurrentIndicators().filter((candidate) => candidate.isShown(item))) {
+            iconRight += drawIndicatorIcon(canvas, indicator.icon, w - iconRight, h - iconsBottom, Align.RIGHT);
         }
         canvas.clipRect(0, 0, w - weatherIconSize * (2 - $fontScale), h);
         drawData(canvas, w, w2, hasPrecip ? 45 * $fontScale : $topViewHeight / 2 - 20 * $fontScale, w - weatherIconSize * (2 - $fontScale));
     }
 
-    // tells the shown conditions come from a METAR station
-    function drawMetarIcon(canvas: Canvas, x: number, y: number, align: Align, size = 20) {
+    // returns the space it takes
+    function drawIndicatorIcon(canvas: Canvas, icon: string, x: number, y: number, align: Align, size = 20) {
         mdiPaint.setTextAlign(align);
         mdiPaint.setTextSize(size * $fontScale);
         mdiPaint.setColor($colors.colorOnSurface);
-        canvas.drawText('mdi-radio-tower', x, y, mdiPaint);
+        canvas.drawText(icon, x, y, mdiPaint);
+        return (size + 4) * $fontScale;
     }
 
     function drawData(canvas: Canvas, w: number, w2: number, iconsTop: number, clipRight: number) {

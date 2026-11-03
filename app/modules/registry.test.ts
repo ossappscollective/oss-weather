@@ -4,10 +4,14 @@ import {
     ModuleDefinition,
     assertModulesPresent,
     findLocationAction,
+    getCurrentIndicators,
+    getDailySections,
     getLocationActions,
+    getModuleSettings,
     getModules,
     getProviderClass,
     getProviderKeys,
+    getWeatherOverlays,
     registerModule,
     resetModules,
     resolveProviderKey
@@ -87,6 +91,23 @@ describe('module registry', () => {
             registerModule(provider('a', { locationActions: [action('one', false)] }));
             expect(findLocationAction('one')?.id).toBe('one');
             expect(findLocationAction('missing')).toBeUndefined();
+        });
+    });
+
+    describe('feature contributions', () => {
+        const feature = (id: string, options: Partial<ModuleDefinition> = {}): ModuleDefinition => ({ id, category: 'features', ...options });
+
+        it('gathers the settings, overlays, daily sections and indicators of every module by id', () => {
+            const overlay: any = { fetch: () => undefined, apply: () => {} };
+            const component: any = () => Promise.resolve({ default: class {} });
+            const indicator = { icon: 'mdi-x', isShown: () => true };
+            registerModule(feature('b', { settings: () => [{ id: 'b_setting' }], weatherOverlay: overlay, dailySections: [{ id: 'b_section', component }], currentIndicators: [indicator] }));
+            registerModule(feature('a', { settings: () => [{ id: 'a_setting' }] }));
+            registerModule(provider('c'));
+            expect(getModuleSettings().map((setting) => setting.id)).toEqual(['a_setting', 'b_setting']);
+            expect(getWeatherOverlays()).toEqual([overlay]);
+            expect(getDailySections().map((section) => section.id)).toEqual(['b_section']);
+            expect(getCurrentIndicators()).toEqual([indicator]);
         });
     });
 
