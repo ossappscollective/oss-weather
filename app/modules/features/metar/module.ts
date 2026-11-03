@@ -31,7 +31,7 @@ export default {
         },
         cacheKey: (location) => (location.metarStation ? `_${location.metarStation.icao}` : '')
     },
-    dailySections: [{ id: 'metar', component: () => import('./MetarSection.svelte') }],
+    dailySections: [{ id: 'metar', component: () => import('~/modules/features/metar/MetarSection.svelte') }],
     currentIndicators: [{ icon: 'mdi-radio-tower', isShown: (currently) => isMetarIndicatorShown(currently.metar) }],
     locationActions: [
         {

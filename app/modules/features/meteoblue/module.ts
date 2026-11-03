@@ -25,7 +25,7 @@ export default {
             nameKey: 'meteoblue',
             isAvailable: () => ApplicationSettings.getBoolean(SETTINGS_METEOBLUE_ENABLED, METEOBLUE_ENABLED),
             async run(weatherLocation) {
-                const MeteoBlue = (await import('./MeteoBlue.svelte')).default;
+                const MeteoBlue = (await import('~/modules/features/meteoblue/MeteoBlue.svelte')).default;
                 navigate({ page: MeteoBlue, props: { weatherLocation } });
             }
         }
