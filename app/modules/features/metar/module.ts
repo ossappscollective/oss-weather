@@ -5,7 +5,6 @@ import type { ModuleDefinition } from '~/modules/registry';
 import { OMProvider } from '~/modules/providers/openmeteo/om';
 import type { WeatherLocation } from '~/services/api';
 import type { Currently } from '~/services/providers/weather';
-import MetarSection from './MetarSection.svelte';
 import { MetarReport, applyMetarToCurrently, isMetarIndicatorShown } from './report';
 import { MetarStation, fetchLatestMetar, searchStations } from './metar';
 
@@ -32,7 +31,7 @@ export default {
         },
         cacheKey: (location) => (location.metarStation ? `_${location.metarStation.icao}` : '')
     },
-    dailySections: [{ id: 'metar', component: MetarSection }],
+    dailySections: [{ id: 'metar', component: () => import('./MetarSection.svelte') }],
     currentIndicators: [{ icon: 'mdi-radio-tower', isShown: (currently) => isMetarIndicatorShown(currently.metar) }],
     locationActions: [
         {

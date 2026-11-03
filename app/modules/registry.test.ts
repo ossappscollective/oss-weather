@@ -99,7 +99,7 @@ describe('module registry', () => {
 
         it('gathers the settings, overlays, daily sections and indicators of every module by id', () => {
             const overlay: any = { fetch: () => undefined, apply: () => {} };
-            const component: any = class {};
+            const component: any = () => Promise.resolve({ default: class {} });
             const indicator = { icon: 'mdi-x', isShown: () => true };
             registerModule(feature('b', { settings: () => [{ id: 'b_setting' }], weatherOverlay: overlay, dailySections: [{ id: 'b_section', component }], currentIndicators: [indicator] }));
             registerModule(feature('a', { settings: () => [{ id: 'a_setting' }] }));

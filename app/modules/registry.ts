@@ -46,7 +46,8 @@ export interface WeatherOverlay {
 /** a section of the daily page, below the hourly charts; it draws its own card */
 export interface DailySection {
     id: string;
-    component: new (options: any) => SvelteComponent<any>;
+    /** lazy: the component only loads when the page shows */
+    component: () => Promise<{ default: new (options: any) => SvelteComponent<any> }>;
 }
 
 /** an icon the current conditions show when `isShown` */

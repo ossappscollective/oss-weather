@@ -580,7 +580,9 @@
                     </stacklayout>
                 {/if}
                 {#each dailySections as section (section.id)}
-                    <svelte:component this={section.component} {isCurrentDay} {timezoneOffset} {weatherLocation} />
+                    {#await section.component() then { default: SectionComponent }}
+                        <svelte:component this={SectionComponent} {isCurrentDay} {timezoneOffset} {weatherLocation} />
+                    {/await}
                 {/each}
                 <stacklayout class={modern ? 'modernCard' : ''}>
                     {#if modern}
