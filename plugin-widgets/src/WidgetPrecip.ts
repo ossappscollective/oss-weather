@@ -1,4 +1,4 @@
-import { precipKind, precipitationFill } from '~/utils/designStyle';
+import { precipKind, precipitationFill } from '~/utils/design/designStyle';
 
 // a precipitation bar of an hour column: horizontal part (0-1), top as a fraction of the height,
 // fill color with its probability opacity (#rrggbbaa)

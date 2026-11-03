@@ -3,10 +3,10 @@ import type { ImageSource } from '@nativescript/core';
 import { formatTime } from '~/helpers/locale';
 import type { CommonWeatherData } from '~/services/providers/weather';
 import { CommonData, WeatherProps, weatherDataService } from '~/services/weatherData';
-import { dataTextStyle, modernDataColor, modernLineStyle, precipitationFill } from '~/utils/designStyle';
+import { dataTextStyle, modernDataColor, modernLineStyle, precipitationFill } from '~/utils/design/designStyle';
 import { tempColor } from '~/utils/utils.common';
-import { isChartedKey } from '~/utils/chartLabels';
-import { splitValueUnit } from '~/utils/valueUnit';
+import { isChartedKey } from '~/utils/charts/chartLabels';
+import { splitValueUnit } from '~/utils/weather/valueUnit';
 import type { HighlightCardContent, HighlightCardRow, HighlightLegendMark } from './chartDraw';
 
 const PRECIPITATION_KEYS: string[] = [WeatherProps.precipAccumulation, WeatherProps.rainPrecipitation, WeatherProps.snowfall];

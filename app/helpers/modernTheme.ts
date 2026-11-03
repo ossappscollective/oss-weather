@@ -2,7 +2,7 @@ import { Application, Color, ViewBase } from '@nativescript/core';
 import { updateRootCss } from '@shared/utils';
 import { get, writable } from 'svelte/store';
 import { getRealTheme, isDarkTheme } from '~/helpers/theme';
-import { modernThemeColors } from '~/utils/modernThemeColors';
+import { modernThemeColors } from '~/utils/design/modernThemeColors';
 import { accentFontWeight, colors, designStyle, fontScale } from '~/variables';
 
 const MODERN_TEXT_SIZES = {

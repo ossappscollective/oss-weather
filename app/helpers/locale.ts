@@ -13,7 +13,7 @@ import { showAlertOptionSelect } from '~/utils/ui';
 import { createGlobalEventListener, globalObservable } from '@shared/utils/svelte/ui';
 import { ALERT_OPTION_MAX_HEIGHT, DEFAULT_LOCALE, SETTINGS_IMPERIAL, SETTINGS_LANGUAGE } from './constants';
 import { imperialUnits } from '~/variables';
-import { endOfDay, startOfDay } from '~/utils/dayBounds';
+import { endOfDay, startOfDay } from '~/utils/time/dayBounds';
 import { getISO3Language } from '@akylas/nativescript-app-utils';
 import { clearCurrentLocale, getCurrentLocale } from '@shared/helpers/lang';
 const supportedLanguages = SUPPORTED_LOCALES;

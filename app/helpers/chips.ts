@@ -1,8 +1,8 @@
 import { Canvas, Paint, Style } from '@nativescript-community/ui-canvas';
 import type { CommonData } from '~/services/weatherData';
-import { ChipsLayout, layoutChips } from '~/utils/chipsLayout';
+import { ChipsLayout, layoutChips } from '~/utils/design/chipsLayout';
 import { get } from 'svelte/store';
-import { DesignStyle, cardBackgroundAlpha, dataTextStyle, tintAlpha } from '~/utils/designStyle';
+import { DesignStyle, cardBackgroundAlpha, dataTextStyle, tintAlpha } from '~/utils/design/designStyle';
 import { isDarkTheme, isEInk } from '~/helpers/theme';
 import { dataIntensity } from '~/variables';
 import { CHIP_GAP, CHIP_HEIGHT, CHIP_PADDING, DataContentOptions, drawDataContent, measureDataContent } from '~/helpers/dataGrid';

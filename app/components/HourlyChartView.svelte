@@ -20,7 +20,7 @@
     import { formatTime, getLocalTime, lc } from '~/helpers/locale';
     import { isEInk, onThemeChanged } from '~/helpers/theme';
     import type { CommonWeatherData, DailyData, Hourly } from '~/services/providers/weather';
-    import { modernDataColor, modernLineStyle, modernPrecipColor, precipKind, precipitationFill, styledDataIcon, textFontFamily, windSpeedColor } from '~/utils/designStyle';
+    import { modernDataColor, modernLineStyle, modernPrecipColor, precipKind, precipitationFill, styledDataIcon, textFontFamily, windSpeedColor } from '~/utils/design/designStyle';
     import { accentFontWeight, cloudyColor, colors, dailyDateFormat, designStyle, fontScale, rainColor, screenWidthDips, snowColor } from '~/variables';
 
     import { AxisDependency } from '@nativescript-community/ui-chart/components/YAxis';
@@ -30,9 +30,9 @@
     import BaseChart from '~/components/common/BaseChart.svelte';
     import { iconService } from '~/services/icon';
     import { WeatherProps, appPaint, convertWeatherValueToUnit, defaultPropUnit, getWeatherDataColor, getWeatherDataTitle, propToUnit, wdPaint, weatherDataService } from '~/services/weatherData';
-    import { contentGradientRange, extremaIndexes, highlightHour, highlightedAlpha, nightSpans, plotPadding } from '~/utils/chartLabels';
+    import { contentGradientRange, extremaIndexes, highlightHour, highlightedAlpha, nightSpans, plotPadding } from '~/utils/charts/chartLabels';
     import { ValueRange, computeDataRange, getNaturalRange, makeScaler, pickReferenceProp, resolveRange, visibleHoursScale } from './HourlyChart';
-    import { hourlyCardContent } from '~/utils/hourlyCard';
+    import { hourlyCardContent } from '~/utils/charts/hourlyCard';
     import { generateGradient, loadImage, tempColor } from '~/utils/utils.common';
 
     const einkBarPaint = new Paint();

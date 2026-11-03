@@ -1,6 +1,6 @@
 import { ObjectSpans, createNativeAttributedString } from '@nativescript-community/text';
 import { get } from 'svelte/store';
-import { textFontFamily } from '~/utils/designStyle';
+import { textFontFamily } from '~/utils/design/designStyle';
 import { designStyle } from '~/variables';
 
 // spans default to the text font: without a family, Android draws span weights on the default

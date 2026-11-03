@@ -4,8 +4,8 @@
     import { Color } from '@nativescript/core';
     import { colors, designStyle, fontScale } from '~/variables';
     import type { IListItem } from './OptionSelect.svelte';
-    import type { GroupPosition } from '~/utils/settingsGroups';
-    import { groupRowClass } from '~/utils/groupClass';
+    import type { GroupPosition } from '~/utils/settings/settingsGroups';
+    import { groupRowClass } from '~/utils/settings/groupClass';
     const linePaint = new Paint();
     linePaint.strokeWidth = 1;
 </script>

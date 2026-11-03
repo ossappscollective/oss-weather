@@ -10,7 +10,7 @@
     import { onThemeChanged } from '~/helpers/theme';
     import { WeatherLocation } from '~/services/api';
     import { iconService, onIconAnimationsChanged } from '~/services/icon';
-    import { notifyChartScrolled } from '~/utils/chartEvents';
+    import { notifyChartScrolled } from '~/utils/charts/chartEvents';
     import { actionBarHeight, fontScale, hourlyViewData, hourlyViewMode, isMacCatalyst, onFontScaleChanged, onUnitsChanged, topViewHeight, windowInset, windowSize } from '~/variables';
 
     const MIN_TOP_VIEW_HEIGHT = 370;

@@ -70,7 +70,7 @@ All app code lives under `app/`:
 
 - `app/components/` — all `.svelte` screens/components/modals, grouped by feature (`camera`, `edit`, `list`, `ocr`, `pdf`, `pkpass`, `qrcode`, `security`, `settings`, `view`, `common`, `widgets`). Platform-specific logic uses `.android.ts` / `.ios.ts`.
 - `app/services/` — domain singletons (`documents.ts`, `sync.ts`, `ocr.ts`, `security.ts`, `api.ts`), backed by SQLite (`@akylas/kiss-orm`) + `@nativescript-community/preferences`.
-- `app/models/`, `app/utils/`, `app/helpers/`, `app/transformers/`, `app/workers/`, `app/i18n/`, `app/themes/`, `app/assets/`.
+- `app/models/`, `app/utils/` (by topic: `charts/`, `design/`, `settings/`, `time/`, `ui/`, `weather/`), `app/helpers/`, `app/transformers/`, `app/workers/`, `app/i18n/`, `app/themes/`, `app/assets/`.
 - State: light **svelte stores** (`app/utils/svelte/store.ts`) plus the service singletons above.
 
 Native/support: `App_Resources/`, `plugin-nativeprocessor`, `webpdfviewer`, and git submodules (`tools`, `zxingcpp`, native libs). Sentry is available but gated behind `NS_SENTRY=1` / `.sentry` build variants.

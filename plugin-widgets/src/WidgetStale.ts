@@ -1,4 +1,4 @@
-import { hasEnoughForecast } from '~/utils/forecastCoverage';
+import { hasEnoughForecast } from '~/utils/weather/forecastCoverage';
 
 interface Forecast {
     hourly: { time: number }[];

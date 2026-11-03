@@ -6,7 +6,7 @@ import { MarineWeatherProvider } from '~/services/providers/marineweatherprovide
 import { WeatherDataType, weatherDataIconColors } from '~/helpers/formatter';
 import { fetchLatestMetar } from '~/services/metar';
 import { WeatherProps, mergeWeatherData, weatherDataService } from '~/services/weatherData';
-import { MetarReport, applyMetarToCurrently } from '~/utils/metar';
+import { MetarReport, applyMetarToCurrently } from '~/utils/weather/metar';
 import { WeatherLocation } from '../api';
 import { prefs } from '../preferences';
 import { OMProvider } from '~/modules/providers/openmeteo/om';

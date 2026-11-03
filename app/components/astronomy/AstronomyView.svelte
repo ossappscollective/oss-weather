@@ -12,7 +12,7 @@
     import { LineDataSet } from '@nativescript-community/ui-chart/data/LineDataSet';
     import type { Highlight } from '@nativescript-community/ui-chart/highlight/Highlight';
     import BaseChart from '~/components/common/BaseChart.svelte';
-    import type { HighlightCardContent } from '~/utils/chartDraw';
+    import type { HighlightCardContent } from '~/utils/charts/chartDraw';
     import { showError } from '@shared/utils/showError';
     import dayjs, { Dayjs } from 'dayjs';
     import { GetTimesResult, getMoonPosition, getPosition, getTimes } from 'suncalc';
@@ -22,8 +22,8 @@
     import { WeatherLocation } from '~/services/api';
     import { pickDate } from '~/utils/utils.common';
     import { accentFontWeight, colors, designStyle, fontScale, fonts, onFontScaleChanged } from '~/variables';
-    import { styledDataIcon } from '~/utils/designStyle';
-    import { formatHoursMinutes } from '~/utils/duration';
+    import { styledDataIcon } from '~/utils/design/designStyle';
+    import { formatHoursMinutes } from '~/utils/time/duration';
     import { getMoonIlluminationPercent } from '~/helpers/moon';
     import { get } from 'svelte/store';
     import { modernColors } from '~/helpers/modernTheme';

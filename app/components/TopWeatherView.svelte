@@ -20,7 +20,7 @@
     import { isDarkTheme, isEInk, onThemeChanged } from '~/helpers/theme';
     import { prefs } from '~/services/preferences';
     import type { Currently, Hourly, MinutelyData } from '~/services/providers/weather';
-    import { isMetarIndicatorShown } from '~/utils/metar';
+    import { isMetarIndicatorShown } from '~/utils/weather/metar';
     import { WeatherProps, formatWeatherValue, mdiPaint, wdPaint, weatherDataService } from '~/services/weatherData';
     import {
         accentFontWeight,
@@ -37,7 +37,7 @@
         weatherDataLayout,
         windowSize
     } from '~/variables';
-    import { cardBackgroundAlpha, dataTextStyle, headerTextStyle, precipKind, precipitationFill, styledDataIcon, textFontFamily } from '~/utils/designStyle';
+    import { cardBackgroundAlpha, dataTextStyle, headerTextStyle, precipKind, precipitationFill, styledDataIcon, textFontFamily } from '~/utils/design/designStyle';
     import { getMoonIlluminationPercent } from '~/helpers/moon';
     import { drawChips, prepareChips } from '~/helpers/chips';
     import { getEInkShader } from '~/helpers/einkShader';

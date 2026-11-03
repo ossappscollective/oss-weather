@@ -12,7 +12,7 @@ import { convertValueToUnit, formatValueToUnit, windBeaufortIcon, windIcon } fro
 import { UNITS, UNIT_FAMILIES } from '~/helpers/units';
 import type { CommonWeatherData, WeatherData } from '~/services/providers/weather';
 import { createGlobalEventListener, globalObservable } from '@shared/utils/svelte/ui';
-import { dataTint, modernPrecipColor, precipKind, styledDataIcon } from '~/utils/designStyle';
+import { dataTint, modernPrecipColor, precipKind, styledDataIcon } from '~/utils/design/designStyle';
 import { getMoonIlluminationPercent } from '~/helpers/moon';
 import { getIndexedColor, tempColor } from '~/utils/utils';
 import { cloudyColor, designStyle, fontScale, fonts, rainColor, scatteredCloudyColor, snowColor, sunnyColor, unitsSettings } from '~/variables';

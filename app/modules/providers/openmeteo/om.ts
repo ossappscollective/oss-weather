@@ -11,7 +11,7 @@ import { Forecast } from './openmeteo';
 import { AirQualityCurrently, AirQualityData, CommonAirQualityData, Currently, DailyData, Hourly, MinutelyData, Tide, WeatherData } from '~/services/providers/weather';
 import type { MarineWeatherProvider } from '~/services/providers/marineweatherprovider';
 import { WeatherProvider } from '~/services/providers/weatherprovider';
-import { startOfDay } from '~/utils/dayBounds';
+import { startOfDay } from '~/utils/time/dayBounds';
 
 // number of daily aggregates to keep from hourly counts: only the trailing days with too few hours
 // are dropped (the first day is the rest of today, partial by design)
