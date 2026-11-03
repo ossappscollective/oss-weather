@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { staleForecast } from './widgetStale';
+import { staleForecast } from './WidgetStale';
 
 const HOUR = 3600 * 1000;
 const DAY = 24 * HOUR;

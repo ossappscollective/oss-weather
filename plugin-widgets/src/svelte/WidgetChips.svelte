@@ -10,7 +10,7 @@
 <script lang="ts">
     // in-app preview of the modern weather data chips (WidgetModern.Chips on Android, WidgetChipsView on iOS)
     import { Color } from '@nativescript/core';
-    import { packChips } from '~/utils/widgetChips';
+    import { packChips } from '../WidgetChips';
     import type { WidgetChip } from '../WidgetTypes';
     const toColor = (value: string | Color) => (value instanceof Color ? value : new Color(value));
 

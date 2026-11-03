@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { packChips, widgetChip } from './widgetChips';
+import { packChips, widgetChip } from './WidgetChips';
 
 describe('widgetChip', () => {
     it('keeps the value and its unit', () => {

@@ -10,6 +10,6 @@ export default defineConfig({
     },
     test: {
         environment: 'node',
-        include: ['app/**/*.test.ts', 'map/src/**/*.test.ts', 'plugin-widgets/scripts/**/*.test.ts']
+        include: ['app/**/*.test.ts', 'map/src/**/*.test.ts', 'plugin-widgets/scripts/**/*.test.ts', 'plugin-widgets/src/**/*.test.ts']
     }
 });

@@ -2,7 +2,11 @@ import { Align, Canvas, FontMetrics, Paint } from '@nativescript-community/ui-ca
 import { File, Folder, ImageSource, knownFolders, path } from '@nativescript/core';
 import { get } from 'svelte/store';
 import { fonts } from '~/variables';
-import { widgetIconFileName } from '~/utils/widgetIconName';
+
+// the font family can be a resource path ("res/inter"): the file name must stay a single path segment
+function widgetIconFileName(fontFamily: string, glyph: string, color: string): string {
+    return `${fontFamily.replace(/[^\w-]/g, '_')}_${glyph.codePointAt(0).toString(16)}_${color.replace('#', '')}.png`;
+}
 
 // data icons (font glyphs) drawn to png files: widgets cannot use the app icon fonts
 const ICON_SIZE = 64;
