@@ -24,3 +24,13 @@ export function iconsFitting(widths: number[], start: number, limit: number): nu
     }
     return count;
 }
+
+// the widest texts the day and the date of a modern header can take, to put what follows them on the same x on every row
+export function headerTextSamples(format: (time: number, pattern: string) => string, time: number, dayPattern: string, datePattern: string, fullDate: boolean) {
+    const DAY = 24 * 3600 * 1000;
+    return {
+        days: Array.from({ length: 7 }, (_, index) => format(time + index * DAY, dayPattern)),
+        // a numeric date has the same format every day: only its digits change. A month name does
+        dates: fullDate ? Array.from({ length: 12 }, (_, month) => format(Date.UTC(2026, month, 28), datePattern)) : [format(time, datePattern).replace(/\d/g, '8')]
+    };
+}

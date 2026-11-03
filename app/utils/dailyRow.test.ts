@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CLASSIC_DEFAULT_BLOCK_HEIGHT, classicDataRow, iconsFitting } from './dailyRow';
+import { CLASSIC_DEFAULT_BLOCK_HEIGHT, classicDataRow, headerTextSamples, iconsFitting } from './dailyRow';
 
 // chips lines of 26 with a gap of 5
 const ONE_LINE = 26;
@@ -38,5 +38,30 @@ describe('iconsFitting', () => {
     });
     it('keeps an icon ending exactly on the limit', () => {
         expect(iconsFitting([20, 20], 100, 140)).toBe(2);
+    });
+});
+
+describe('headerTextSamples', () => {
+    // a fake formatter: the pattern and the date of the time
+    const format = (time: number, pattern: string) => `${pattern}:${new Date(time).toISOString().slice(0, 10)}`;
+    const time = Date.UTC(2026, 10, 4);
+
+    it('gives the day of each day of the week', () => {
+        const { days } = headerTextSamples(format, time, 'ddd', 'DD/MM', false);
+        expect(days).toHaveLength(7);
+        expect(days[0]).toBe('ddd:2026-11-04');
+        expect(days[6]).toBe('ddd:2026-11-10');
+    });
+
+    it('gives the date of the day with the widest digits, its format being the same on every row', () => {
+        const dateFormat = (_: number, pattern: string) => (pattern === 'DD/MM' ? '04/11' : '');
+        expect(headerTextSamples(dateFormat, time, 'ddd', 'DD/MM', false).dates).toEqual(['88/88']);
+    });
+
+    it('gives the date of every month for the full date, whose month name changes', () => {
+        const { dates } = headerTextSamples(format, time, 'dddd', 'D MMMM', true);
+        expect(dates).toHaveLength(12);
+        expect(dates[0]).toBe('D MMMM:2026-01-28');
+        expect(dates[11]).toBe('D MMMM:2026-12-28');
     });
 });

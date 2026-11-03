@@ -12,7 +12,7 @@
     import { cardBackgroundAlpha, dataTextStyle, headerTextStyle, textFontFamily } from '~/utils/designStyle';
     import { drawChips, prepareChips } from '~/helpers/chips';
     import { chipsAlignment } from '~/utils/chipsLayout';
-    import { CLASSIC_DEFAULT_BLOCK_HEIGHT, classicDataRow, iconsFitting } from '~/utils/dailyRow';
+    import { CLASSIC_DEFAULT_BLOCK_HEIGHT, classicDataRow, headerTextSamples, iconsFitting } from '~/utils/dailyRow';
     import { rangeBarSpan } from '~/utils/dataGrid';
     import { DAILY_GRID_OPTIONS, drawCenteredValue, drawGrid, prepareGrid } from '~/helpers/dataGrid';
 
@@ -135,8 +135,15 @@
         const dateText = formatDate(item.time, fullDate ? 'D MMMM' : dailyDateFormat, item.timezoneOffset);
         canvas.drawText(dateText, dateLeft, baseline, textPaint);
 
-        // small icons (and beaufort) after the date, or after the description when the date leaves no room for them
-        const iconsLeft = dateLeft + textPaint.measureText(dateText) + 10 * $fontScale;
+        // small icons (and beaufort) after the widest day and date, so they line up on every row, or after the description
+        // when the date leaves no room for them
+        const samples = headerTextSamples((time, pattern) => formatDate(time, pattern, item.timezoneOffset), item.time, fullDate ? 'dddd' : 'ddd', fullDate ? 'D MMMM' : dailyDateFormat, fullDate);
+        const widest = (texts: string[]) => Math.max(...texts.map((text) => textPaint.measureText(text)));
+        const dateWidth = widest(samples.dates);
+        textPaint.setTextSize(header.daySize);
+        textPaint.setFontWeight(header.dayWeight);
+        const dayWidth = widest(samples.days);
+        const iconsLeft = left + dayWidth + 5 * $fontScale + dateWidth + 10 * $fontScale;
         const windBeaufortData = weatherDataService.getItemData(WeatherProps.windBeaufort, item);
         const smallItems = weatherDataService.getSmallIconsData({ item, type: 'daily' }).concat(windBeaufortData ? [windBeaufortData] : []);
         const iconWidth = (c: CommonData) => {
