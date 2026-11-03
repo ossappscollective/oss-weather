@@ -5,14 +5,14 @@
     import WeatherIcon from '~/components/WeatherIcon.svelte';
     import { formatDate } from '~/helpers/locale';
     import type { DailyData } from '~/services/providers/weather';
-    import { WeatherProps, formatWeatherValue, weatherDataService } from '~/services/weatherData';
+    import { CommonData, formatWeatherValue, weatherDataService, WeatherProps } from '~/services/weatherData';
     import { createEventDispatcher } from '@shared/utils/svelte/ui';
     import { accentFontWeight, colors, dailyDataAlignment, dailyDateFormat, dataIntensity, designStyle, fontScale, showEmptyData, weatherDataLayout, windowSize } from '~/variables';
     import { isDarkTheme, isEInk } from '~/helpers/theme';
     import { cardBackgroundAlpha, dataTextStyle, headerTextStyle, textFontFamily } from '~/utils/designStyle';
     import { drawChips, prepareChips } from '~/helpers/chips';
     import { chipsAlignment } from '~/utils/chipsLayout';
-    import { CLASSIC_DEFAULT_BLOCK_HEIGHT, classicDataRow } from '~/utils/dailyRow';
+    import { CLASSIC_DEFAULT_BLOCK_HEIGHT, classicDataRow, iconsFitting } from '~/utils/dailyRow';
     import { rangeBarSpan } from '~/utils/dataGrid';
     import { DAILY_GRID_OPTIONS, drawCenteredValue, drawGrid, prepareGrid } from '~/helpers/dataGrid';
 
@@ -39,6 +39,8 @@
     const MODERN_CARD_RADIUS = 12;
     // blocks layout: drawn up into the header bottom space, with a bottom padding like chips and grid
     const MODERN_BLOCK_LIFT = 6;
+    // the wind beaufort is drawn by the data itself, its width is only known once drawn
+    const CUSTOM_ICON_WIDTH = 24;
     const MODERN_BLOCK_HEIGHT = 58;
 </script>
 
@@ -114,6 +116,10 @@
         const left = MODERN_PADDING + (MODERN_ICON_SIZE + MODERN_ICON_GAP) * $fontScale;
         const right = w - MODERN_PADDING;
         const centerY = (MODERN_HEADER_HEIGHT * $fontScale) / 2;
+        // the right group: high, range bar, low
+        const barRight = right - (MODERN_HIGH_TRACK + MODERN_TRACK_GAP) * $fontScale;
+        const barLeft = barRight - MODERN_BAR_WIDTH * $fontScale;
+        const temperaturesLeft = barLeft - (MODERN_TRACK_GAP + MODERN_LOW_TRACK + 8) * $fontScale;
 
         textPaint.setTextAlign(Align.LEFT);
         textPaint.setTextSize(header.daySize);
@@ -129,21 +135,37 @@
         const dateText = formatDate(item.time, fullDate ? 'D MMMM' : dailyDateFormat, item.timezoneOffset);
         canvas.drawText(dateText, dateLeft, baseline, textPaint);
 
-        // small icons (and beaufort) after the date
-        let iconsLeft = dateLeft + textPaint.measureText(dateText) + 10 * $fontScale;
+        // small icons (and beaufort) after the date, or after the description when the date leaves no room for them
+        const iconsLeft = dateLeft + textPaint.measureText(dateText) + 10 * $fontScale;
         const windBeaufortData = weatherDataService.getItemData(WeatherProps.windBeaufort, item);
         const smallItems = weatherDataService.getSmallIconsData({ item, type: 'daily' }).concat(windBeaufortData ? [windBeaufortData] : []);
-        for (const c of smallItems) {
-            const iconPaint = c.paint || textIconPaint;
-            iconPaint.setTextAlign(Align.LEFT);
-            iconPaint.setTextSize(c.iconFontSize * 0.8);
-            iconPaint.setColor(c.color || colorOnSurfaceVariant);
+        const iconWidth = (c: CommonData) => {
             if (c.customDraw) {
-                iconsLeft += c.customDraw(canvas, $fontScale, iconPaint, c, iconsLeft, baseline - 13 * $fontScale, false);
-            } else if (c.icon) {
-                canvas.drawText(c.icon, iconsLeft, baseline, iconPaint);
-                iconsLeft += iconPaint.measureText(c.icon) + 6 * $fontScale;
+                return CUSTOM_ICON_WIDTH * $fontScale;
             }
+            const iconPaint = c.paint || textIconPaint;
+            iconPaint.setTextSize(c.iconFontSize * 0.8);
+            return c.icon ? iconPaint.measureText(c.icon) + 6 * $fontScale : 0;
+        };
+        const drawSmallIcons = (items: CommonData[], start: number, y: number) => {
+            let iconLeft = start;
+            for (const c of items) {
+                const iconPaint = c.paint || textIconPaint;
+                iconPaint.setTextAlign(Align.LEFT);
+                iconPaint.setTextSize(c.iconFontSize * 0.8);
+                iconPaint.setColor(c.color || colorOnSurfaceVariant);
+                if (c.customDraw) {
+                    iconLeft += c.customDraw(canvas, $fontScale, iconPaint, c, iconLeft, y - 13 * $fontScale, false);
+                } else if (c.icon) {
+                    canvas.drawText(c.icon, iconLeft, y, iconPaint);
+                    iconLeft += iconPaint.measureText(c.icon) + 6 * $fontScale;
+                }
+            }
+        };
+        const iconWidths = smallItems.map(iconWidth);
+        const iconsAfterDate = iconsFitting(iconWidths, iconsLeft, temperaturesLeft) === iconWidths.length;
+        if (iconsAfterDate) {
+            drawSmallIcons(smallItems, iconsLeft, baseline);
         }
 
         // right group: high, range bar, low
@@ -154,8 +176,6 @@
         canvas.drawText(formatWeatherValue(item, WeatherProps.temperatureMax), right, centerY + header.maxTempSize * 0.35, textPaint);
         textPaint.setFontWeight('normal');
         // the bar shows where the day's low-high sits within the lowest/highest of the shown days
-        const barRight = right - (MODERN_HIGH_TRACK + MODERN_TRACK_GAP) * $fontScale;
-        const barLeft = barRight - MODERN_BAR_WIDTH * $fontScale;
         const barHalfHeight = (MODERN_BAR_HEIGHT * $fontScale) / 2;
         paint.setColor(colorOnSurface);
         paint.setAlpha(25);
@@ -172,11 +192,18 @@
         textPaint.setColor(colorOnSurfaceVariant);
         canvas.drawText(formatWeatherValue(item, WeatherProps.temperatureMin), barLeft - MODERN_TRACK_GAP * $fontScale, centerY + header.minTempSize * 0.35, textPaint);
 
-        // condition under the day, up to the temperatures
-        const temperaturesLeft = barLeft - (MODERN_TRACK_GAP + MODERN_LOW_TRACK + 8) * $fontScale;
+        // condition under the day, up to the temperatures (and the icons when they did not fit after the date)
+        const descriptionBaseline = centerY + 16 * $fontScale;
+        const room = temperaturesLeft - left;
+        const iconsWidth = iconWidths.reduce((sum, width) => sum + width, 0);
         textPaint.setTextAlign(Align.LEFT);
         textPaint.setTextSize(13 * $fontScale);
-        canvas.drawText(ellipsize(item.description ?? '', temperaturesLeft - left), left, centerY + 16 * $fontScale, textPaint);
+        const description = ellipsize(item.description ?? '', iconsAfterDate ? room : Math.max(room / 2, room - iconsWidth - 10 * $fontScale));
+        canvas.drawText(description, left, descriptionBaseline, textPaint);
+        if (!iconsAfterDate) {
+            const start = left + textPaint.measureText(description) + 10 * $fontScale;
+            drawSmallIcons(smallItems.slice(0, iconsFitting(iconWidths, start, temperaturesLeft)), start, descriptionBaseline);
+        }
     }
     function drawOnCanvas({ canvas }: { canvas: Canvas }) {
         const w = canvas.getWidth();

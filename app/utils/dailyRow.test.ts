@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CLASSIC_DEFAULT_BLOCK_HEIGHT, classicDataRow } from './dailyRow';
+import { CLASSIC_DEFAULT_BLOCK_HEIGHT, classicDataRow, iconsFitting } from './dailyRow';
 
 // chips lines of 26 with a gap of 5
 const ONE_LINE = 26;
@@ -22,5 +22,21 @@ describe('classicDataRow', () => {
     });
     it('scales with the font scale', () => {
         expect(classicDataRow(TWO_LINES * 1.5, 1.5)).toEqual({ rowHeight: 184.5, blockTop: 60 });
+    });
+});
+
+describe('iconsFitting', () => {
+    it('keeps every icon when there is room', () => {
+        expect(iconsFitting([20, 20, 20], 100, 200)).toBe(3);
+    });
+    it('keeps the first icons only when the others would go over the limit', () => {
+        expect(iconsFitting([20, 20, 20], 100, 150)).toBe(2);
+    });
+    it('keeps none when the first one does not fit, or when the limit is already passed', () => {
+        expect(iconsFitting([20, 20], 100, 110)).toBe(0);
+        expect(iconsFitting([20], 100, 90)).toBe(0);
+    });
+    it('keeps an icon ending exactly on the limit', () => {
+        expect(iconsFitting([20, 20], 100, 140)).toBe(2);
     });
 });
