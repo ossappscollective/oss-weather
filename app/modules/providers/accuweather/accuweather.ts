@@ -1,9 +1,8 @@
-import { lc, titlecase } from '@nativescript-community/l';
 import { ApplicationSettings } from '@nativescript/core';
 import { WeatherDataType, weatherDataIconColors } from '~/helpers/formatter';
-import { getStartOfDay, lang } from '~/helpers/locale';
+import { getStartOfDay, lang, lc, titlecase } from '~/helpers/locale';
 import { RequestResult, WeatherLocation, request } from '~/services/api';
-import { buildAccuAlerts } from './accuAlerts';
+import { AlertSeverity, colorFromSeverity, hexFromChannels } from '~/services/providers/alerts';
 import { GetWeatherOptions, WeatherProvider } from '~/services/providers/weatherprovider';
 import { Alert, Currently, DailyData, Hourly, WeatherData } from '~/services/providers/weather';
 import { FEELS_LIKE_TEMPERATURE, NB_DAYS_FORECAST, NB_HOURS_FORECAST } from '~/helpers/constants';
@@ -422,4 +421,41 @@ export class AccuWeatherAQIProvider extends AirQualityProvider {
 
         return r;
     }
+}
+
+// AccuWeather alert mapping
+function severityFromPriority(priority: number): AlertSeverity {
+    switch (priority) {
+        case 1:
+            return AlertSeverity.EXTREME;
+        case 2:
+            return AlertSeverity.SEVERE;
+        case 3:
+            return AlertSeverity.MODERATE;
+        case 4:
+        case 5:
+            return AlertSeverity.MINOR;
+        default:
+            return AlertSeverity.UNKNOWN;
+    }
+}
+
+export function buildAccuAlerts(results: AccuWeatherAlert[]): Alert[] {
+    if (!results?.length) {
+        return [];
+    }
+    return results.map((result) => {
+        const severity = severityFromPriority(result.Priority);
+        const area = result.Area?.[0];
+        const color = result.Color;
+        return {
+            sender_name: result.Source,
+            event: result.Description?.Localized,
+            start: area?.EpochStartTime ? area.EpochStartTime * 1000 : undefined,
+            end: area?.EpochEndTime ? area.EpochEndTime * 1000 : undefined,
+            description: area?.Text,
+            severity,
+            color: color ? hexFromChannels(color.Red, color.Green, color.Blue) : colorFromSeverity(severity)
+        };
+    });
 }
