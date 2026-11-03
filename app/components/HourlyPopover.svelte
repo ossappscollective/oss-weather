@@ -165,22 +165,22 @@
             <canvasView bind:this={canvas} colSpan={2} row={2} on:draw={onDraw} />
         </gridlayout>
     {:else}
-    <gridlayout
-        backgroundColor={new Color(colorBackground).setAlpha(240).hex}
-        borderColor={colorOutline}
-        borderRadius={__IOS__ ? 14 : 8}
-        borderWidth={1}
-        columns={`${100 * $fontScale},${50 * $fontScale}`}
-        {isUserInteractionEnabled}
-        padding={5}
-        rows={`auto,auto,${height}`}
-        on:tap={() => closePopover()}>
-        <WeatherIcon {animated} col={1} iconData={[item.iconId, item.isDay]} {isUserInteractionEnabled} verticalAlignment="top" />
-        <label colSpan={2} fontSize={14 * $fontScale} fontWeight="bold" text={formatTime(item.time, 'LT', item.timezoneOffset) + '\n' + formatTime(item.time, 'DD/MM', item.timezoneOffset)} />
-        <label colSpan={2} fontSize={14 * $fontScale} marginBottom={10} row={1} text={item.description} />
-        <!-- <label lineHeight={18 * $fontScale} row={1} text={iconsNativeString} textAlignment="center" verticalTextAlignment="center" /> -->
-        <!-- <label col={1} lineHeight={18 * $fontScale} row={1} text={textNativeString} /> -->
-        <canvasView bind:this={canvas} colSpan={2} row={2} on:draw={onDraw} />
-    </gridlayout>
+        <gridlayout
+            backgroundColor={new Color(colorBackground).setAlpha(240).hex}
+            borderColor={colorOutline}
+            borderRadius={__IOS__ ? 14 : 8}
+            borderWidth={1}
+            columns={`${100 * $fontScale},${50 * $fontScale}`}
+            {isUserInteractionEnabled}
+            padding={5}
+            rows={`auto,auto,${height}`}
+            on:tap={() => closePopover()}>
+            <WeatherIcon {animated} col={1} iconData={[item.iconId, item.isDay]} {isUserInteractionEnabled} verticalAlignment="top" />
+            <label colSpan={2} fontSize={14 * $fontScale} fontWeight="bold" text={formatTime(item.time, 'LT', item.timezoneOffset) + '\n' + formatTime(item.time, 'DD/MM', item.timezoneOffset)} />
+            <label colSpan={2} fontSize={14 * $fontScale} marginBottom={10} row={1} text={item.description} />
+            <!-- <label lineHeight={18 * $fontScale} row={1} text={iconsNativeString} textAlignment="center" verticalTextAlignment="center" /> -->
+            <!-- <label col={1} lineHeight={18 * $fontScale} row={1} text={textNativeString} /> -->
+            <canvasView bind:this={canvas} colSpan={2} row={2} on:draw={onDraw} />
+        </gridlayout>
     {/if}
 </gesturerootview>

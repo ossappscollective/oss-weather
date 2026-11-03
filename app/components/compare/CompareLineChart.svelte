@@ -460,8 +460,8 @@
             row={1}
             startTimestamp={globalStartTimestamp}
             {timezoneOffset}
-            bind:chartView
-            verticalAlignment={chartHeight ? 'center' : 'stretch'} />
+            verticalAlignment={chartHeight ? 'center' : 'stretch'}
+            bind:chartView />
         <!-- <label
             backgroundColor={new Color(colorBackground).setAlpha(200)}
             borderRadius={10}

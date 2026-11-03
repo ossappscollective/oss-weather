@@ -226,24 +226,22 @@
         // textPaint.setTextSize(header.dateSize);
         // canvas.drawText(formatDate(item.time, dailyDateFormat, item.timezoneOffset), dateLeft, header.dateInline ? dayBaseline : 46 * $fontScale, textPaint);
 
-        let nString = textAttributedString(
-            {
-                spans: [
-                    {
-                        fontSize: header.daySize,
-                        fontWeight: header.dayWeight,
-                        color: colorOnSurface,
-                        text: formatDate(item.time, 'ddd', item.timezoneOffset)
-                    },
-                    {
-                        fontSize: header.dateSize,
-                        fontWeight: 400,
-                        color: colorOnSurfaceVariant,
-                        text: ' ' + formatDate(item.time, dailyDateFormat, item.timezoneOffset)
-                    }
-                ]
-            }
-        );
+        let nString = textAttributedString({
+            spans: [
+                {
+                    fontSize: header.daySize,
+                    fontWeight: header.dayWeight,
+                    color: colorOnSurface,
+                    text: formatDate(item.time, 'ddd', item.timezoneOffset)
+                },
+                {
+                    fontSize: header.dateSize,
+                    fontWeight: 400,
+                    color: colorOnSurfaceVariant,
+                    text: ' ' + formatDate(item.time, dailyDateFormat, item.timezoneOffset)
+                }
+            ]
+        });
         canvas.save();
         const dayBaseline = (header.dateInline ? 26 : 26) * $fontScale;
         let staticLayout = new StaticLayout(nString, textPaint, w - 10, LayoutAlignment.ALIGN_NORMAL, 1, 0, true);
@@ -253,24 +251,22 @@
 
         textPaint.setColor(colorOnSurface);
 
-        nString = textAttributedString(
-            {
-                spans: [
-                    {
-                        fontSize: header.minTempSize,
-                        fontWeight: 400,
-                        color: colorOnSurfaceVariant,
-                        text: formatWeatherValue(item, WeatherProps.temperatureMin)
-                    },
-                    {
-                        fontSize: header.maxTempSize,
-                        fontWeight: header.maxTempWeight,
-                        color: colorOnSurface,
-                        text: '' + formatWeatherValue(item, WeatherProps.temperatureMax)
-                    }
-                ]
-            }
-        );
+        nString = textAttributedString({
+            spans: [
+                {
+                    fontSize: header.minTempSize,
+                    fontWeight: 400,
+                    color: colorOnSurfaceVariant,
+                    text: formatWeatherValue(item, WeatherProps.temperatureMin)
+                },
+                {
+                    fontSize: header.maxTempSize,
+                    fontWeight: header.maxTempWeight,
+                    color: colorOnSurface,
+                    text: '' + formatWeatherValue(item, WeatherProps.temperatureMax)
+                }
+            ]
+        });
         canvas.save();
         staticLayout = new StaticLayout(nString, textPaint, w - 10, LayoutAlignment.ALIGN_OPPOSITE, 1, 0, true);
         canvas.translate(0, 10);
@@ -309,14 +305,7 @@
             }
         }
 
-        drawData(
-            canvas,
-            w,
-            h,
-            blockHeight !== undefined ? chipsLeft : DATA_LEFT * $fontScale,
-            w - ICON_WIDTH * $fontScale - 10,
-            classicRow?.blockTop ?? h / 2
-        );
+        drawData(canvas, w, h, blockHeight !== undefined ? chipsLeft : DATA_LEFT * $fontScale, w - ICON_WIDTH * $fontScale - 10, classicRow?.blockTop ?? h / 2);
     }
 
     function drawData(canvas: Canvas, w: number, h: number, clipLeft: number, clipRight: number, blockTop: number) {

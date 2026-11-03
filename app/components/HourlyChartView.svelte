@@ -1,11 +1,11 @@
 <svelte:options accessors />
 
 <script context="module" lang="ts">
+    import type { NativeViewElementNode } from '@nativescript-community/svelte-native/dom';
     import { Align, Canvas, LinearGradient, Paint, Path, Rect, RectF, Style } from '@nativescript-community/ui-canvas';
     import { CombinedChart } from '@nativescript-community/ui-chart';
     import { DrawOrder } from '@nativescript-community/ui-chart/charts/CombinedChart';
     import { ScatterShape } from '@nativescript-community/ui-chart/charts/ScatterChart';
-    import { LimitLine } from '@nativescript-community/ui-chart/components/LimitLine';
     import { XAxisPosition } from '@nativescript-community/ui-chart/components/XAxis';
     import { CombinedData } from '@nativescript-community/ui-chart/data/CombinedData';
     import { LineData } from '@nativescript-community/ui-chart/data/LineData';
@@ -15,27 +15,25 @@
     import { Highlight } from '@nativescript-community/ui-chart/highlight/Highlight';
     import { Application, Color, ImageSource, ObservableArray, OrientationChangedEventData } from '@nativescript/core';
     import { showError } from '@shared/utils/showError';
-    import type { NativeViewElementNode } from '@nativescript-community/svelte-native/dom';
-    import { formatValueToUnit, windIcon } from '~/helpers/formatter';
     import { getEInkShader } from '~/helpers/einkShader';
+    import { formatValueToUnit, windIcon } from '~/helpers/formatter';
     import { formatTime, getLocalTime, lc } from '~/helpers/locale';
     import { isEInk, onThemeChanged } from '~/helpers/theme';
     import type { CommonWeatherData, DailyData, Hourly } from '~/services/providers/weather';
-    import { accentFontWeight, cloudyColor, colors, dailyDateFormat, designStyle, fontScale, rainColor, screenWidthDips, snowColor } from '~/variables';
     import { modernDataColor, modernLineStyle, modernPrecipColor, precipKind, precipitationFill, styledDataIcon, textFontFamily, windSpeedColor } from '~/utils/designStyle';
+    import { accentFontWeight, cloudyColor, colors, dailyDateFormat, designStyle, fontScale, rainColor, screenWidthDips, snowColor } from '~/variables';
 
     import { AxisDependency } from '@nativescript-community/ui-chart/components/YAxis';
     import { BarData } from '@nativescript-community/ui-chart/data/BarData';
     import { BarDataSet } from '@nativescript-community/ui-chart/data/BarDataSet';
-    import { Entry } from '@nativescript-community/ui-chart/data/Entry';
     import { onDestroy, onMount } from 'svelte';
+    import BaseChart from '~/components/common/BaseChart.svelte';
     import { iconService } from '~/services/icon';
     import { WeatherProps, appPaint, convertWeatherValueToUnit, defaultPropUnit, getWeatherDataColor, getWeatherDataTitle, propToUnit, wdPaint, weatherDataService } from '~/services/weatherData';
-    import { ValueRange, computeDataRange, getNaturalRange, makeScaler, pickReferenceProp, resolveRange, visibleHoursScale } from '~/utils/chartScale';
-    import { generateGradient, loadImage, tempColor } from '~/utils/utils.common';
     import { contentGradientRange, extremaIndexes, highlightHour, highlightedAlpha, nightSpans, plotPadding } from '~/utils/chartLabels';
-    import BaseChart from '~/components/common/BaseChart.svelte';
+    import { ValueRange, computeDataRange, getNaturalRange, makeScaler, pickReferenceProp, resolveRange, visibleHoursScale } from '~/utils/chartScale';
     import { hourlyCardContent } from '~/utils/hourlyCard';
+    import { generateGradient, loadImage, tempColor } from '~/utils/utils.common';
 
     const einkBarPaint = new Paint();
     const einkOutlinePaint = new Paint();

@@ -158,10 +158,8 @@
         chart.notifyDataSetChanged();
     }
 
-    $: if (chartView && series.length) {
+    $: if (chartView && series.length && $designStyle) {
         try {
-            // a design change redraws everything
-            modern;
             updateChartData();
         } catch (error) {
             console.error('MetarChartView', error);

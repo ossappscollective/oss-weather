@@ -159,7 +159,7 @@
                 <activityIndicator busy={loading} height={$actionBarButtonHeight} verticalAlignment="middle" visibility={loading ? 'visible' : 'collapse'} width={$actionBarButtonHeight} />
             {/if}
             {#if clearable}
-                <mdbutton class="actionBarButton" text="mdi-delete" variant="text" on:tap={() => close(null)} />
+                <mdbutton class="actionBarButton" text="mdi-trash-can" variant="text" on:tap={() => close(null)} />
             {/if}
         </CActionBar>
         {#if modern}

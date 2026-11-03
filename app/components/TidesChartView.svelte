@@ -213,7 +213,9 @@
             const isHigh = tide.type === 'high';
             return {
                 title: formatTime(tide.time, undefined, timezoneOffset),
-                rows: [{ name: lc(isHigh ? 'tide_high' : 'tide_low'), color: isHigh ? HIGH_COLOR : LOW_COLOR, text: tide.height.toFixed(2) + 'm', extra: tide.coef != null ? `(${tide.coef})` : undefined }]
+                rows: [
+                    { name: lc(isHigh ? 'tide_high' : 'tide_low'), color: isHigh ? HIGH_COLOR : LOW_COLOR, text: tide.height.toFixed(2) + 'm', extra: tide.coef != null ? `(${tide.coef})` : undefined }
+                ]
             };
         }
         return { title: formatTime(time, undefined, timezoneOffset), rows: [{ name: lc('tides'), color: HIGH_COLOR, text: highlights[0].entry['y'].toFixed(2) + 'm' }] };

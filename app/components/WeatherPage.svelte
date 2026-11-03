@@ -22,16 +22,16 @@
     import CActionBar from '~/components/common/CActionBar.svelte';
     import {
         DATA_VERSION,
+        METEOBLUE_ENABLED,
         NB_DAYS_FORECAST,
         SETTINGS_FEELS_LIKE_TEMPERATURES,
+        SETTINGS_METEOBLUE_ENABLED,
         SETTINGS_SHOW_CURRENT_DAY_DAILY,
         SETTINGS_SHOW_DAILY_IN_CURRENTLY,
-        SETTINGS_METEOBLUE_ENABLED,
         SETTINGS_SWIPE_ACTION_BAR_PROVIDER,
         SETTINGS_WEATHER_LOCATION,
         SHOW_CURRENT_DAY_DAILY,
-        SWIPE_ACTION_BAR_PROVIDER,
-        METEOBLUE_ENABLED
+        SWIPE_ACTION_BAR_PROVIDER
     } from '~/helpers/constants';
     import {
         EVENT_FAVORITE,
@@ -45,8 +45,8 @@
         queryTimezone,
         renameFavorite,
         setFavoriteAqiProvider,
-        setFavoriteMetarStation,
         setFavoriteMarineProvider,
+        setFavoriteMetarStation,
         setFavoriteOMProviderModel,
         setFavoriteProvider,
         toggleFavorite
@@ -555,7 +555,7 @@
         return manualRefreshWeather();
     }
 
-    async function askForApiKey(provider: ProviderType | 'maptiler', shouldRefreshWeather = true) {
+    async function askForApiKey(provider: ProviderType, shouldRefreshWeather = true) {
         try {
             const ApiKeysBottomSheet = (await import('~/components/APIKeysBottomSheet.svelte')).default;
             const result: boolean = await showBottomSheet({
@@ -1142,11 +1142,7 @@
                     name: lc('duplicate')
                 }
             ];
-            options.splice(
-                options.length - 2,
-                0,
-                ...getLocationActions(favItem).map((action) => ({ icon: action.icon, id: action.id, name: l(action.nameKey) }) as any)
-            );
+            options.splice(options.length - 2, 0, ...getLocationActions(favItem).map((action) => ({ icon: action.icon, id: action.id, name: l(action.nameKey) }) as any));
 
             await showPopoverMenu({
                 options: modernMenuOptions(options, ['provider', 'compare', options.some((option) => option.id === 'bra') ? 'bra' : 'delete']),
@@ -1281,7 +1277,12 @@
                             <cspan fontWeight={$accentFontWeight} text={'  ' + $slc('refresh')} />
                         </mdbutton>
                     {:else}
-                        <label fontSize={16 * $fontScale} marginBottom={20} text={$sl('weather_outdated_desc', formatDate(weatherData.time, 'ddd LT', weatherLocation.timezoneOffset))} textAlignment="center" textWrap={true} />
+                        <label
+                            fontSize={16 * $fontScale}
+                            marginBottom={20}
+                            text={$sl('weather_outdated_desc', formatDate(weatherData.time, 'ddd LT', weatherLocation.timezoneOffset))}
+                            textAlignment="center"
+                            textWrap={true} />
                         <mdbutton isEnabled={!loading} margin="4 0 4 0" textAlignment="center" variant="outline" verticalTextAlignment="center" on:tap={manualRefreshWeather}>
                             <cspan fontFamily={$fonts.mdi} fontSize={20 * $fontScale} text="mdi-refresh" verticalAlignment="middle" />
                             <cspan ios:fontSize={16 * $fontScale} text={' ' + $sl('refresh').toUpperCase()} verticalAlignment="middle" />

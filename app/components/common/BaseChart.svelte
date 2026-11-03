@@ -47,7 +47,7 @@
     // false for the series highlighted another way than with a dot (bars the chart draws more opaque...)
     export let highlightDot: (dataSet: any) => boolean = () => true;
     // color of the dot of a series, its line color by default (a series can be colored per point)
-    export let highlightColor: (dataSet: any, highlight: Highlight) => string = null;
+    export let highlightColor: (dataSet: any, highlight: Highlight) => string | Color = null;
     export let highlightPerDrag = false;
     // false: the chart shows no highlight at all
     export let highlightEnabled = true;

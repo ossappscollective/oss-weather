@@ -187,7 +187,7 @@
                     models.map(async (modelId) => {
                         try {
                             const data = modelId.split(':');
-                            const providerType = data[0] as ProviderType;
+                            const providerType = data[0];
                             // TODO: for Open-Meteo make a single request for all models
                             const weatherData = await getWeather(weatherLocation, { minutely: false, current: false, warnings: false, forceModel: true, model: data[1] }, providerType);
                             const model = modelsList.find((m) => m.id === modelId);

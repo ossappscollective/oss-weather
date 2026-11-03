@@ -174,7 +174,7 @@
                         drawEInkText(canvas, formatWeatherValue(item, WeatherProps.precipAccumulation), w2, h);
                     } else if (modern) {
                         textPaint.setFontWeight($accentFontWeight);
-                        canvas.drawText(splitValueUnit(formatWeatherValue(item, WeatherProps.precipAccumulation)).amount, w2, h - deltaY * $fontScale -2, textPaint);
+                        canvas.drawText(splitValueUnit(formatWeatherValue(item, WeatherProps.precipAccumulation)).amount, w2, h - deltaY * $fontScale - 2, textPaint);
                         textPaint.setFontWeight('normal');
                     } else {
                         canvas.drawText(formatWeatherValue(item, WeatherProps.precipAccumulation), w2, h - deltaY * $fontScale, textPaint);

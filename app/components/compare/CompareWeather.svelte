@@ -1,21 +1,20 @@
 <script lang="ts">
     import toColor from '@mapbox/to-color';
+    import { Template } from '@nativescript-community/svelte-native/components';
+    import { NativeElementNode, NativeViewElementNode } from '@nativescript-community/svelte-native/dom';
     import { CheckBox } from '@nativescript-community/ui-checkbox';
     import { CollectionViewWithSwipeMenu } from '@nativescript-community/ui-collectionview-swipemenu';
     import DrawerElement from '@nativescript-community/ui-drawer/svelte';
-    import { showSnack } from '@nativescript-community/ui-snackbar';
     import { PullToRefresh } from '@nativescript-community/ui-pulltorefresh';
+    import { showSnack } from '@nativescript-community/ui-snackbar';
     import { ApplicationSettings, NavigatedData, Page, View } from '@nativescript/core';
     import { showError } from '@shared/utils/showError';
     import { onMount } from 'svelte';
-    import { Template } from '@nativescript-community/svelte-native/components';
-    import { NativeElementNode, NativeViewElementNode } from '@nativescript-community/svelte-native/dom';
     import CActionBar from '~/components/common/CActionBar.svelte';
     import ListItemAutoSize from '~/components/common/ListItemAutoSize.svelte';
     import { FavoriteLocation } from '~/helpers/favorites';
     import { l, lc, slc } from '~/helpers/locale';
     import { NetworkConnectionStateEvent, NetworkConnectionStateEventData, networkService } from '~/services/api';
-    import type { ProviderType } from '~/services/providers/weather';
     import { getProviderForType, getWeather, getWeatherProviderKeys } from '~/services/providers/weatherproviderfactory';
     import { AVAILABLE_COMPARE_WEATHER_DATA, WeatherProps, getWeatherDataIcon, getWeatherDataTitle } from '~/services/weatherData';
     import { actionBarButtonHeight, colors, windowInset } from '~/variables';
@@ -135,7 +134,7 @@
                     models.map(async (modelId) => {
                         try {
                             const data = modelId.split(':');
-                            const providerType = data[0] as ProviderType;
+                            const providerType = data[0];
                             // TODO: for Open-Meteo make a single request for all models
                             const weatherData = await getWeather(weatherLocation, { minutely: false, current: false, warnings: false, forceModel: true, model: data[1] }, providerType);
                             const model = modelsList.find((m) => m.id === modelId);

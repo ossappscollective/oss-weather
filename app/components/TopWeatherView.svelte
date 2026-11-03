@@ -805,23 +805,23 @@
         verticalAlignment={modern ? 'top' : 'middle'}
         on:tap />
     <gridlayout class={modern ? 'modernCard' : ''} colSpan={2} row={1}>
-    {#if $hourlyViewMode === 'chart'}
-        <HourlyChartView
-            barWidth={1}
-            borderBottomColor={colorOutline}
-            borderBottomWidth={modern ? 0 : 1}
-            {dataToShow}
-            fixedBarScale={false}
-            hourly={item.hourly.slice(0, hourlyChartNbHours)}
-            {onChartConfigure}
-            rightAxisSuggestedMaximum={8}
-            showCurrentTimeLimitLine={false}
-            temperatureLineWidth={3}
-            visibleHours={hourlyChartVisibleHours} />
-    {:else if $hourlyViewMode === 'windy'}
-        <WindyView {dataToShow} items={item.hourly} />
-    {:else}
-        <HourlyView items={item.hourly} />
-    {/if}
+        {#if $hourlyViewMode === 'chart'}
+            <HourlyChartView
+                barWidth={1}
+                borderBottomColor={colorOutline}
+                borderBottomWidth={modern ? 0 : 1}
+                {dataToShow}
+                fixedBarScale={false}
+                hourly={item.hourly.slice(0, hourlyChartNbHours)}
+                {onChartConfigure}
+                rightAxisSuggestedMaximum={8}
+                showCurrentTimeLimitLine={false}
+                temperatureLineWidth={3}
+                visibleHours={hourlyChartVisibleHours} />
+        {:else if $hourlyViewMode === 'windy'}
+            <WindyView {dataToShow} items={item.hourly} />
+        {:else}
+            <HourlyView items={item.hourly} />
+        {/if}
     </gridlayout>
 </gridlayout>

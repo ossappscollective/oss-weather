@@ -524,7 +524,12 @@
                                         verticalAlignment="center"
                                         visibility={levels.pollutants && Number.isFinite(item.aqi) ? 'visible' : 'collapse'} />
                                 </ModernCardTitle>
-                                <gridlayout columns="*,*" padding="2 10 0 16" rows={Array(Math.ceil(levelEntries(levels.polls, levels.pollutants).length / 2)).fill('auto').join(',')}>
+                                <gridlayout
+                                    columns="*,*"
+                                    padding="2 10 0 16"
+                                    rows={Array(Math.ceil(levelEntries(levels.polls, levels.pollutants).length / 2))
+                                        .fill('auto')
+                                        .join(',')}>
                                     {#each levelEntries(levels.polls, levels.pollutants) as entry, index}
                                         <stacklayout col={index % 2} padding="6 6 6 0" row={Math.floor(index / 2)}>
                                             <gridlayout columns="*,auto,auto">
@@ -532,7 +537,9 @@
                                                 <label class="modernTitle modernStrong" col={1} marginLeft={4} text={entry.value} verticalAlignment="bottom" />
                                                 <label class="modernSubtitle" col={2} marginLeft={3} text={entry.unit} verticalAlignment="bottom" />
                                             </gridlayout>
-                                            <gridlayout class="modernLevelTrack" columns={`${Math.round(Math.max(entry.fraction, 0.02) * 1000)}*,${Math.round((1 - Math.max(entry.fraction, 0.02)) * 1000)}*`}>
+                                            <gridlayout
+                                                class="modernLevelTrack"
+                                                columns={`${Math.round(Math.max(entry.fraction, 0.02) * 1000)}*,${Math.round((1 - Math.max(entry.fraction, 0.02)) * 1000)}*`}>
                                                 <absolutelayout class="modernLevelFill" backgroundColor={entry.color} />
                                             </gridlayout>
                                         </stacklayout>

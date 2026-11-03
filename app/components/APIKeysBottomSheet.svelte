@@ -8,7 +8,7 @@
     import { openLink } from '~/utils/ui';
 
     let canClose = false;
-    export let provider: ProviderType | 'maptiler';
+    export let provider: ProviderType;
     const providerClass = provider === 'maptiler' ? MaptilerProvider : getProviderClass(provider);
     let apiKey = providerClass.getApiKey();
 
