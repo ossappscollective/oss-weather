@@ -1,5 +1,9 @@
-import { describe, expect, it } from 'vitest';
-import { MetarStation, bboxAround, isStationCode, sortByDistance, stationFromInfo } from './metarStations';
+import { describe, expect, it, vi } from 'vitest';
+
+// the service imports the app request helper: only its station helpers are tested here
+vi.mock('./api', () => ({}));
+
+import { MetarStation, bboxAround, isStationCode, sortByDistance, stationFromInfo } from './metar';
 
 describe('isStationCode', () => {
     it('accepts 4 character codes, trimmed', () => {

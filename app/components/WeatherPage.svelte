@@ -85,7 +85,7 @@
     import { accentFontWeight, actionBarHeight, colors, designStyle, fontScale, fonts, onFontScaleChanged, onSettingsChanged, windowInset } from '~/variables';
     import { groupPosition } from '~/utils/settings/settingsGroups';
     import { groupRowClass } from '~/utils/settings/groupClass';
-    import type { MetarStation } from '~/utils/weather/metarStations';
+    import type { MetarStation } from '~/services/metar';
     import { searchStations } from '~/services/metar';
     import IconButton from './common/IconButton.svelte';
     import { WeatherProvider } from '~/services/providers/weatherprovider';

@@ -9,7 +9,7 @@ import { AqiProviderType, MarineProviderType, ProviderType } from '~/services/pr
 import { SETTINGS_FAVORITES } from './constants';
 import { OpenMeteoModels } from '~/modules/providers/openmeteo/om';
 import { confirm } from '~/utils/ui/dialogs';
-import type { MetarStation } from '~/utils/weather/metarStations';
+import type { MetarStation } from '~/services/metar';
 import { l, lc } from '@nativescript-community/l';
 
 export const EVENT_FAVORITE = 'favorite';
