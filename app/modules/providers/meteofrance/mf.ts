@@ -1,4 +1,3 @@
-import { getString } from '@nativescript/core/application-settings';
 import dayjs from 'dayjs';
 import { WeatherDataType, weatherDataIconColors } from '~/helpers/formatter';
 import { getEndOfDay, getStartOfDay, lang, lc, titlecase } from '~/helpers/locale';
@@ -12,8 +11,6 @@ import { NB_DAYS_FORECAST, NB_HOURS_FORECAST, NB_MINUTES_FORECAST } from '~/help
 import { prefs } from '~/services/preferences';
 import { getFile } from '@nativescript-community/https';
 import { logRequestAsCurl } from '@shared/utils/curlify';
-
-const mfApiKey = getString('mfApiKey', MF_DEFAULT_KEY);
 
 interface MFParams extends Partial<Coord> {
     domain?: string;
@@ -307,7 +304,7 @@ export class MFProvider extends WeatherProvider {
             queryParams: {
                 lang,
                 formatDate: 'timestamp',
-                token: mfApiKey,
+                token: MFProvider.apiKey,
                 ...queryParams
             },
             headers: {
