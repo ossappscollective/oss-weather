@@ -1,0 +1,2 @@
+Bug fixes:
+- clear stale data on a failed provider switch and send the runtime MF key (#646)
