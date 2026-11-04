@@ -9,8 +9,9 @@ vi.mock('@nativescript/core', () => ({ ApplicationSettings: { getString: () => '
 vi.mock('@nativescript/core/application-settings', () => ({ getString: () => '' }));
 vi.mock('~/helpers/constants', () => ({}));
 vi.mock('~/helpers/formatter', () => ({}));
-vi.mock('~/helpers/locale', () => ({}));
-vi.mock('~/services/api', () => ({}));
+vi.mock('~/helpers/locale', () => ({ lang: 'fr' }));
+const { request } = vi.hoisted(() => ({ request: vi.fn() }));
+vi.mock('~/services/api', () => ({ request }));
 vi.mock('~/services/preferences', () => ({ prefs: { on: () => {} } }));
 vi.mock('~/services/providers/weatherprovider', () => ({ WeatherProvider: class {} }));
 vi.mock('@nativescript-community/https', () => ({}));
@@ -18,7 +19,7 @@ vi.mock('@shared/utils/curlify', () => ({}));
 vi.mock('dayjs', () => ({ default: {} }));
 
 import { AlertSeverity, colorFromSeverity } from '~/services/providers/alerts';
-import { MFWarningLabels, buildAlertsFromWarnings, buildOverseasAlerts, getMfDomain } from './mf';
+import { MFProvider, MFWarningLabels, buildAlertsFromWarnings, buildOverseasAlerts, getMfDomain } from './mf';
 import type { MFWarningDictionary, MFWarnings, MFWarningsOverseas } from './meteofrance';
 
 // Fixtures follow the real `v3/warning/full` (metropolitan) and `v2/warning/full` (overseas)
@@ -235,5 +236,14 @@ describe('buildOverseasAlerts', () => {
         expect(alerts[0].event).toBe(LABELS.bulletinTitle);
         expect(alerts[0].description).toContain('Vagues-submersion');
         expect(alerts[0].description).toContain('Pas de vigilance particulière.');
+    });
+});
+
+describe('API key', () => {
+    it('sends the key set after the module loaded', async () => {
+        request.mockResolvedValue({ content: {} });
+        MFProvider.setApiKey('runtime-key');
+        await new MFProvider()['fetch']('v2/forecast', { lat: 1, lon: 2 });
+        expect(request.mock.calls[0][0].queryParams.token).toBe('runtime-key');
     });
 });
