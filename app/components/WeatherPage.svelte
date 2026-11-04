@@ -121,6 +121,16 @@
     updateProvider();
 
     let items = [];
+    // what weatherData belongs to: a failed fetch must not leave another provider or location on screen
+    function getWeatherKey() {
+        return `${provider}_${weatherLocation.coord.lat}_${weatherLocation.coord.lon}_${weatherLocation.omModel}`;
+    }
+    let displayedWeatherKey = weatherLocation ? getWeatherKey() : undefined;
+    function showCachedWeather() {
+        weatherData = getFullCachedWeather(provider, weatherLocation);
+        items = weatherData ? prepareItems(weatherLocation, weatherData) : [];
+        displayedWeatherKey = getWeatherKey();
+    }
 
     // a cached forecast fetched long ago has no upcoming data left to show
     function hasEnoughData(data = weatherData, location = weatherLocation) {
@@ -298,8 +308,13 @@
         }
     }
 
-    async function applyNewWeatherData(newData: WeatherData) {
+    async function applyNewWeatherData(newData: WeatherData, requestKey: string) {
+        // the provider or location changed while it was loading
+        if (requestKey !== getWeatherKey()) {
+            return;
+        }
         weatherData = newData;
+        displayedWeatherKey = requestKey;
         await updateView();
         if (WIDGETS) {
             const { isCurrentLocation: isCurrentLocationWidget, notifyWidgetsWeatherUpdated, notifyWidgetsWeatherUpdatedForLocation } = await import('plugin-widgets');
@@ -328,6 +343,10 @@
             showSnack({ message: l('no_location_set') });
             return;
         }
+        const requestKey = getWeatherKey();
+        if (requestKey !== displayedWeatherKey) {
+            showCachedWeather();
+        }
         if (!networkConnected) {
             showSnack({ message: l('no_network') });
             return;
@@ -351,7 +370,7 @@
                         getWeather(weatherLocation, { model: weatherLocation.omModel }, provider).then((data) => {
                             // we update as soon as possible in case other requests are slow
                             if (data) {
-                                applyNewWeatherDataTimeout = setTimeout(() => applyNewWeatherData(data), 100);
+                                applyNewWeatherDataTimeout = setTimeout(() => applyNewWeatherData(data, requestKey), 100);
                             }
                             return data;
                         })
@@ -368,7 +387,7 @@
                         clearTimeout(applyNewWeatherDataTimeout);
                     }
                     dataToMerge.forEach((r) => mergeWeatherData(newData, r));
-                    await applyNewWeatherData(newData);
+                    await applyNewWeatherData(newData, requestKey);
                 }
             }
             applyNewWeatherDataTimeout = 0;
