@@ -73,15 +73,17 @@ The **header** is mandatory; **scope**, **body**, and **footer** are optional.
 **Shape:** `<type>(<scope>): <subject>`
 
 - `<type>` is one of: `build` `ci` `docs` `feat` `fix` `fix-next` `perf` `refactor` `release` `style` `test`
-- `<scope>` (optional) is the affected area — usually a feature under `app/components/` or a service under `app/services/` (e.g. `ocr`, `pdf`, `camera`, `sync`, `settings`, `security`, `edit`, `pkpass`). When a change is platform-specific, prefix the scope with the platform: `android/sync`, `ios/camera`
+- `<scope>` (optional) is the affected area — usually a feature under `app/components/` or a service under `app/services/` (e.g. `ocr`, `pdf`, `camera`, `sync`, `settings`, `security`, `edit`, `pkpass`). When a change is platform-specific the scope **must be exactly** `ios` or `android` (e.g. `fix(android): …`; add a comma for an area: `fix(android,widgets): …`). The release changelog drops commits of the other platform by exact scope match, so `android/sync` does not work
 - `<subject>`: imperative present tense ("change" not "changed"), lowercase first letter, no trailing period
 - **No line may exceed 100 characters**
+
+**Type decides what users see.** The store/GitHub release notes list only `feat`, `fix` and `perf` commits, each as its subject line, so the subject must read as a user-facing change. Use `fix` ONLY for a bug a user of a released build could hit; a fix to internal code, tooling, CI, tests, docs or unreleased work is `chore`, `refactor`, `ci`, `test` or `docs`, never `fix`. A bug on one platform only gets the `ios` / `android` scope, otherwise it shows in the other platform's notes.
 
 **Examples:**
 
 ```
 docs(README): add build setup steps for submodules
-fix(ios/camera): correct preview orientation on rotation
+fix(ios): correct camera preview orientation on rotation
 ```
 
 ### Body
