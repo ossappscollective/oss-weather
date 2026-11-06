@@ -334,14 +334,14 @@ lane :get_changelog  do |params|
   # puts "display_links "+  display_links
   puts "ignoredScopes "+  ignoredScopes.join(", ")
   isReleasable = analyze_commits(match: "\"#{tag_prefix}#{platform}/#{flavor}*\"", ignore_scopes: ignoredScopes, debug:false)
-  logs = conventional_changelog(format: changelogFormat, title: "#{platform.capitalize} Beta", display_title:false, display_links:display_links, display_scopes:false, order:["feat", "fix", "refactor", "perf"], ignore_scopes: ignoredScopes, debug:false, commit_url:commit_url ) || ""
+  logs = conventional_changelog(format: changelogFormat, title: "#{platform.capitalize} Beta", display_title:false, display_links:display_links, display_scopes:false, order:["feat", "fix", "perf"], ignore_scopes: ignoredScopes, debug:false, commit_url:commit_url ) || ""
   if (!logs.empty?)
     logs = logs.split(/[\n]/).uniq
-    translateLogs = logs.select {|v| v =~ /Translated .* using Weblate/ }
+    translateLogs = logs.select {|v| v =~ /Translated .* using Weblate|Translations update/ }
     logs = (logs - translateLogs).map {|l| 
       if (!display_links)
-        # remove github issues
-        l = l.gsub(/\s\#\d*/, '')
+        # remove github issues and squash-merge PR numbers
+        l = l.gsub(/\s*\(\#\d+\)|\s\#\d+/, '')
       end
       # remove platform tags
       l = l.gsub(/\*\*\w*:\*\*\s/, '')
@@ -723,7 +723,8 @@ platform :android do
     changelog = params[:changelog]
 
     if (changelog && changelog.length > 500) 
-      changelog = changelog[0..499]
+      # cut on a line boundary, not mid-word
+      changelog = changelog[0..499].sub(/\n[^\n]*\z/, '')
     end
 
     metadata_dir=File.join(metadata_path_realpath,"android")

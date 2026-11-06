@@ -23,7 +23,7 @@ description: MANDATORY skill for ALL pull requests. Must be used EVERY TIME befo
         )"
         ```
     3. **ALWAYS** use `--draft` — only the user decides when a PR is ready for review
-    4. The PR title **ALWAYS** follows the Conventional Commits header (`<type>(<scope>): <subject>`) — same convention as the [commit](../commit/SKILL.md) skill. The squash-merge uses this title as the changelog entry, so it must be a valid conventional commit
+    4. The PR title **ALWAYS** follows the Conventional Commits header (`<type>(<scope>): <subject>`) — same convention as the [commit](../commit/SKILL.md) skill. The squash-merge uses this title as the changelog entry, so it must be a valid conventional commit. Type/scope rules for the release notes (`fix` only for user-visible bugs, exact `ios`/`android` scope) are in the commit skill
     5. **ALWAYS** reference the tracking issue in the body: `Fixes #<issue>` / `Closes #<issue>`
 
 ## Writing the description
