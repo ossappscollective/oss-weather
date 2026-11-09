@@ -260,6 +260,14 @@ module.exports = (env, params = {}) => {
 
     const package = require('./package.json');
     const APP_STORE_ID = process.env.IOS_APP_ID;
+    // shared by the scss variables and the ICON_FONT_FAMILIES global: icons drawn without a root view (widgets refreshed in the background) have no css variable to read
+    const iconFontFamilies = {
+        app: 'ossweather',
+        wd: 'ossweatherdata',
+        wdThin: 'ossweatherdata-thin',
+        wi: platform === 'android' ? 'weathericons-regular-webfont' : 'Weather Icons',
+        mdi: 'ossweather-ui'
+    };
     const defines = {
         PRODUCTION: !!production,
         process: 'global.process',
@@ -278,6 +286,7 @@ module.exports = (env, params = {}) => {
         __APP_ID__: `"${appId}"`,
         __APP_VERSION__: `"${appVersion}"`,
         __APP_BUILD_NUMBER__: `${buildNumber}`,
+        ICON_FONT_FAMILIES: JSON.stringify(iconFontFamilies),
         SUPPORTED_LOCALES: JSON.stringify(supportedLocales),
         SUPPORTED_COLOR_THEMES: JSON.stringify(supportedColorThemes),
         __INAPP_PURCHASE_ID_PREFIX__: `""`,
@@ -339,11 +348,11 @@ module.exports = (env, params = {}) => {
         weatherDataIcons[name] = String.fromCharCode(parseInt(code, 16));
     }
 
-    const scssPrepend = `$appFontFamily: ossweather;
-    $wdFontFamily: ossweatherdata;
-    $wdThinFontFamily: ossweatherdata-thin;
-    $wiFontFamily: ${platform === 'android' ? 'weathericons-regular-webfont' : 'Weather Icons'};
-    $mdiFontFamily: ossweather-ui;
+    const scssPrepend = `$appFontFamily: ${iconFontFamilies.app};
+    $wdFontFamily: ${iconFontFamilies.wd};
+    $wdThinFontFamily: ${iconFontFamilies.wdThin};
+    $wiFontFamily: ${iconFontFamilies.wi};
+    $mdiFontFamily: ${iconFontFamilies.mdi};
     `;
     const scssLoaderRuleIndex = config.module.rules.findIndex((r) => r.test && r.test.toString().indexOf('scss') !== -1);
     config.module.rules.splice(scssLoaderRuleIndex, 1, {

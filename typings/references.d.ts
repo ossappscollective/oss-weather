@@ -11,6 +11,7 @@ declare const DEFAULT_LOCATION: string;
 declare const DEFAULT_PROVIDER: string;
 declare const DEFAULT_PROVIDER_AQI: string;
 declare const WIDGETS: boolean;
+declare const ICON_FONT_FAMILIES: { app: string; wd: string; wdThin: string; wi: string; mdi: string };
 declare const __CATALYST__: boolean;
 
 interface LatLonKeys {

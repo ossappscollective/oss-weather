@@ -41,13 +41,8 @@ export * from '@shared/variables';
 
 import { initVariables } from '@shared/variables';
 
-export const fonts = writable({
-    mdi: '',
-    wi: '',
-    wd: '',
-    wdThin: '',
-    app: ''
-});
+// known at build time: a widget refreshed in the background has no root view to read the css variables from
+export const fonts = writable({ ...ICON_FONT_FAMILIES });
 
 initVariables({
     onInitRootView: (context, rootViewStyle) => {
