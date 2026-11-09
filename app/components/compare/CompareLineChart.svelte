@@ -103,7 +103,7 @@
             const chart = chartView?.nativeView;
             if (chart) {
                 const xAxis = chart.xAxis;
-                const leftAxis = chart.leftAxis;
+                const { leftAxis, rightAxis } = chart;
                 if (!chartInitialized) {
                     chartInitialized = true;
 
@@ -124,8 +124,8 @@
                     xAxis.ensureLastLabel = true;
                     xAxis.position = XAxisPosition.BOTTOM;
 
-                    leftAxis.spaceBottom = 5;
-                    leftAxis.spaceTop = 5;
+                    leftAxis.spaceBottom = rightAxis.spaceBottom = 5;
+                    leftAxis.spaceTop = rightAxis.spaceTop = 5;
                 } else {
                     chart.resetZoom();
                 }
