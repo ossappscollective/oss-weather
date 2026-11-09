@@ -39,6 +39,7 @@
     "animations": "Animazioak",
     "animations_desc": "Animatu ikono-sortak ahal bada",
     "api_key": "API gakoa",
+    "api_key_invalid": "%1$s-ek API gakoa baztertu du, egiaztatu hornitzailearen ezarpenetan",
     "api_key_required": "API gakoa beharrezkoa",
     "app": {
         "name": "OSS Eguraldia"
@@ -271,6 +272,9 @@
     "max": "maximoa",
     "max_temperature": "Tenperatura maximoa",
     "medium": "Moderatu",
+    "metar_station": "METAR estazioa",
+    "metar_station_hint": "ICAO kodea (KLGA) edo aireportuaren izena",
+    "metar_station_none": "Bat ere ez",
     "meteoblue": "meteoblue",
     "meteoblue_enabled_desc": "erakutsi meteoblue iragarpen orriak menuetan",
     "meteogram": "meteograma",
@@ -352,6 +356,7 @@
     "provider_marine": {
         "meteoconsult": "MétéoConsult",
         "none": "Bat ere ez",
+        "openmeteo": "Open-Meteo",
         "title": "Marinako eguraldi hornitzailea"
     },
     "providers": "hornitzaileak",
@@ -430,6 +435,7 @@
     "spread_models": "%1$s - %2$s, %3$s modeloetan",
     "spread_now": "hedatu orain",
     "spread_value": "hedatu %1$s",
+    "sun": "Eguzkia",
     "sun_and_moon": "eguzkia eta ilargia",
     "sunrise": "egunsentia",
     "sunset": "ilunabarra",
@@ -454,6 +460,7 @@
     "tide_high": "Marea gora",
     "tide_low": "Marea behera",
     "tides": "Mareak",
+    "tides_msl_warning": "Open-Meteo mareen altuerak itsasoaren batez besteko mailarekin erlazionatuta daude: balio negatiboak normalak dira.",
     "timeout_error": "eskaerak denbora-muga gainditu du. Mesedez, zure internet konexioa egiaztatu eta saiatu berriro",
     "turkish": "Turkiera",
     "uchinaguchi": "Okinawa",
