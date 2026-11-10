@@ -100,10 +100,16 @@
     // $: DEV_LOG && console.log('isCurrentDay', startTime, dayjs(), isCurrentDay);
     let itemsCount = items.length;
 
-    const last24 = item.last24;
-    const last24Keys = last24 ? Object.keys(last24) : [];
-    const last24Data = last24Keys.map((k: WeatherProps) => weatherDataService.getItemData(k, last24)).filter((s) => !!s);
-    const next24Data = [WeatherProps.rainPrecipitation, WeatherProps.snowfall].map((k: WeatherProps) => weatherDataService.getItemData(k, item)).filter((s) => !!s);
+    function getLast24Data() {
+        return Object.keys(item.last24 ?? {})
+            .map((k: WeatherProps) => weatherDataService.getItemData(k, item.last24))
+            .filter((s) => !!s);
+    }
+    function getNext24Data() {
+        return [WeatherProps.rainPrecipitation, WeatherProps.snowfall].map((k: WeatherProps) => weatherDataService.getItemData(k, item)).filter((s) => !!s);
+    }
+    let last24Data = getLast24Data();
+    let next24Data = getNext24Data();
     let page: NativeViewElementNode<Page>;
     let stackHolder: NativeViewElementNode<StackLayout>;
     let topCanvasView: NativeViewElementNode<CanvasView>;
@@ -409,24 +415,23 @@
 
     const showDayDataInCurrent = ApplicationSettings.getBoolean(SETTINGS_SHOW_CURRENT_DAY_DAILY, SHOW_CURRENT_DAY_DAILY);
     const minIndex = showDayDataInCurrent ? 1 : 0;
+    // show another day in the same page (swipe and <> buttons)
+    function refresh(data) {
+        startTime = data.startTime;
+        item = data.item;
+        itemIndex = data.itemIndex;
+        items = data.items;
+        itemsCount = items.length;
+        last24Data = getLast24Data();
+        next24Data = getNext24Data();
+        redraw();
+    }
     function onSwipe(e) {
         if (e.direction === 1 && itemIndex > minIndex) {
-            const data = getDailyPageProps(items[itemIndex - 1]);
-            startTime = data.startTime;
-            item = data.item;
-            itemIndex = data.itemIndex;
-            items = data.items;
-            itemsCount = items.length;
-            redraw();
+            refresh(getDailyPageProps(items[itemIndex - 1]));
         } else if (e.direction === 2 && itemIndex < itemsCount - 1) {
             const delta = showDayDataInCurrent && itemIndex === 0 ? 2 : 1;
-            const data = getDailyPageProps(items[itemIndex + delta]);
-            startTime = data.startTime;
-            item = data.item;
-            itemIndex = data.itemIndex;
-            items = data.items;
-            itemsCount = items.length;
-            redraw();
+            refresh(getDailyPageProps(items[itemIndex + delta]));
         }
     }
 </script>
