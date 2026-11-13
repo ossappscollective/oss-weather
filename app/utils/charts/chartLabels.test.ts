@@ -117,7 +117,7 @@ describe('isChartedKey', () => {
     });
 
     it('keeps every precipitation row when the chart shows one precipitation bar', () => {
-        expect(isChartedKey('rainPrecipitation', ['temperature', 'precipAccumulation'])).toBe(true);
+        expect(isChartedKey('rain', ['temperature', 'precipAccumulation'])).toBe(true);
         expect(isChartedKey('snowfall', ['temperature', 'precipAccumulation'])).toBe(true);
     });
 
