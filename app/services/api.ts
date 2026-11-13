@@ -16,6 +16,7 @@ import { AqiProviderType, MarineProviderType, ProviderType, WeatherData } from '
 import { WeatherProps } from './weatherData';
 import { OpenMeteoModels } from '~/modules/providers/openmeteo/om';
 import type { MetarStation } from '~/modules/features/metar/metar';
+import { isMetarIndicatorShown } from '~/modules/features/metar/report';
 
 type HTTPSOptions = https.HttpsRequestOptions;
 
@@ -310,8 +311,10 @@ export function prepareItems(weatherLocation: WeatherLocation, weatherData: Weat
             } else if (firstHourIndex === 0 && firstMinuteIndex > 10) {
                 current = Object.assign(current, weatherData.minutely.data[firstMinuteIndex - 1]);
             }
-            if (now.valueOf() - weatherData.currently.time <= 1000 * 60 * 20) {
-                Object.assign(current, weatherData.currently);
+            const { currently } = weatherData;
+            // a METAR observation outlives the provider current time, which it does not replace
+            if (now.valueOf() - currently.time <= 1000 * 60 * 20 || isMetarIndicatorShown(currently.metar, now.valueOf())) {
+                Object.assign(current, currently);
             }
             // sometimes current APIs might
             if (!current.iconId) {
