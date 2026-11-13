@@ -1336,81 +1336,84 @@
             {:else}
                 <label class="actionBarTitle" margin="20 20 20 20" text={$slc('favorites')} />
             {/if}
-            <collectionview
-                bind:this={favoriteCollectionView}
-                id="favorite"
-                items={favorites}
-                reorderEnabled={true}
-                reorderLongPressEnabled={true}
-                android:paddingBottom={$windowInset.bottom}
-                row={1}
-                on:itemReorderStarting={onItemReorderStarting}
-                on:itemReordered={onItemReordered}>
-                <Template let:item>
-                    {#if modern}
-                        <!-- one card, selected row highlighted, local time and time difference on the right -->
-                        <gridlayout class={favoriteRowClass(item, weatherLocation)} columns="auto,*,auto,auto" padding="10 2 10 12" rippleColor={colorOnSurface} on:tap={() => saveLocation(item)}>
-                            <label
-                                class="modernTile modernTileRound"
-                                color={isCurrentLocation(item, weatherLocation) ? '#EF9F27' : '#888780'}
-                                text="mdi-map-marker-circle"
-                                verticalAlignment="center"
-                                verticalTextAlignment="center" />
-                            <!-- each line has its own right column: the region takes the width left by the selected / time difference label only -->
-                            <stacklayout col={1} marginLeft={12} verticalAlignment="center">
-                                <gridlayout columns="*,auto">
-                                    <label class="modernTitle modernStrong" lineBreak="end" maxLines={2} text={getLocationName(item)} textWrap={true} />
-                                    <label class="modernSubtitle modernStrong" col={1} marginLeft={8} text={formatTime(Date.now(), 'LT', item.timezoneOffset)} textAlignment="right" />
-                                </gridlayout>
-                                <gridlayout columns="*,auto">
-                                    <label class="modernSubtitle modernEllipsis" text={getFavoriteRegion(item)} />
-                                    <label
-                                        class={isCurrentLocation(item, weatherLocation) ? 'modernSubtitle modernAccent' : 'modernSubtitle'}
-                                        col={1}
-                                        marginLeft={8}
-                                        text={isCurrentLocation(item, weatherLocation) ? lc('selected') : timeDifferenceLabel(item.timezoneOffset, weatherLocation?.timezoneOffset)}
-                                        textAlignment="right" />
-                                </gridlayout>
-                            </stacklayout>
-                            <IconButton col={3} gray={true} size={36} text="mdi-dots-vertical" verticalAlignment="center" on:tap={(event) => showFavMenu(item, event)} />
-                        </gridlayout>
-                    {:else}
-                        <gridlayout
-                            borderBottomColor={colorOutlineVariant}
-                            borderBottomWidth={1}
-                            borderRightColor={colorPrimary}
-                            borderRightWidth={isCurrentLocation(item, weatherLocation) ? 6 : 0}
-                            columns="*,auto"
-                            padding={10}
-                            rippleColor={colorOnSurface}
-                            on:tap={() => saveLocation(item)}>
-                            <stacklayout marginRight={30}>
+            <!-- the cells keep a frozen slot scope: rebuild them to follow the design style -->
+            {#key modern}
+                <collectionview
+                    bind:this={favoriteCollectionView}
+                    id="favorite"
+                    items={favorites}
+                    reorderEnabled={true}
+                    reorderLongPressEnabled={true}
+                    android:paddingBottom={$windowInset.bottom}
+                    row={1}
+                    on:itemReorderStarting={onItemReorderStarting}
+                    on:itemReordered={onItemReordered}>
+                    <Template let:item>
+                        {#if modern}
+                            <!-- one card, selected row highlighted, local time and time difference on the right -->
+                            <gridlayout class={favoriteRowClass(item, weatherLocation)} columns="auto,*,auto,auto" padding="10 2 10 12" rippleColor={colorOnSurface} on:tap={() => saveLocation(item)}>
                                 <label
-                                    color={colorOnSurface}
+                                    class="modernTile modernTileRound"
+                                    color={isCurrentLocation(item, weatherLocation) ? '#EF9F27' : '#888780'}
+                                    text="mdi-map-marker-circle"
+                                    verticalAlignment="center"
+                                    verticalTextAlignment="center" />
+                                <!-- each line has its own right column: the region takes the width left by the selected / time difference label only -->
+                                <stacklayout col={1} marginLeft={12} verticalAlignment="center">
+                                    <gridlayout columns="*,auto">
+                                        <label class="modernTitle modernStrong" lineBreak="end" maxLines={2} text={getLocationName(item)} textWrap={true} />
+                                        <label class="modernSubtitle modernStrong" col={1} marginLeft={8} text={formatTime(Date.now(), 'LT', item.timezoneOffset)} textAlignment="right" />
+                                    </gridlayout>
+                                    <gridlayout columns="*,auto">
+                                        <label class="modernSubtitle modernEllipsis" text={getFavoriteRegion(item)} />
+                                        <label
+                                            class={isCurrentLocation(item, weatherLocation) ? 'modernSubtitle modernAccent' : 'modernSubtitle'}
+                                            col={1}
+                                            marginLeft={8}
+                                            text={isCurrentLocation(item, weatherLocation) ? lc('selected') : timeDifferenceLabel(item.timezoneOffset, weatherLocation?.timezoneOffset)}
+                                            textAlignment="right" />
+                                    </gridlayout>
+                                </stacklayout>
+                                <IconButton col={3} gray={true} size={36} text="mdi-dots-vertical" verticalAlignment="center" on:tap={(event) => showFavMenu(item, event)} />
+                            </gridlayout>
+                        {:else}
+                            <gridlayout
+                                borderBottomColor={colorOutlineVariant}
+                                borderBottomWidth={1}
+                                borderRightColor={colorPrimary}
+                                borderRightWidth={isCurrentLocation(item, weatherLocation) ? 6 : 0}
+                                columns="*,auto"
+                                padding={10}
+                                rippleColor={colorOnSurface}
+                                on:tap={() => saveLocation(item)}>
+                                <stacklayout marginRight={30}>
+                                    <label
+                                        color={colorOnSurface}
+                                        disableCss={true}
+                                        fontSize={17 * $fontScale}
+                                        fontWeight="bold"
+                                        lineBreak="end"
+                                        maxLines={2}
+                                        text={getLocationName(item)}
+                                        textWrap={true} />
+                                    <label color={colorOnSurfaceVariant} disableCss={true} fontSize={14 * $fontScale} text={getFavoriteSubtitle(item)} textWrap={true} />
+                                </stacklayout>
+                                <label
+                                    col={1}
+                                    color={colorOnSurfaceVariant}
                                     disableCss={true}
-                                    fontSize={17 * $fontScale}
-                                    fontWeight="bold"
-                                    lineBreak="end"
-                                    maxLines={2}
-                                    text={getLocationName(item)}
-                                    textWrap={true} />
-                                <label color={colorOnSurfaceVariant} disableCss={true} fontSize={14 * $fontScale} text={getFavoriteSubtitle(item)} textWrap={true} />
-                            </stacklayout>
-                            <label
-                                col={1}
-                                color={colorOnSurfaceVariant}
-                                disableCss={true}
-                                fontSize={14 * $fontScale}
-                                paddingTop={3 * $fontScale}
-                                text={formatTime(Date.now(), 'LT', item.timezoneOffset)}
-                                textWrap={true}
-                                verticalAlignment="top"
-                                visibility={item.timezone ? 'visible' : 'hidden'} />
-                            <IconButton col={1} gray={true} horizontalAlignment="right" size={40} text="mdi-dots-vertical" verticalAlignment="bottom" on:tap={(event) => showFavMenu(item, event)} />
-                        </gridlayout>
-                    {/if}
-                </Template>
-            </collectionview>
+                                    fontSize={14 * $fontScale}
+                                    paddingTop={3 * $fontScale}
+                                    text={formatTime(Date.now(), 'LT', item.timezoneOffset)}
+                                    textWrap={true}
+                                    verticalAlignment="top"
+                                    visibility={item.timezone ? 'visible' : 'hidden'} />
+                                <IconButton col={1} gray={true} horizontalAlignment="right" size={40} text="mdi-dots-vertical" verticalAlignment="bottom" on:tap={(event) => showFavMenu(item, event)} />
+                            </gridlayout>
+                        {/if}
+                    </Template>
+                </collectionview>
+            {/key}
             {#if modern}
                 <mdbutton class="modernButtonOutline" margin="8 18 12 18" android:marginBottom={12 + $windowInset.bottom} row={2} variant="outline" on:tap={() => searchCity()}>
                     <!-- spans do not inherit the button css weight: the accent (emphasis) weight -->
