@@ -1,1 +1,1 @@
-Open-source, privacy-first weather app — forecasts, radar, widgets & alerts
+Open-Source weather app — forecasts, radar, widgets
