@@ -965,7 +965,7 @@ object WeatherWidgetManager {
             WidgetsLogger.d(LOG_TAG, "Icon file path is null or blank")
             return null
         }
-       val drawable = com.nativescript.image.DrawableUtils.tryLoadExternalDrawable(context, android.net.Uri.parse(iconFilePath))
+       val drawable = DrawableUtils.tryLoadExternalDrawable(context, android.net.Uri.parse(iconFilePath))
        if (drawable is BitmapDrawable) {
            return drawable.getBitmap()
        }

@@ -13,8 +13,8 @@ export function loadImage(imagePath, options) {
         return null;
     }
     if (imagePath.startsWith('android.resource://')) {
-        //@ts-expect-error needs ui-image typings
-        const drawable = com.nativescript.image.DrawableUtils.tryLoadExternalDrawable(
+        //@ts-expect-error needs widgets plugin typings
+        const drawable = com.akylas.weather.widgets.DrawableUtils.tryLoadExternalDrawable(
             Utils.android.getApplicationContext(),
             android.net.Uri.parse(imagePath)
         ) as android.graphics.drawable.BitmapDrawable;
