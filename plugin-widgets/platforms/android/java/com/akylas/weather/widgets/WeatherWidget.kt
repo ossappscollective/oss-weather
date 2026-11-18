@@ -43,10 +43,11 @@ abstract class WeatherWidget : GlanceAppWidget() {
             frequency = minMinutes
         }
 
-        // Use applicationContext and REPLACE so updates to frequency/params actually replace the existing job.
+        // UPDATE applies a new frequency without restarting the period: this runs at every widget render,
+        // REPLACE pushed the next refresh back each time
         WorkManager.getInstance(context.applicationContext).enqueueUniquePeriodicWork(
             "weatherWidgetUpdateWorker",
-            ExistingPeriodicWorkPolicy.REPLACE,
+            ExistingPeriodicWorkPolicy.UPDATE,
             androidx.work.PeriodicWorkRequestBuilder<WeatherWidgetWorker>(frequency, java.util.concurrent.TimeUnit.MINUTES)
                 .setInitialDelay(frequency, java.util.concurrent.TimeUnit.MINUTES)
                 .build()

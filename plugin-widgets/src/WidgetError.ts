@@ -30,6 +30,13 @@ export function classifyWidgetError(error: unknown): WidgetErrorKind {
     return NETWORK_MESSAGE.test(errorMessage(error)) ? 'network' : 'code';
 }
 
+// a network error where the request never got an answer: the provider limiting or down (429, 5xx) is not fixed by waiting for a connection
+export function isConnectionFailure(error: unknown) {
+    const { customErrorConstructorName, statusCode } = (typeof error === 'object' && (error as WidgetErrorLike)) || {};
+    const providerAnswered = customErrorConstructorName === 'HTTPError' && statusCode !== -1;
+    return classifyWidgetError(error) === 'network' && !providerAnswered;
+}
+
 export function widgetErrorMessage(error: unknown) {
     return errorMessage(error).replace(UNHANDLED_REJECTION_PREFIX, '') || 'Update failed';
 }
