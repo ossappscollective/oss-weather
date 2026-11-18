@@ -1,1 +1,1 @@
-Accédez à la Météo d'OpenWeather, Open-Meteo ou Meteo-France
+Obtenez des prévisions météorologiques provenant de différentes sources
