@@ -22,6 +22,12 @@ import java.io.File
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
 import androidx.core.content.edit
+import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import java.util.concurrent.TimeUnit
 import androidx.glance.appwidget.updateAll
 import kotlinx.coroutines.launch
 
@@ -198,6 +204,8 @@ object WeatherWidgetManager {
     private const val ACTIVE_WIDGETS_KEY = "active_widget_ids"
     private const val WIDGET_DATA_CACHE_KEY = "widget_data_cache"
     private const val DEFAULT_UPDATE_FREQUENCY = 30L
+    private const val NETWORK_RETRY_WORK_NAME = "weatherWidgetNetworkRetry"
+    private const val NETWORK_RETRY_DELAY_MINUTES = 5L
 
     private const val LOG_TAG = "WeatherWidgetManager"
 
@@ -362,6 +370,22 @@ object WeatherWidgetManager {
         val activeIds = getActiveWidgetIdsFromPrefs(context)
         WidgetsLogger.d(LOG_TAG, "getAllActiveWidgetIds() -> ${activeIds.size} widgets")
         return activeIds.toList()
+    }
+
+    /**
+     * Refresh the widgets once the network is back, for a refresh that failed on the network:
+     * the periodic worker would only retry at its next period
+     */
+    @JvmStatic
+    fun scheduleNetworkRetry(context: Context) {
+        WidgetsLogger.d(LOG_TAG, "scheduleNetworkRetry()")
+        val request = OneTimeWorkRequestBuilder<WeatherWidget.WeatherWidgetWorker>()
+            .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
+            // a connection that is up but not usable yet (timeouts) re-arms this: space the attempts
+            .setInitialDelay(NETWORK_RETRY_DELAY_MINUTES, TimeUnit.MINUTES)
+            .build()
+        // KEEP: widgets failing together schedule one retry
+        WorkManager.getInstance(context.applicationContext).enqueueUniqueWork(NETWORK_RETRY_WORK_NAME, ExistingWorkPolicy.KEEP, request)
     }
 
     /**

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { classifyWidgetError, widgetErrorMessage } from './WidgetError';
+import { classifyWidgetError, isConnectionFailure, widgetErrorMessage } from './WidgetError';
 
 describe('classifyWidgetError', () => {
     it('treats the typed network errors as network', () => {
@@ -28,6 +28,22 @@ describe('classifyWidgetError', () => {
         expect(classifyWidgetError(new TypeError("Cannot read properties of undefined (reading 'time')"))).toBe('code');
         expect(classifyWidgetError(new Error('No configuration found for widget 12'))).toBe('code');
         expect(classifyWidgetError(undefined)).toBe('code');
+    });
+});
+
+describe('isConnectionFailure', () => {
+    it('is true when the request could not reach the provider', () => {
+        expect(isConnectionFailure({ customErrorConstructorName: 'TimeoutError', message: 'x' })).toBe(true);
+        expect(isConnectionFailure({ customErrorConstructorName: 'NoNetworkError', message: 'x' })).toBe(true);
+        expect(isConnectionFailure({ customErrorConstructorName: 'HTTPError', statusCode: -1, message: 'x' })).toBe(true);
+        expect(isConnectionFailure(new Error('java.net.UnknownHostException: Unable to resolve host "api.open-meteo.com"'))).toBe(true);
+    });
+
+    it('is false when the provider answered: a retry would only hit it again', () => {
+        expect(isConnectionFailure({ customErrorConstructorName: 'HTTPError', statusCode: 429, message: 'x' })).toBe(false);
+        expect(isConnectionFailure({ customErrorConstructorName: 'HTTPError', statusCode: 503, message: 'x' })).toBe(false);
+        expect(isConnectionFailure({ customErrorConstructorName: 'HTTPError', statusCode: 401, message: 'x' })).toBe(false);
+        expect(isConnectionFailure(new TypeError("Cannot read properties of undefined (reading 'time')"))).toBe(false);
     });
 });
 

@@ -2,7 +2,7 @@
 // Android-specific widget bridge using shared logic
 
 import { Utils } from '@nativescript/core';
-import { classifyWidgetError, widgetErrorMessage } from './WidgetError';
+import { classifyWidgetError, isConnectionFailure, widgetErrorMessage } from './WidgetError';
 import { createUpdateDeduper } from './WidgetUpdates';
 import WidgetBridgeBase from './WidgetBridge.common';
 import { WidgetConfigManager } from './WidgetConfigManager';
@@ -128,6 +128,14 @@ export class WidgetBridge extends WidgetBridgeBase {
         } catch (error) {
             console.error(`Error updating widget ${widgetId}:`, error, error.stack);
             const isNetwork = classifyWidgetError(error) === 'network';
+            if (isConnectionFailure(error)) {
+                // the periodic worker would only retry at its next period
+                try {
+                    com.akylas.weather.widgets.WeatherWidgetManager.scheduleNetworkRetry(Utils.android.getApplicationContext());
+                } catch (retryError) {
+                    console.error('Error scheduling the widget retry:', retryError, retryError.stack);
+                }
+            }
             // a network failure is not worth an error screen while the cached weather is still good enough
             const staleData = isNetwork && config?.widgetKind ? this.dataManager.getStaleWidgetWeatherData(config) : null;
             if (staleData) {
