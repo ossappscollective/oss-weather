@@ -465,6 +465,10 @@ export async function photonSearch(q, lat?, lon?, queryParams = {}) {
             lang: actualLang,
             limit: 40,
             ...queryParams
+        },
+        // photon answers 403 to the default okhttp user agent
+        headers: {
+            'User-Agent': 'OSSWeatherApp'
         }
     });
     return results.content.features
