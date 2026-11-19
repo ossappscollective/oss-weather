@@ -13,6 +13,7 @@
     import ListItem from '~/components/common/ListItem.svelte';
     import ListItemAutoSize from '~/components/common/ListItemAutoSize.svelte';
     import SettingsSlider from '~/components/settings/SettingsSlider.svelte';
+    import { conditionalEvent } from '@shared/utils/svelte/ui';
     import { lc } from '~/helpers/locale';
     import { accentFontWeight, colors, designStyle, fontScale, fonts } from '~/variables';
     import { styleModernSwitch } from '~/utils/ui/modernSwitch';
@@ -444,7 +445,12 @@
                 </svelte:component>
             </Template>
             <Template key="modernMenu" let:item>
-                <gridlayout class={modernMenuRowClass(item)} columns="auto,*,auto" rippleColor={colorPrimary} on:tap={(event) => onTap(item, event)}>
+                <gridlayout
+                    class={modernMenuRowClass(item)}
+                    columns="auto,*,auto"
+                    rippleColor={colorPrimary}
+                    on:tap={(event) => onTap(item, event)}
+                    use:conditionalEvent={{ condition: !!(item.onLongPress || onLongPress), event: 'longPress', callback: item.onLongPress || ((event) => onLongPress?.(item, event)) }}>
                     <!-- text icons ("mb") have an iconFontSize: drawn smaller -->
                     <label
                         class={item.iconFontSize ? 'modernMenuIcon modernMenuIconText' : 'modernMenuIcon'}

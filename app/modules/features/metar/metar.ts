@@ -67,7 +67,8 @@ async function searchAerodromeNames(query: string) {
         url: 'https://photon.komoot.io/api',
         method: 'GET',
         timeout: 15000,
-        queryParams: { q: query, limit: PHOTON_AERODROME_LIMIT, osm_tag: 'aeroway:aerodrome' }
+        queryParams: { q: query, limit: PHOTON_AERODROME_LIMIT, osm_tag: 'aeroway:aerodrome' },
+        headers: { 'User-Agent': 'OSSWeatherApp' }
     });
     const nearestStations = await Promise.all(
         result.content.features.map(async (feature) => {

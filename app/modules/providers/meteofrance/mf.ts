@@ -35,12 +35,13 @@ export class MFProvider extends WeatherProvider {
             url,
             method: 'GET',
             headers: {
-                apikey: this.apiKey
+                // public-api.meteofrance.fr key; MF_DEFAULT_KEY only works on webservice.meteofrance.com
+                apikey: MF_API_KEY
             }
         };
         if (__DEV__) {
             logRequestAsCurl(url, params as any);
-            DEV_LOG && console.log('getBRA', massifId, url, this.apiKey);
+            DEV_LOG && console.log('getBRA', massifId, url);
         }
         return getFile(params as any);
     }
