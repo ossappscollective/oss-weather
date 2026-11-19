@@ -4,6 +4,8 @@ import { describe, expect, it, vi } from 'vitest';
 // webpack DefinePlugin global read when the module loads
 vi.hoisted(() => {
     globalThis['MF_DEFAULT_KEY'] = '';
+    globalThis['MF_API_KEY'] = 'public-api-key';
+    globalThis['__DEV__'] = false;
 });
 vi.mock('@nativescript/core', () => ({ ApplicationSettings: { getString: () => '', getNumber: () => 0, getBoolean: () => false, remove: () => {}, setString: () => {}, hasKey: () => false } }));
 vi.mock('@nativescript/core/application-settings', () => ({ getString: () => '' }));
@@ -14,7 +16,8 @@ const { request } = vi.hoisted(() => ({ request: vi.fn() }));
 vi.mock('~/services/api', () => ({ request }));
 vi.mock('~/services/preferences', () => ({ prefs: { on: () => {} } }));
 vi.mock('~/services/providers/weatherprovider', () => ({ WeatherProvider: class {} }));
-vi.mock('@nativescript-community/https', () => ({}));
+const { getFile } = vi.hoisted(() => ({ getFile: vi.fn() }));
+vi.mock('@nativescript-community/https', () => ({ getFile }));
 vi.mock('@shared/utils/curlify', () => ({}));
 vi.mock('dayjs', () => ({ default: {} }));
 
@@ -245,5 +248,13 @@ describe('API key', () => {
         MFProvider.setApiKey('runtime-key');
         await new MFProvider()['fetch']('v2/forecast', { lat: 1, lon: 2 });
         expect(request.mock.calls[0][0].queryParams.token).toBe('runtime-key');
+    });
+});
+
+describe('getBRA', () => {
+    it('uses the public API key, not the forecast key from the settings', () => {
+        MFProvider.setApiKey('forecast-key');
+        MFProvider.getBRA(1);
+        expect(getFile.mock.calls[0][0].headers.apikey).toBe('public-api-key');
     });
 });
