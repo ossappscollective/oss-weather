@@ -68,6 +68,7 @@ declare namespace com {
             }
             export namespace widgets {
                 export class WeatherWidgetManager {
+                    static scheduleNetworkRetry(arg0: globalAndroid.content.Context);
                     static getOpenAppOnTap(arg0: globalAndroid.content.Context): boolean;
                     static setOpenAppOnTap(arg0: globalAndroid.content.Context, value: boolean);
                     static checkActiveWidgets(context: globalAndroid.content.Context);
