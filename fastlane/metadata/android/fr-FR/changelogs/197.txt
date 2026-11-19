@@ -1,0 +1,9 @@
+Bug fixes:
+- align right axis padding with left in model charts
+- draw icons with their font when refreshed in the background
+- update next and last 24 hours when switching days
+- show the rain amount in the hourly chart tooltip
+- rebuild the favorites drawer when the design style changes
+- keep METAR conditions when the provider current data is stale
+- retry a failed widget refresh once the network is back
+- send custom user agent to photon search
