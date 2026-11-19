@@ -811,8 +811,9 @@ module.exports = (env, params = {}) => {
                 },
                 mangle: {
                     properties: {
-                        reserved: ['__metadata'],
-                        regex: /^(m[A-Z])/
+                        // webpack mangleExports emits 2-char export names like `mR`: they must not match
+                        reserved: ['__metadata', 'mFontInternal', 'mNeedsFontUpdate'],
+                        regex: /^m[A-Z][A-Za-z0-9_$]{3,}/
                     }
                 },
                 compress: {
