@@ -6,7 +6,7 @@ import type { Coord, Dailyforecast, ForecastForecast, MFCurrent, MFForecastResul
 import { AlertSeverity, colorFromSeverity, sortAlerts } from '~/services/providers/alerts';
 import { GetWeatherOptions, WeatherProvider } from '~/services/providers/weatherprovider';
 import { Alert, Currently, DailyData, Hourly, MinutelyData, WeatherData } from '~/services/providers/weather';
-import { ApplicationSettings } from '@nativescript/core';
+import { ApplicationSettings, knownFolders, path } from '@nativescript/core';
 import { NB_DAYS_FORECAST, NB_HOURS_FORECAST, NB_MINUTES_FORECAST } from '~/helpers/constants';
 import { prefs } from '~/services/preferences';
 import { getFile } from '@nativescript-community/https';
@@ -43,7 +43,8 @@ export class MFProvider extends WeatherProvider {
             logRequestAsCurl(url, params as any);
             DEV_LOG && console.log('getBRA', massifId, url);
         }
-        return getFile(params as any);
+        // the default name has no extension and iOS cannot preview a file without one
+        return getFile(params as any, path.join(knownFolders.temp().path, `bra-${massifId}.pdf`));
     }
 
     private getDaily(weatherLocation: WeatherLocation, hourly: Hourly[], hourlyForecast: ForecastForecast[], dailyForecast: Dailyforecast) {
