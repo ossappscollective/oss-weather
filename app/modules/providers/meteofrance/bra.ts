@@ -13,26 +13,30 @@ import { MFProvider } from './mf';
 
 const BRA_BOUNDS = [-4.855957, 41.310824, 9.645996, 51.124213];
 
-/** mountain avalanche bulletins (BRA) exist for the French territory only */
-function isBRALocation(location: Pick<WeatherLocation, 'coord' | 'timezone'>) {
-    const { lat, lon } = location.coord;
-    return location.timezone === 'Europe/Paris' && lon >= BRA_BOUNDS[0] && lon <= BRA_BOUNDS[2] && lat >= BRA_BOUNDS[1] && lat <= BRA_BOUNDS[3];
-}
-
 let franceGeoJSON: FeatureCollection<MultiPolygon>;
 let franceGeoJSONLookup: PolygonLookup;
 
-async function getFranceGeoJSON() {
+function getFranceGeoJSON() {
     if (!franceGeoJSON) {
-        franceGeoJSON = JSON.parse(await File.fromPath(path.join(knownFolders.currentApp().path, 'assets/meteofrance/massifs.geojson')).readText());
+        franceGeoJSON = JSON.parse(File.fromPath(path.join(knownFolders.currentApp().path, 'assets/meteofrance/massifs.geojson')).readTextSync());
     }
     return franceGeoJSON;
 }
-async function getFranceGeoJSONLookup() {
+function getFranceGeoJSONLookup() {
     if (!franceGeoJSONLookup) {
-        franceGeoJSONLookup = new PolygonLookup(await getFranceGeoJSON());
+        franceGeoJSONLookup = new PolygonLookup(getFranceGeoJSON());
     }
     return franceGeoJSONLookup;
+}
+
+function findMassifId(location: Pick<WeatherLocation, 'coord'>) {
+    return getFranceGeoJSONLookup().search(location.coord.lon, location.coord.lat)?.properties.code ?? -1;
+}
+
+/** mountain avalanche bulletins (BRA) only cover the French massifs */
+function isBRALocation(location: Pick<WeatherLocation, 'coord' | 'timezone'>) {
+    const { lat, lon } = location.coord;
+    return location.timezone === 'Europe/Paris' && lon >= BRA_BOUNDS[0] && lon <= BRA_BOUNDS[2] && lat >= BRA_BOUNDS[1] && lat <= BRA_BOUNDS[3] && findMassifId(location) !== -1;
 }
 
 async function openBRA(massifId: string | number) {
@@ -47,7 +51,7 @@ async function openBRA(massifId: string | number) {
 }
 
 async function selectAndOpenBRA() {
-    const geoJSON = await getFranceGeoJSON();
+    const geoJSON = getFranceGeoJSON();
     const options = geoJSON.features
         .map((feature) => ({
             name: feature.properties.title as string,
@@ -56,13 +60,15 @@ async function selectAndOpenBRA() {
         }))
         .sort((a, b) => a.name.localeCompare(b.name));
     const OptionSelect = (await import('~/components/common/OptionSelect.svelte')).default;
-    closePopover();
+    // iOS drops a sheet shown while the popover is still dismissing
+    await closePopover();
     const result = await showBottomSheet({
         parent: null,
         view: OptionSelect,
         peekHeight: 400,
         ignoreTopSafeArea: true,
         props: {
+            title: lc('bra'),
             options,
             rowHeight: 58,
             height: 400
@@ -80,8 +86,7 @@ export const braAction: LocationAction = {
     isAvailable: isBRALocation,
     async run(location) {
         try {
-            const lookup = await getFranceGeoJSONLookup();
-            const massifId = lookup.search(location.coord.lon, location.coord.lat)?.properties.code ?? -1;
+            const massifId = findMassifId(location);
             if (massifId !== -1) {
                 await openBRA(massifId);
             } else {
