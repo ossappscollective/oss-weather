@@ -1109,7 +1109,7 @@
                     name: lc('duplicate')
                 }
             ];
-            options.splice(options.length - 2, 0, ...getLocationActions(favItem).map((action) => ({ icon: action.icon, id: action.id, name: lc(action.nameKey), iconColor: action.iconColor, subtitle: action.subtitle?.(favItem) }) as any));
+            options.splice(options.length - 2, 0, ...getLocationActions(favItem).map((action) => ({ icon: action.icon, id: action.id, name: lc(action.nameKey), iconColor: action.iconColor, subtitle: action.subtitle?.(favItem), onLongPress: action.runLongPress && tryCatchFunction(action.runLongPress) }) as any));
 
             await showPopoverMenu({
                 options: modernMenuOptions(options, ['provider', 'compare', options.some((option) => option.id === 'bra') ? 'bra' : 'delete']),
