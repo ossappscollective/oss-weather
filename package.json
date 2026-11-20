@@ -46,7 +46,7 @@
     "repository": "https://github.com/ossappscollective/oss-weather",
     "dependencies": {
         "@akylas/address-formatter": "5.3.1",
-        "@akylas/nativescript": "9.0.25",
+        "@akylas/nativescript": "9.1.4",
         "@akylas/nativescript-app-tools": "portal:tools",
         "@akylas/nativescript-app-utils": "2.2.15",
         "@akylas/nativescript-inapp-purchase": "0.0.5",
@@ -136,10 +136,5 @@
         "./map",
         "./plugin-widgets/"
     ],
-    "packageManager": "yarn@4.18.1",
-    "resolutions": {
-        "@nativescript-community/ui-canvas": "portal:../ui-canvas/packages/ui-canvas",
-        "@nativescript-community/ui-segmentedbar": "portal:../ui-native-components/packages/ui-segmentedbar",
-        "@akylas/nativescript": "portal:../Nativescript/dist/packages/core"
-    }
+    "packageManager": "yarn@4.18.1"
 }

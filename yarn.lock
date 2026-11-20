@@ -156,9 +156,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@akylas/nativescript@portal:../Nativescript/dist/packages/core::locator=root-workspace-0b6124%40workspace%3A.":
-  version: 0.0.0-use.local
-  resolution: "@akylas/nativescript@portal:../Nativescript/dist/packages/core::locator=root-workspace-0b6124%40workspace%3A."
+"@akylas/nativescript@npm:9.1.4":
+  version: 9.1.4
+  resolution: "@akylas/nativescript@npm:9.1.4"
   dependencies:
     "@csstools/css-calc": "npm:~2.1.4"
     "@csstools/css-color-parser": "npm:^3.0.10"
@@ -173,8 +173,9 @@ __metadata:
     source-map: "npm:0.7.6"
     source-map-js: "npm:^1.2.1"
     tslib: "npm:^2.0.0"
+  checksum: 10/fa76835903a3253e62c9e46845d064707bc26b93afaf0c7c4f1c9981179deb790d56b30a66da2db5a1c2e2cc988359913668a7888f18976a4d64bfb4e8060e1e
   languageName: node
-  linkType: soft
+  linkType: hard
 
 "@ampproject/remapping@npm:^2.2.1":
   version: 2.3.0
@@ -2982,13 +2983,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nativescript-community/ui-canvas@portal:../ui-canvas/packages/ui-canvas::locator=root-workspace-0b6124%40workspace%3A.":
-  version: 0.0.0-use.local
-  resolution: "@nativescript-community/ui-canvas@portal:../ui-canvas/packages/ui-canvas::locator=root-workspace-0b6124%40workspace%3A."
+"@nativescript-community/ui-canvas@npm:4.6.57, @nativescript-community/ui-canvas@npm:^4.6.46, @nativescript-community/ui-canvas@npm:^4.6.57":
+  version: 4.6.57
+  resolution: "@nativescript-community/ui-canvas@npm:4.6.57"
   dependencies:
     "@nativescript-community/arraybuffers": "npm:^1.1.5"
+  checksum: 10/a5ed42504e31c724c550d867d88fc7e28d454a7a385d7e75faf5234de3a2c66fe8a642db1dae9e9548265ea303051b144e5f504cc64e41abb9aad1d8df880558
   languageName: node
-  linkType: soft
+  linkType: hard
 
 "@nativescript-community/ui-canvaslabel@npm:1.2.60":
   version: 1.2.60
@@ -3043,7 +3045,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nativescript-community/ui-core@npm:1.6.5, @nativescript-community/ui-core@npm:^1.6.4, @nativescript-community/ui-core@npm:^1.6.5":
+"@nativescript-community/ui-core@npm:1.6.5, @nativescript-community/ui-core@npm:^1.6.5":
   version: 1.6.5
   resolution: "@nativescript-community/ui-core@npm:1.6.5"
   dependencies:
@@ -3145,13 +3147,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nativescript-community/ui-segmentedbar@portal:../ui-native-components/packages/ui-segmentedbar::locator=root-workspace-0b6124%40workspace%3A.":
-  version: 0.0.0-use.local
-  resolution: "@nativescript-community/ui-segmentedbar@portal:../ui-native-components/packages/ui-segmentedbar::locator=root-workspace-0b6124%40workspace%3A."
+"@nativescript-community/ui-segmentedbar@npm:1.6.5":
+  version: 1.6.5
+  resolution: "@nativescript-community/ui-segmentedbar@npm:1.6.5"
   dependencies:
-    "@nativescript-community/ui-core": "npm:^1.6.4"
+    "@nativescript-community/ui-core": "npm:^1.6.5"
+  checksum: 10/7299588778511302512d43ee186bfec6e2fba5b27c7cef40d9efc55a17bf1c1c881ef0072033ea1fc75af8a5993219c2a3d5fd85d0e1dc359259bfdb2966cf2b
   languageName: node
-  linkType: soft
+  linkType: hard
 
 "@nativescript-community/ui-share-file@npm:1.3.3, @nativescript-community/ui-share-file@npm:^1.3.3":
   version: 1.3.3
@@ -13607,7 +13610,7 @@ __metadata:
   resolution: "root-workspace-0b6124@workspace:."
   dependencies:
     "@akylas/address-formatter": "npm:5.3.1"
-    "@akylas/nativescript": "npm:9.0.25"
+    "@akylas/nativescript": "npm:9.1.4"
     "@akylas/nativescript-app-tools": "portal:tools"
     "@akylas/nativescript-app-utils": "npm:2.2.15"
     "@akylas/nativescript-inapp-purchase": "npm:0.0.5"
