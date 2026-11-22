@@ -1250,7 +1250,7 @@
                 </stackLayout>
             {:else if weatherLocation}
                 <pullrefresh bind:this={pullRefresh} row={1} on:refresh={onPullToRefresh}>
-                    <WeatherComponent {items} {weatherLocation} on:tap={onTap} />
+                    <WeatherComponent {items} {weatherLocation} on:radar={() => goToWeatherMap()} on:tap={onTap} />
                 </pullrefresh>
                 <label
                     backgroundColor={new Color(colorBackground).setAlpha(100).hex}

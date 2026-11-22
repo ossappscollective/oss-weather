@@ -20,6 +20,7 @@
     import { onDestroy, onMount } from 'svelte';
     import CActionBar from '~/components/common/CActionBar.svelte';
     import ListItemAutoSize from '~/components/common/ListItemAutoSize.svelte';
+    import SettingsRowIcon from '~/components/settings/SettingsRowIcon.svelte';
     import {
         ACCENT_FONT_WEIGHT,
         ALERT_OPTION_MAX_HEIGHT,
@@ -80,7 +81,7 @@
     import { networkService } from '~/services/api';
     import { gadgetbridgeService } from '~/services/gadgetbridge';
     import { iconService } from '~/services/icon';
-    import { getLibreWXRSettings, getWeatherMapSourceSetting } from '~/services/providers/librewxr';
+    import { getLibreWXRSettings, getRadarWidgetSettings, getWeatherMapSourceSetting } from '~/services/providers/librewxr';
     import { MaptilerProvider, getWeatherMapSettings } from '~/services/providers/maptiler';
     import { getModuleSettings } from '~/modules/registry';
     import { getAqiProviderKeys, getAqiProviderType, getProviderSettins, getProviderType, getWeatherProviderKeys } from '~/services/providers/weatherproviderfactory';
@@ -106,6 +107,8 @@
     import { get } from 'svelte/store';
     import { styleModernSwitch } from '~/utils/ui/modernSwitch';
     import { modernDataColor, styledDataIcon } from '~/utils/design/designStyle';
+    import { modernColors } from '~/helpers/modernTheme';
+    import { pickColor } from '~/utils/ui/pickColor';
     import IconButton from '../common/IconButton.svelte';
 
     enum PromptOutcome {
@@ -142,7 +145,50 @@
         'mdi-bug-outline': '#E24B4A',
         'mdi-bullhorn': '#EF9F27',
         'mdi-information-outline': '#888780',
-        'mdi-star-outline': '#EF9F27'
+        'mdi-star-outline': '#EF9F27',
+        'mdi-radar': '#378ADD',
+        'mdi-palette': '#D4537E',
+        'mdi-theme-light-dark': '#7F77DD',
+        'mdi-format-list-bulleted-square': '#378ADD',
+        'mdi-format-bold': '#888780',
+        'mdi-format-align-center': '#888780',
+        'mdi-eye': '#5DCAA5',
+        'mdi-circle-opacity': '#378ADD',
+        'mdi-calendar': '#EF9F27',
+        'mdi-phone-rotate-landscape': '#378ADD',
+        'mdi-fullscreen': '#378ADD',
+        'mdi-ruler': '#97C459',
+        'mdi-thermometer': '#D85A30',
+        'mdi-umbrella-outline': '#378ADD',
+        'mdi-snowflake': '#5DCAA5',
+        'mdi-weather-windy': '#5DCAA5',
+        'mdi-animation': '#7F77DD',
+        'mdi-leaf': '#97C459',
+        'mdi-timer-outline': '#EF9F27',
+        'mdi-swap-horizontal': '#888780',
+        'mdi-weather-sunny': '#EF9F27',
+        'mdi-sun-thermometer-outline': '#D85A30',
+        'mdi-weather-sunny-alert': '#EF9F27',
+        'mdi-refresh': '#378ADD',
+        'mdi-watch': '#7F77DD',
+        'mdi-chart-line': '#888780',
+        'mdi-open-in-app': '#7F77DD',
+        'mdi-share-variant': '#378ADD',
+        'mdi-export': '#378ADD',
+        'mdi-import': '#378ADD',
+        'mdi-crosshairs-gps': '#378ADD',
+        'mdi-format-size': '#888780',
+        'mdi-resize': '#888780',
+        'mdi-repeat': '#7F77DD',
+        'mdi-clock-fast': '#EF9F27',
+        'mdi-gradient-horizontal': '#7F77DD',
+        'mdi-history': '#888780',
+        'mdi-layers': '#5DCAA5',
+        'mdi-server': '#888780',
+        'mdi-key': '#EF9F27',
+        'mdi-speedometer': '#97C459',
+        'mdi-timelapse': '#EF9F27',
+        'mdi-blur': '#378ADD'
     };
     const MODERN_DONATE_COLOR = '#D4537E';
     const storeSettings = {};
@@ -153,6 +199,8 @@
     let { colorOnBackground, colorOnSurfaceVariant, colorPrimary } = $colors;
     $: ({ colorOnBackground, colorOnSurfaceVariant, colorPrimary } = $colors);
     $: modern = $designStyle === 'modern';
+    // the default radar widget background: the section color
+    $: defaultSectionColor = modern ? $modernColors.colorModernCard : $colors.colorSurfaceContainer;
     // the rows depend on the style (segmented theme, section headers): rebuild them when it changes
     let shownModern = get(designStyle) === 'modern';
     $: if (modern !== shownModern) {
@@ -244,11 +292,13 @@
                         id: 'color_theme',
                         description: () => getColorThemeDisplayName(),
                         modernValue: () => getColorThemeDisplayName(),
+                        icon: 'mdi-palette',
                         title: lc('color_theme.title')
                     },
                     {
                         type: 'switch',
                         id: 'auto_black',
+                        icon: 'mdi-theme-light-dark',
                         title: lc('auto_black'),
                         value: ApplicationSettings.getBoolean('auto_black', false)
                     },
@@ -267,6 +317,7 @@
                         id: 'setting',
                         valueType: 'string',
                         key: SETTINGS_WEATHER_DATA_LAYOUT,
+                        icon: 'mdi-format-list-bulleted-square',
                         title: lc('weather_data_layout'),
                         values: [
                             { value: 'default', title: lc('blocks'), subtitle: lc('blocks_desc') },
@@ -281,6 +332,7 @@
                         id: 'setting',
                         valueType: 'string',
                         key: SETTINGS_DESIGN_STYLE,
+                        icon: 'mdi-cards-outline',
                         title: lc('design_style'),
                         values: [
                             { value: 'classic', title: lc('classic_view') },
@@ -293,6 +345,7 @@
                         id: 'setting',
                         valueType: 'number',
                         key: SETTINGS_ACCENT_FONT_WEIGHT,
+                        icon: 'mdi-format-bold',
                         title: lc('accent_font_weight'),
                         values: [
                             { value: 500, title: lc('font_weight_medium') },
@@ -305,6 +358,7 @@
                     {
                         type: 'switch',
                         id: SETTINGS_SHOW_EMPTY_DATA,
+                        icon: 'mdi-eye',
                         title: lc('show_empty_data'),
                         description: lc('show_empty_data_desc'),
                         value: ApplicationSettings.getBoolean(SETTINGS_SHOW_EMPTY_DATA, SHOW_EMPTY_DATA)
@@ -312,6 +366,7 @@
                     {
                         type: 'switch',
                         id: SETTINGS_DATA_INTENSITY,
+                        icon: 'mdi-circle-opacity',
                         title: lc('data_intensity'),
                         description: lc('data_intensity_desc'),
                         value: ApplicationSettings.getBoolean(SETTINGS_DATA_INTENSITY, DATA_INTENSITY)
@@ -320,6 +375,7 @@
                         key: SETTINGS_DAILY_DATA_ALIGNMENT,
                         id: 'setting',
                         valueType: 'string',
+                        icon: 'mdi-format-align-center',
                         title: lc('daily_view_data_alignment'),
                         values: [
                             {
@@ -346,6 +402,7 @@
                               {
                                   type: 'switch',
                                   id: SETTINGS_ENABLE_CRASH_REPORT,
+                                  icon: 'mdi-bug-outline',
                                   title: lc('crash_report'),
                                   description: lc('crash_report_desc'),
                                   value: ApplicationSettings.getBoolean(SETTINGS_ENABLE_CRASH_REPORT, PLAY_STORE_BUILD)
@@ -360,11 +417,14 @@
                     {
                         id: SETTINGS_LANGUAGE,
                         description: () => getLocaleDisplayName(),
+                        modernValue: () => getLocaleDisplayName(),
+                        icon: 'mdi-translate',
                         title: lc('language')
                     },
                     {
                         type: 'switch',
                         id: 'clock_24',
+                        icon: 'mdi-clock-outline',
                         title: lc('clock_24'),
                         value: clock_24
                     },
@@ -375,6 +435,7 @@
                         key: SETTINGS_DAILY_DATE_FORMAT,
                         default: () => ApplicationSettings.getString(SETTINGS_DAILY_DATE_FORMAT, DEFAULT_DAILY_DATE_FORMAT),
                         description: lc('daily_date_format_description'),
+                        icon: 'mdi-calendar',
                         title: lc('daily_date_format'),
                         full_description: lc('daily_date_format_fulldesc', ...getDateFormatHTMLArgs()),
                         useHTML: true,
@@ -392,12 +453,14 @@
                     {
                         type: 'switch',
                         id: 'charts_landscape',
+                        icon: 'mdi-phone-rotate-landscape',
                         title: lc('charts_landscape'),
                         value: ApplicationSettings.getBoolean('charts_landscape', CHARTS_LANDSCAPE)
                     },
                     {
                         type: 'switch',
                         id: 'charts_portrait_fullscreen',
+                        icon: 'mdi-fullscreen',
                         title: lc('charts_portrait_fullscreen'),
                         value: ApplicationSettings.getBoolean('charts_portrait_fullscreen', CHARTS_PORTRAIT_FULLSCREEN)
                     }
@@ -407,6 +470,7 @@
                     {
                         type: 'switch',
                         id: SETTINGS_IMPERIAL,
+                        icon: 'mdi-ruler',
                         title: lc('imperial_units'),
                         description: lc('imperial_units_desc'),
                         value: $imperial
@@ -414,12 +478,14 @@
                     {
                         type: 'switch',
                         id: SETTINGS_METRIC_TEMP_DECIMAL,
+                        icon: 'mdi-temperature-celsius',
                         title: lc('metric_temp_decimal'),
                         value: metricDecimalTemp
                     },
                     {
                         type: 'switch',
                         id: SETTINGS_METRIC_CM_TO_MM,
+                        icon: 'mdi-ruler',
                         title: lc('units_cm_to_mm'),
                         description: lc('units_cm_to_mm_desc'),
                         value: unitCMToMM
@@ -434,6 +500,7 @@
                         storeKey: SETTINGS_UNITS,
                         key: UNIT_FAMILIES.Temperature,
                         valueType: 'string',
+                        icon: 'mdi-thermometer',
                         title: lc('temperature'),
                         rightValue: () => unitsSettings[UNIT_FAMILIES.Temperature],
                         values: AVAILABLE_UINTS[UNIT_FAMILIES.Temperature].map((u) => ({ title: u, value: u }))
@@ -444,6 +511,7 @@
                         storeKey: SETTINGS_UNITS,
                         key: UNIT_FAMILIES.Distance,
                         valueType: 'string',
+                        icon: 'mdi-ruler',
                         title: lc('distance'),
                         rightValue: () => unitsSettings[UNIT_FAMILIES.Distance],
                         values: AVAILABLE_UINTS[UNIT_FAMILIES.Distance].map((u) => ({ title: u, value: u }))
@@ -454,6 +522,7 @@
                         storeKey: SETTINGS_UNITS,
                         key: UNIT_FAMILIES.Precipitation,
                         valueType: 'string',
+                        icon: 'mdi-umbrella-outline',
                         title: lc('precipitation'),
                         rightValue: () => unitsSettings[UNIT_FAMILIES.Precipitation],
                         values: AVAILABLE_UINTS[UNIT_FAMILIES.Precipitation].map((u) => ({ title: u, value: u }))
@@ -464,6 +533,7 @@
                         storeKey: SETTINGS_UNITS,
                         key: UNIT_FAMILIES.DistanceSmall,
                         valueType: 'string',
+                        icon: 'mdi-snowflake',
                         title: lc('snow'),
                         rightValue: () => unitsSettings[UNIT_FAMILIES.DistanceSmall],
                         values: AVAILABLE_UINTS[UNIT_FAMILIES.DistanceSmall].map((u) => ({ title: u, value: u }))
@@ -474,6 +544,7 @@
                         storeKey: SETTINGS_UNITS,
                         key: UNIT_FAMILIES.Speed,
                         valueType: 'string',
+                        icon: 'mdi-weather-windy',
                         title: lc('speed'),
                         rightValue: () => unitsSettings[UNIT_FAMILIES.Speed],
                         values: AVAILABLE_UINTS[UNIT_FAMILIES.Speed].map((u) => ({ title: u, value: u }))
@@ -484,6 +555,7 @@
                         storeKey: SETTINGS_UNITS,
                         key: UNIT_FAMILIES.Pressure,
                         valueType: 'string',
+                        icon: 'mdi-gauge',
                         title: lc('pressure'),
                         rightValue: () => unitsSettings[UNIT_FAMILIES.Pressure],
                         values: AVAILABLE_UINTS[UNIT_FAMILIES.Pressure].map((u) => ({ title: u, value: u }))
@@ -494,6 +566,7 @@
                     {
                         type: 'switch',
                         id: 'animations',
+                        icon: 'mdi-animation',
                         title: lc('animations'),
                         description: lc('animations_desc'),
                         value: ApplicationSettings.getBoolean('animations', ANIMATIONS_ENABLED)
@@ -539,6 +612,8 @@
                             id: 'setting',
                             valueType: 'string',
                             description: () => lc('provider.' + getProviderType()),
+                            modernValue: () => lc('provider.' + getProviderType()),
+                            icon: 'mdi-cloud-circle',
                             title: lc('provider.title'),
                             currentValue: getProviderType,
                             values: getWeatherProviderKeys().map((t) => ({ value: t, title: lc('provider.' + t) }))
@@ -548,6 +623,8 @@
                             id: 'setting',
                             valueType: 'string',
                             description: () => lc('provider_aqi.' + getAqiProviderType()),
+                            modernValue: () => lc('provider_aqi.' + getAqiProviderType()),
+                            icon: 'mdi-leaf',
                             title: lc('provider_aqi.title'),
                             currentValue: getAqiProviderType,
                             values: getAqiProviderKeys().map((t) => ({ value: t, title: lc('provider_aqi.' + t) }))
@@ -555,6 +632,7 @@
                         {
                             key: 'forecast_nb_days',
                             id: 'setting',
+                            icon: 'mdi-calendar',
                             title: lc('forecast_nb_days'),
                             values: Array.from(Array(MAX_NB_DAYS_FORECAST), (_, index) => ({ value: index + 1, title: index + 1 })),
                             rightValue: () => ApplicationSettings.getNumber('forecast_nb_days', NB_DAYS_FORECAST)
@@ -562,6 +640,7 @@
                         {
                             key: 'forecast_nb_hours',
                             id: 'setting',
+                            icon: 'mdi-clock-outline',
                             title: lc('forecast_nb_hours'),
                             values: Array.from(Array(MAX_NB_DAYS_FORECAST * 2), (_, index) => ({ value: (index + 1) * 12, title: (index + 1) * 12 })),
                             rightValue: () => ApplicationSettings.getNumber('forecast_nb_hours', NB_HOURS_FORECAST)
@@ -569,6 +648,7 @@
                         {
                             key: 'forecast_nb_minutes',
                             id: 'setting',
+                            icon: 'mdi-timer-outline',
                             title: lc('forecast_nb_minutes'),
                             values: Array.from(Array(120), (_, index) => ({ value: index + 1, title: index + 1 })),
                             rightValue: () => ApplicationSettings.getNumber('forecast_nb_minutes', NB_MINUTES_FORECAST)
@@ -576,6 +656,7 @@
                         {
                             type: 'switch',
                             id: SETTINGS_SWIPE_ACTION_BAR_PROVIDER,
+                            icon: 'mdi-swap-horizontal',
                             title: lc('swipe_actionbar_provider'),
                             description: lc('swipe_actionbar_provider_desc'),
                             value: ApplicationSettings.getBoolean(SETTINGS_SWIPE_ACTION_BAR_PROVIDER, SWIPE_ACTION_BAR_PROVIDER)
@@ -607,24 +688,28 @@
                         {
                             type: 'switch',
                             id: SETTINGS_SHOW_CURRENT_DAY_DAILY,
+                            icon: 'mdi-calendar',
                             title: lc('show_current_day_daily'),
                             value: ApplicationSettings.getBoolean(SETTINGS_SHOW_CURRENT_DAY_DAILY, SHOW_CURRENT_DAY_DAILY)
                         },
                         {
                             type: 'switch',
                             id: SETTINGS_SHOW_DAILY_IN_CURRENTLY,
+                            icon: 'mdi-weather-sunny',
                             title: lc('show_daily_in_currently'),
                             value: ApplicationSettings.getBoolean(SETTINGS_SHOW_DAILY_IN_CURRENTLY, SHOW_DAILY_IN_CURRENTLY)
                         },
                         {
                             type: 'switch',
                             id: SETTINGS_FEELS_LIKE_TEMPERATURES,
+                            icon: 'mdi-sun-thermometer-outline',
                             title: lc('feels_like_temperatures'),
                             value: ApplicationSettings.getBoolean(SETTINGS_FEELS_LIKE_TEMPERATURES, FEELS_LIKE_TEMPERATURE)
                         },
                         {
                             type: 'switch',
                             id: SETTINGS_ALWAYS_SHOW_PRECIP_PROB,
+                            icon: 'mdi-umbrella-outline',
                             title: lc('always_show_precip_prob'),
                             description: lc('always_show_precip_prob_desc'),
                             value: ApplicationSettings.getBoolean(SETTINGS_ALWAYS_SHOW_PRECIP_PROB, ALWAYS_SHOW_PRECIP_PROB)
@@ -632,6 +717,7 @@
                         {
                             key: SETTINGS_MIN_UV_INDEX,
                             id: 'setting',
+                            icon: 'mdi-weather-sunny-alert',
                             title: lc('min_uv_index'),
                             values: Array.from(Array(10), (_, index) => ({ value: index + 1, title: index + 1 })),
                             rightValue: () => ApplicationSettings.getNumber(SETTINGS_MIN_UV_INDEX, MIN_UV_INDEX)
@@ -664,18 +750,22 @@
                 };
             case 'map':
                 return async () => [
+                    { type: 'sectionheader', title: lc('weather_map') },
                     getWeatherMapSourceSetting(),
                     ...getWeatherMapSettings(),
                     { type: 'sectionheader', title: lc('librewxr') },
                     ...getLibreWXRSettings(),
                     { type: 'sectionheader', title: lc('maptiler') },
-                    ...MaptilerProvider.getSettings()
+                    ...MaptilerProvider.getSettings(),
+                    { type: 'sectionheader', title: lc('radar_widget') },
+                    ...getRadarWidgetSettings()
                 ];
             case 'geolocation':
                 return async () => [
                     {
                         type: 'switch',
                         id: 'refresh_location_on_pull',
+                        icon: 'mdi-refresh',
                         title: lc('refresh_location_on_pull'),
                         value: ApplicationSettings.getBoolean('refresh_location_on_pull', false)
                     }
@@ -688,6 +778,7 @@
                     {
                         type: 'switch',
                         id: 'gadgetbridge_enabled',
+                        icon: 'mdi-watch',
                         title: lc('gadgetbridge_enabled'),
                         description: lc('gadgetbridge_enabled_desc'),
                         value: ApplicationSettings.getBoolean('gadgetbridge_enabled', false)
@@ -701,6 +792,7 @@
                         {
                             type: 'switch',
                             id: SETTINGS_HOURLY_ODD_COLORS,
+                            icon: 'mdi-palette',
                             title: lc('use_odd_colors_in_hourly'),
                             value: ApplicationSettings.getBoolean(SETTINGS_HOURLY_ODD_COLORS, DEFAULT_HOURLY_ODD_COLORS)
                         },
@@ -708,6 +800,7 @@
                             key: SETTINGS_HOURLY_VIEW_MODE,
                             id: 'setting',
                             valueType: 'string',
+                            icon: 'mdi-chart-line',
                             title: lc('main_hourly_view_mode'),
                             values: [
                                 { value: 'classic', title: lc('classic_view') },
@@ -720,6 +813,7 @@
                         {
                             key: SETTINGS_MAIN_CHART_NB_HOURS,
                             id: 'setting',
+                            icon: 'mdi-clock-outline',
                             title: lc('main_chart_nb_hours'),
                             values: Array.from(Array(MAX_NB_DAYS_FORECAST * 2), (_, index) => ({ value: (index + 1) * 12, title: (index + 1) * 12 })),
                             rightValue: () => ApplicationSettings.getNumber(SETTINGS_MAIN_CHART_NB_HOURS, MAIN_CHART_NB_HOURS)
@@ -727,6 +821,7 @@
                         {
                             key: SETTINGS_MAIN_CHART_VISIBLE_HOURS,
                             id: 'setting',
+                            icon: 'mdi-eye',
                             title: lc('main_chart_visible_hours'),
                             description: lc('main_chart_visible_hours_desc'),
                             values: [6, 12, 24, 36, 48].map((hours) => ({ value: hours, title: hours })),
@@ -758,11 +853,13 @@
                             {
                                 id: 'widget_open_app_on_tap',
                                 type: 'switch',
+                                icon: 'mdi-open-in-app',
                                 title: lc('widget_open_app_on_tap'),
                                 value: WidgetConfigManager.getOpenAppOnWidgetTap()
                             },
                             {
                                 id: 'widget_update_frequency',
+                                icon: 'mdi-refresh',
                                 title: lc('widget_update_frequency'),
                                 description: lc('widget_update_frequency_description'),
                                 rightValue: () => {
@@ -947,9 +1044,9 @@
                     },
                     {
                         id: 'sub_settings',
-                        title: lc('map'),
-                        description: lc('map_settings'),
-                        icon: 'mdi-map',
+                        title: lc('radar'),
+                        description: lc('radar_settings'),
+                        icon: 'mdi-radar',
                         options: getSubSettings('map')
                     },
                     {
@@ -1027,6 +1124,7 @@
                               //   {
                               //       id: 'share',
                               //       rightBtnIcon: 'mdi-chevron-right',
+                              //       icon: 'mdi-share-variant',
                               //       title: lc('share_application')
                               //   },
                               {
@@ -1048,12 +1146,14 @@
                     },
                     {
                         id: 'export_settings',
+                        icon: 'mdi-export',
                         title: lc('export_settings'),
                         description: lc('export_settings_desc')
                         // rightBtnIcon: 'mdi-chevron-right'
                     },
                     {
                         id: 'import_settings',
+                        icon: 'mdi-import',
                         title: lc('import_settings'),
                         description: lc('import_settings_desc')
                         // rightBtnIcon: 'mdi-chevron-right'
@@ -1075,6 +1175,10 @@
         } catch (error) {
             showError(error);
         }
+    }
+    function resetColor(item) {
+        ApplicationSettings.remove(item.key);
+        updateItem(item);
     }
     function updateItem(item, key = 'key') {
         const index = items.findIndex((it) => it[key] === item[key]);
@@ -1493,6 +1597,12 @@
                             }
                             updateItem(item);
                         }
+                    } else if (item.type === 'color') {
+                        const newColor = await pickColor(item.currentColor() || defaultSectionColor, { alpha: item.alpha !== false, anchor: event.object });
+                        if (newColor) {
+                            ApplicationSettings.setString(item.key, newColor.hex);
+                            updateItem(item);
+                        }
                     } else if (item.type === 'slider') {
                         await showSliderPopover({
                             anchor: event.object,
@@ -1594,7 +1704,7 @@
     function rowItem(item) {
         // navigation rows and rows whose description is their current value
         if (modern && (item.id === 'sub_settings' || item.modernValue || (item.icon && !item.type))) {
-            return { ...item, title: getTitle(item), subtitle: null, rightValue: item.modernValue };
+            return { ...item, title: getTitle(item), subtitle: null, rightValue: item.modernValue ?? item.rightValue };
         }
         return { ...item, title: getTitle(item), subtitle: getDescription(item) };
     }
@@ -1777,13 +1887,48 @@
                 <label class="sectionHeader" {...item.additionalProps || {}} text={item.title} />
             </Template>
             <Template key="switch" let:item>
-                <ListItemAutoSize groupPosition={rowGroupPosition(item)} item={rowItem(item)} on:tap={(event) => onTap(item, event)}>
-                    <switch id="checkbox" checked={item.value} col={1} marginLeft={10} verticalAlignment="center" on:loaded={styleModernSwitch} on:checkedChange={(e) => onCheckBox(item, e)} />
+                <ListItemAutoSize columns={item.icon ? 'auto,*,auto' : '*,auto'} groupPosition={rowGroupPosition(item)} item={rowItem(item)} mainCol={item.icon ? 1 : 0} on:tap={(event) => onTap(item, event)}>
+                    {#if item.icon}
+                        <SettingsRowIcon col={0} color={MODERN_ICON_COLORS[item.icon]} icon={item.icon} {modern} />
+                    {/if}
+                    <switch
+                        id="checkbox"
+                        checked={item.value}
+                        col={item.icon ? 2 : 1}
+                        marginLeft={10}
+                        verticalAlignment="center"
+                        on:loaded={styleModernSwitch}
+                        on:checkedChange={(e) => onCheckBox(item, e)} />
+                </ListItemAutoSize>
+            </Template>
+            <Template key="color" let:item>
+                <ListItemAutoSize
+                    columns="auto,*,auto"
+                    groupPosition={rowGroupPosition(item)}
+                    item={rowItem(item)}
+                    mainCol={1}
+                    onLongPress={() => resetColor(item)}
+                    showBottomLine={false}
+                    on:tap={(event) => onTap(item, event)}>
+                    <SettingsRowIcon col={0} color={MODERN_ICON_COLORS[item.icon]} icon={item.icon} {modern} />
+                    <absolutelayout
+                        col={2}
+                        backgroundColor={item.currentColor() || defaultSectionColor}
+                        borderColor={colorOnBackground}
+                        borderRadius="50%"
+                        borderWidth={1}
+                        height={26}
+                        marginLeft={10}
+                        verticalAlignment="center"
+                        width={26} />
                 </ListItemAutoSize>
             </Template>
             <Template key="checkbox" let:item>
-                <ListItemAutoSize groupPosition={rowGroupPosition(item)} item={rowItem(item)} on:tap={(event) => onTap(item, event)}>
-                    <checkbox id="checkbox" checked={item.value} col={1} on:checkedChange={(e) => onCheckBox(item, e)} />
+                <ListItemAutoSize columns={item.icon ? 'auto,*,auto' : '*,auto'} groupPosition={rowGroupPosition(item)} item={rowItem(item)} mainCol={item.icon ? 1 : 0} on:tap={(event) => onTap(item, event)}>
+                    {#if item.icon}
+                        <SettingsRowIcon col={0} color={MODERN_ICON_COLORS[item.icon]} icon={item.icon} {modern} />
+                    {/if}
+                    <checkbox id="checkbox" checked={item.value} col={item.icon ? 2 : 1} on:checkedChange={(e) => onCheckBox(item, e)} />
                 </ListItemAutoSize>
             </Template>
             <Template key="rightIcon" let:item>
@@ -1859,7 +2004,17 @@
                 <label color={colorOnSurfaceVariant} fontSize={14} margin="16" text={item.title} textWrap={true} />
             </Template>
             <Template let:item>
-                <ListItemAutoSize groupPosition={rowGroupPosition(item)} item={rowItem(item)} showBottomLine={false} on:tap={(event) => onTap(item, event)}></ListItemAutoSize>
+                <ListItemAutoSize
+                    columns={item.icon ? 'auto,*,auto' : '*,auto'}
+                    groupPosition={rowGroupPosition(item)}
+                    item={rowItem(item)}
+                    mainCol={item.icon ? 1 : 0}
+                    showBottomLine={false}
+                    on:tap={(event) => onTap(item, event)}>
+                    {#if item.icon}
+                        <SettingsRowIcon col={0} color={MODERN_ICON_COLORS[item.icon]} icon={item.icon} {modern} />
+                    {/if}
+                </ListItemAutoSize>
             </Template>
         </collectionview>
         <CActionBar canGoBack title={title || $slc('settings.title')}>

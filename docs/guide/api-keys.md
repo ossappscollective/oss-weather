@@ -23,7 +23,7 @@ Provider keys are in **Settings > Providers**. Each provider with options has it
 - **AccuWeather**: "API key"
 - **Meteo France**: "API key"
 
-The MapTiler key is in **Settings > Map**, under **MapTiler**.
+The MapTiler key is in **Settings > Radar**, under **MapTiler**.
 
 The app also asks for a key in a few cases:
 
@@ -55,7 +55,7 @@ Meteo France works out of the box with a key built into the app. The **API key**
 
 ## MapTiler
 
-Only needed if you set **Settings > Map > Weather map source** to **MapTiler**. Create a free account on [MapTiler](https://www.maptiler.com/), then paste the key in **Settings > Map > MapTiler API key**, or in the prompt that appears when you open the map.
+Only needed if you set **Settings > Radar > Weather map source** to **MapTiler**. Create a free account on [MapTiler](https://www.maptiler.com/), then paste the key in **Settings > Radar > MapTiler API key**, or in the prompt that appears when you open the map.
 
 The default map source, LibreWXR, needs no key.
 

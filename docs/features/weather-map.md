@@ -19,7 +19,7 @@ The map shows one weather layer at a time, with an animation timeline at the bot
 - **LibreWXR** (default, no API key): radar, satellite, or radar + satellite
 - **MapTiler** (needs your own API key): radar, precipitation, wind, temperature or pressure
 
-Choose the source in Settings > Map. See [Weather radar](/features/weather-radar) for layers, color schemes and animation options.
+Choose the source in Settings > Radar. See [Weather radar](/features/weather-radar) for layers, color schemes and animation options.
 
 ## Select a location on the map
 
@@ -35,7 +35,7 @@ This map is also used to choose the location of a home screen widget.
 
 ## Custom tile server
 
-Settings > Map > **custom tile server** lets you use your own vector tile server for the base map. If it cannot be reached, the default map is used.
+Settings > Radar > **custom tile server** lets you use your own vector tile server for the base map. If it cannot be reached, the default map is used.
 
 ## Next steps
 
