@@ -1718,7 +1718,11 @@
     function selectTemplate(item, index, items) {
         if (item.type) {
             if (item.type === 'prompt' || item.type === 'slider') {
-                return 'default';
+                return item.icon ? 'defaultIcon' : 'default';
+            }
+            // one template per layout: no conditional blocks inside the templates
+            if ((item.type === 'switch' || item.type === 'checkbox') && item.icon) {
+                return item.type + 'Icon';
             }
             return item.type;
         }
@@ -1887,18 +1891,14 @@
                 <label class="sectionHeader" {...item.additionalProps || {}} text={item.title} />
             </Template>
             <Template key="switch" let:item>
-                <ListItemAutoSize columns={item.icon ? 'auto,*,auto' : '*,auto'} groupPosition={rowGroupPosition(item)} item={rowItem(item)} mainCol={item.icon ? 1 : 0} on:tap={(event) => onTap(item, event)}>
-                    {#if item.icon}
-                        <SettingsRowIcon col={0} color={MODERN_ICON_COLORS[item.icon]} icon={item.icon} {modern} />
-                    {/if}
-                    <switch
-                        id="checkbox"
-                        checked={item.value}
-                        col={item.icon ? 2 : 1}
-                        marginLeft={10}
-                        verticalAlignment="center"
-                        on:loaded={styleModernSwitch}
-                        on:checkedChange={(e) => onCheckBox(item, e)} />
+                <ListItemAutoSize groupPosition={rowGroupPosition(item)} item={rowItem(item)} on:tap={(event) => onTap(item, event)}>
+                    <switch id="checkbox" checked={item.value} col={1} marginLeft={10} verticalAlignment="center" on:loaded={styleModernSwitch} on:checkedChange={(e) => onCheckBox(item, e)} />
+                </ListItemAutoSize>
+            </Template>
+            <Template key="switchIcon" let:item>
+                <ListItemAutoSize columns="auto,*,auto" groupPosition={rowGroupPosition(item)} item={rowItem(item)} mainCol={1} on:tap={(event) => onTap(item, event)}>
+                    <SettingsRowIcon col={0} color={MODERN_ICON_COLORS[item.icon]} icon={item.icon} {modern} />
+                    <switch id="checkbox" checked={item.value} col={2} marginLeft={10} verticalAlignment="center" on:loaded={styleModernSwitch} on:checkedChange={(e) => onCheckBox(item, e)} />
                 </ListItemAutoSize>
             </Template>
             <Template key="color" let:item>
@@ -1924,11 +1924,14 @@
                 </ListItemAutoSize>
             </Template>
             <Template key="checkbox" let:item>
-                <ListItemAutoSize columns={item.icon ? 'auto,*,auto' : '*,auto'} groupPosition={rowGroupPosition(item)} item={rowItem(item)} mainCol={item.icon ? 1 : 0} on:tap={(event) => onTap(item, event)}>
-                    {#if item.icon}
-                        <SettingsRowIcon col={0} color={MODERN_ICON_COLORS[item.icon]} icon={item.icon} {modern} />
-                    {/if}
-                    <checkbox id="checkbox" checked={item.value} col={item.icon ? 2 : 1} on:checkedChange={(e) => onCheckBox(item, e)} />
+                <ListItemAutoSize groupPosition={rowGroupPosition(item)} item={rowItem(item)} on:tap={(event) => onTap(item, event)}>
+                    <checkbox id="checkbox" checked={item.value} col={1} on:checkedChange={(e) => onCheckBox(item, e)} />
+                </ListItemAutoSize>
+            </Template>
+            <Template key="checkboxIcon" let:item>
+                <ListItemAutoSize columns="auto,*,auto" groupPosition={rowGroupPosition(item)} item={rowItem(item)} mainCol={1} on:tap={(event) => onTap(item, event)}>
+                    <SettingsRowIcon col={0} color={MODERN_ICON_COLORS[item.icon]} icon={item.icon} {modern} />
+                    <checkbox id="checkbox" checked={item.value} col={2} on:checkedChange={(e) => onCheckBox(item, e)} />
                 </ListItemAutoSize>
             </Template>
             <Template key="rightIcon" let:item>
@@ -2003,18 +2006,13 @@
             <Template key="info" let:item>
                 <label color={colorOnSurfaceVariant} fontSize={14} margin="16" text={item.title} textWrap={true} />
             </Template>
-            <Template let:item>
-                <ListItemAutoSize
-                    columns={item.icon ? 'auto,*,auto' : '*,auto'}
-                    groupPosition={rowGroupPosition(item)}
-                    item={rowItem(item)}
-                    mainCol={item.icon ? 1 : 0}
-                    showBottomLine={false}
-                    on:tap={(event) => onTap(item, event)}>
-                    {#if item.icon}
-                        <SettingsRowIcon col={0} color={MODERN_ICON_COLORS[item.icon]} icon={item.icon} {modern} />
-                    {/if}
+            <Template key="defaultIcon" let:item>
+                <ListItemAutoSize columns="auto,*,auto" groupPosition={rowGroupPosition(item)} item={rowItem(item)} mainCol={1} showBottomLine={false} on:tap={(event) => onTap(item, event)}>
+                    <SettingsRowIcon col={0} color={MODERN_ICON_COLORS[item.icon]} icon={item.icon} {modern} />
                 </ListItemAutoSize>
+            </Template>
+            <Template let:item>
+                <ListItemAutoSize groupPosition={rowGroupPosition(item)} item={rowItem(item)} showBottomLine={false} on:tap={(event) => onTap(item, event)}></ListItemAutoSize>
             </Template>
         </collectionview>
         <CActionBar canGoBack title={title || $slc('settings.title')}>
