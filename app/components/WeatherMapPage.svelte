@@ -209,6 +209,11 @@
 
     async function showOptions(event) {
         try {
+            // timeInterval is only read from the url: reload once the slider settles
+            const reloadMap = debounce(async () => {
+                await saveCurrentMapParameters();
+                updateUrl();
+            }, 500);
             const options = [
                 {
                     type: 'slider',
@@ -216,10 +221,12 @@
                     id: SETTINGS_WEATHER_MAP_TIME_INTERVAL,
                     title: lc('radar_time_interval'),
                     value: ApplicationSettings.getNumber(SETTINGS_WEATHER_MAP_TIME_INTERVAL, 30),
-                    min: 1,
-                    max: 120,
-                    valueFormatter: (value) => value.toFixed(),
-                    transformValue: (value) => value
+                    // radar frames are 10 min apart with ~60 min of forecast: other values give no extra frames
+                    min: 10,
+                    max: 60,
+                    step: 10,
+                    valueFormatter: (value) => (Math.round(value / 10) * 10).toFixed(),
+                    transformValue: (value) => Math.round(value / 10) * 10
                 },
                 {
                     type: 'slider',
@@ -286,6 +293,13 @@
                     }
                     try {
                         switch (item.id) {
+                            case SETTINGS_WEATHER_MAP_TIME_INTERVAL:
+                                if (value !== ApplicationSettings.getNumber(SETTINGS_WEATHER_MAP_TIME_INTERVAL, 30)) {
+                                    ApplicationSettings.setNumber(SETTINGS_WEATHER_MAP_TIME_INTERVAL, value);
+                                    reloadMap();
+                                }
+                                break;
+
                             case SETTINGS_WEATHER_MAP_ANIMATION_SPEED:
                                 ApplicationSettings.setNumber(SETTINGS_WEATHER_MAP_ANIMATION_SPEED, value);
 

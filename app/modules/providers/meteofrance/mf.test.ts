@@ -7,7 +7,7 @@ vi.hoisted(() => {
     globalThis['MF_API_KEY'] = 'public-api-key';
     globalThis['__DEV__'] = false;
 });
-vi.mock('@nativescript/core', () => ({ ApplicationSettings: { getString: () => '', getNumber: () => 0, getBoolean: () => false, remove: () => {}, setString: () => {}, hasKey: () => false } }));
+vi.mock('@nativescript/core', () => ({ knownFolders: { temp: () => ({ path: '/tmp' }) }, path: { join: (...parts: string[]) => parts.join('/') }, ApplicationSettings: { getString: () => '', getNumber: () => 0, getBoolean: () => false, remove: () => {}, setString: () => {}, hasKey: () => false } }));
 vi.mock('@nativescript/core/application-settings', () => ({ getString: () => '' }));
 vi.mock('~/helpers/constants', () => ({}));
 vi.mock('~/helpers/formatter', () => ({}));
@@ -256,5 +256,10 @@ describe('getBRA', () => {
         MFProvider.setApiKey('forecast-key');
         MFProvider.getBRA(1);
         expect(getFile.mock.calls[0][0].headers.apikey).toBe('public-api-key');
+    });
+
+    it('saves the pdf with a .pdf extension so iOS can preview it', () => {
+        MFProvider.getBRA(7);
+        expect(getFile.mock.calls.at(-1)[1]).toBe('/tmp/bra-7.pdf');
     });
 });
