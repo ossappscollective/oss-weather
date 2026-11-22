@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { type Frame, radarTileUrl, satelliteFrameAt, satelliteTileUrl, selectFrames } from './librewxr';
+import darkTheme from './dark_theme.json';
+import { type Frame, type StyleLayerInfo, radarLayerPlacement, radarTileUrl, satelliteFrameAt, satelliteTileUrl, selectFrames } from './librewxr';
+import lightTheme from './light_theme.json';
 
 const HOST = 'https://api.librewxr.net';
 const STEP = 600;
@@ -67,6 +69,38 @@ describe('selectFrames', () => {
     });
     it('handles an empty frame list', () => {
         expect(selectFrames([], [], allOptions)).toEqual({ frames: [], currentIndex: -1 });
+    });
+});
+
+describe('radarLayerPlacement', () => {
+    const layers: StyleLayerInfo[] = [
+        { id: 'background', type: 'background' },
+        { id: 'water', type: 'fill', 'source-layer': 'water' },
+        { id: 'waterway', type: 'line', 'source-layer': 'waterway' },
+        { id: 'boundary_country', type: 'line', 'source-layer': 'boundary' },
+        { id: 'highway_minor', type: 'line', 'source-layer': 'transportation' },
+        { id: 'building', type: 'fill', 'source-layer': 'building' },
+        { id: 'highway_name', type: 'symbol', 'source-layer': 'transportation_name' },
+        { id: 'place_city', type: 'symbol', 'source-layer': 'place' }
+    ];
+    it('puts the radar under the first label', () => {
+        expect(radarLayerPlacement(layers).beforeId).toBe('highway_name');
+    });
+    it('draws borders and roads back above the radar', () => {
+        expect(radarLayerPlacement(layers).overlayIds).toEqual(['boundary_country', 'highway_minor']);
+    });
+    it('stays on top without labels', () => {
+        expect(radarLayerPlacement(layers.slice(0, 6)).beforeId).toBeUndefined();
+    });
+    it.each([
+        ['light', lightTheme.layers],
+        ['dark', darkTheme.layers]
+    ])('finds a label and overlay layers below it in the %s theme', (_name, themeLayers) => {
+        const { beforeId, overlayIds } = radarLayerPlacement(themeLayers);
+        const ids = themeLayers.map((layer) => layer.id);
+        expect(beforeId).toBeDefined();
+        expect(overlayIds.length).toBeGreaterThan(0);
+        overlayIds.forEach((id) => expect(ids.indexOf(id)).toBeLessThan(ids.indexOf(beforeId)));
     });
 });
 

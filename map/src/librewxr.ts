@@ -66,6 +66,22 @@ export function selectFrames(past: Frame[], nowcast: Frame[], options: FrameSele
     return { frames, currentIndex: currentIndex >= 0 ? currentIndex : frames.length - 1 };
 }
 
+export interface StyleLayerInfo {
+    id: string;
+    type?: string;
+    'source-layer'?: string;
+}
+
+const OVERLAY_SOURCE_LAYERS = ['boundary', 'transportation'];
+
+// radar goes under the first label, borders and roads are moved back above it
+export function radarLayerPlacement(layers: StyleLayerInfo[]): { beforeId?: string; overlayIds: string[] } {
+    return {
+        beforeId: layers.find((layer) => layer.type === 'symbol')?.id,
+        overlayIds: layers.filter((layer) => layer.type === 'line' && OVERLAY_SOURCE_LAYERS.includes(layer['source-layer'])).map((layer) => layer.id)
+    };
+}
+
 export function satelliteFrameAt(frames: Frame[], time: number): Frame | undefined {
     let result = frames[0];
     for (const frame of frames) {

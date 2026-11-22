@@ -1,5 +1,5 @@
 import type { MapMLGL } from '@maptiler/sdk';
-import { type Frame, type FrameSelectionOptions, type SelectedFrame, radarTileUrl, satelliteFrameAt, satelliteTileUrl, selectFrames } from './librewxr';
+import { type Frame, type FrameSelectionOptions, type SelectedFrame, radarLayerPlacement, radarTileUrl, satelliteFrameAt, satelliteTileUrl, selectFrames } from './librewxr';
 
 type MapLibreMap = InstanceType<typeof MapMLGL>;
 
@@ -29,6 +29,7 @@ export class LibreWXRLayer {
     currentIndex = -1;
     private satelliteFrames: Frame[] = [];
     private visibleLayerIds: string[] = [];
+    private labelsLayerId: string | undefined;
 
     constructor(
         private map: MapLibreMap,
@@ -52,6 +53,8 @@ export class LibreWXRLayer {
         if (!current) {
             return;
         }
+        const placement = radarLayerPlacement(this.map.getStyle().layers);
+        this.labelsLayerId = placement.beforeId;
         // shown frames first so their tiles are not queued behind every preloaded frame
         const addFrameLayer = (frame: Frame) =>
             this.addRasterLayer(
@@ -69,6 +72,7 @@ export class LibreWXRLayer {
             });
         }
         this.frames.filter((frame) => frame !== current).forEach(addFrameLayer);
+        placement.overlayIds.forEach((id) => this.map.moveLayer(id, placement.beforeId));
         this.showFrame(this.currentIndex);
     }
 
@@ -105,7 +109,7 @@ export class LibreWXRLayer {
         this.map.setPaintProperty(id, 'raster-opacity', opacity, { validate: false });
     }
 
-    private addRasterLayer(id: string, url: string, beforeId?: string) {
+    private addRasterLayer(id: string, url: string, beforeId = this.labelsLayerId) {
         this.map.addLayer(
             {
                 id,

@@ -116,6 +116,12 @@
                 center: options.mapCenter,
                 zoom: options.zoom
             });
+            // the local sprite is a stub: the themes ask for icons it does not have
+            map.on('styleimagemissing', (event) => {
+                if (!map.hasImage(event.id)) {
+                    map.addImage(event.id, { width: 1, height: 1, data: new Uint8Array(4) });
+                }
+            });
             map.on('load', () => {
                 // console.log('loaded map', resolve, map);
                 resolve(map);
