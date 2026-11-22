@@ -13,7 +13,23 @@
     import dayjs from 'dayjs';
     import HourlyView from '~/components/HourlyView.svelte';
     import WeatherIcon from '~/components/WeatherIcon.svelte';
-    import { HOURLY_VIEW_MODE, MAIN_CHART_NB_HOURS, MAIN_CHART_VISIBLE_HOURS, SETTINGS_HOURLY_VIEW_MODE, SETTINGS_MAIN_CHART_NB_HOURS, SETTINGS_MAIN_CHART_VISIBLE_HOURS } from '~/helpers/constants';
+    import {
+        HOURLY_VIEW_MODE,
+        MAIN_CHART_NB_HOURS,
+        MAIN_CHART_VISIBLE_HOURS,
+        RADAR_WIDGET_CHANGED,
+        RADAR_WIDGET_EXPANDED,
+        RADAR_WIDGET_LAYOUT,
+        RADAR_WIDGET_SHOW,
+        RADAR_WIDGET_SIZE,
+        SETTINGS_HOURLY_VIEW_MODE,
+        SETTINGS_MAIN_CHART_NB_HOURS,
+        SETTINGS_MAIN_CHART_VISIBLE_HOURS,
+        SETTINGS_RADAR_WIDGET_EXPANDED,
+        SETTINGS_RADAR_WIDGET_LAYOUT,
+        SETTINGS_RADAR_WIDGET_SHOW,
+        SETTINGS_RADAR_WIDGET_SIZE
+    } from '~/helpers/constants';
     import type { FavoriteLocation } from '~/helpers/favorites';
     import { isFavorite } from '~/helpers/favorites';
     import { formatDate, formatTime, l, lc } from '~/helpers/locale';
@@ -31,6 +47,7 @@
         fonts,
         hourlyViewData,
         hourlyViewMode,
+        onSettingsChanged,
         rainColor,
         showEmptyData,
         topViewHeight,
@@ -47,6 +64,12 @@
     import BaseChart from '~/components/common/BaseChart.svelte';
     import WindyView from './WindyView.svelte';
     import { screenWidthDips } from '~/variables';
+    import { onDestroy, onMount } from 'svelte';
+    import { createEventDispatcher } from '@shared/utils/svelte/ui';
+    import { NetworkConnectionStateEvent, type NetworkConnectionStateEventData, networkService } from '~/services/api';
+    import { isLibreWXRSource } from '~/services/providers/librewxr';
+    import RadarWidgetView from './RadarWidgetView.svelte';
+    import { RADAR_SIZE_RATIOS, hasUpcomingPrecipitation } from './RadarWidget';
 
     const weatherIconSize = 110;
     const timeFactor = 1 / (1000 * 60 * 10);
@@ -316,6 +339,44 @@
         }
     }
     $: modern = $designStyle === 'modern';
+
+    // radar widget between the top block and the hourly part: the toggle sits on the last update line
+    const RADAR_GAP = 8;
+    const dispatch = createEventDispatcher();
+    function readRadarSettings() {
+        return {
+            layout: ApplicationSettings.getString(SETTINGS_RADAR_WIDGET_LAYOUT, RADAR_WIDGET_LAYOUT),
+            show: ApplicationSettings.getString(SETTINGS_RADAR_WIDGET_SHOW, RADAR_WIDGET_SHOW),
+            size: ApplicationSettings.getString(SETTINGS_RADAR_WIDGET_SIZE, RADAR_WIDGET_SIZE),
+            expanded: ApplicationSettings.getBoolean(SETTINGS_RADAR_WIDGET_EXPANDED, RADAR_WIDGET_EXPANDED)
+        };
+    }
+    let radarSettings = readRadarSettings();
+    onSettingsChanged(RADAR_WIDGET_CHANGED, () => (radarSettings = readRadarSettings()));
+    let networkConnected = networkService.connected;
+    function onConnectionChanged(event: NetworkConnectionStateEventData) {
+        networkConnected = event.data.connected;
+    }
+    onMount(() => networkService.on(NetworkConnectionStateEvent, onConnectionChanged));
+    onDestroy(() => networkService.off(NetworkConnectionStateEvent, onConnectionChanged));
+    function toggleRadar() {
+        radarSettings = { ...radarSettings, expanded: !radarSettings.expanded };
+        ApplicationSettings.setBoolean(SETTINGS_RADAR_WIDGET_EXPANDED, radarSettings.expanded);
+    }
+    $: radarAvailable =
+        networkConnected && radarSettings.layout !== 'off' && isLibreWXRSource() && (radarSettings.show === 'always' || hasUpcomingPrecipitation(item.minutely ?? [], item.hourly ?? [], fakeNow || Date.now()));
+    $: radarToggleShown = radarAvailable && radarSettings.layout === 'collapsible';
+    $: radarVisible = radarAvailable && (radarSettings.layout === 'banner' || radarSettings.expanded);
+    $: radarMargin = modern ? MODERN_PADDING : 10;
+    $: radarHeight = radarVisible ? ($windowSize.width - 2 * radarMargin) * (RADAR_SIZE_RATIOS[radarSettings.size] ?? RADAR_SIZE_RATIOS.medium) + RADAR_GAP : 0;
+    $: radarButtonWidth = radarToggleShown ? 34 * $fontScale : 0;
+    $: radarButtonWidth !== undefined && canvasView?.nativeView?.invalidate();
+    // the list item height changes with the radar
+    let shownRadarHeight = radarHeight;
+    $: if (radarHeight !== shownRadarHeight) {
+        shownRadarHeight = radarHeight;
+        dispatch('resize');
+    }
     // .modernCard vertical margins (app/_modern.scss)
     const MODERN_HOURLY_CARD_MARGINS = 10;
     // modern shows feels like in the hero and the moon in the sun line, not in the data block
@@ -540,7 +601,7 @@
         textPaint.setTextAlign(Align.RIGHT);
         textPaint.setTextSize(12 * $fontScale);
         textPaint.setColor(colorOnSurfaceVariant);
-        canvas.drawText(`${lc('last_updated')} ${formatLastUpdate(item.lastUpdate)}`, right, sunBaseline, textPaint);
+        canvas.drawText(`${lc('last_updated')} ${formatLastUpdate(item.lastUpdate)}`, right - radarButtonWidth, sunBaseline, textPaint);
         // no separator: the hourly section under it is a card
     }
 
@@ -629,7 +690,7 @@
         canvas.drawText(formatDate(item.time, 'dddd', item.timezoneOffset), w - 10, 22 * $fontScale, textPaint);
 
         textPaint.textSize = 14 * $fontScale;
-        canvas.drawText(`${lc('last_updated')}: ${formatLastUpdate(item.lastUpdate)}`, w - 10, h - 8, textPaint);
+        canvas.drawText(`${lc('last_updated')}: ${formatLastUpdate(item.lastUpdate)}`, w - 10 - radarButtonWidth, h - 8, textPaint);
 
         if (item.description?.length) {
             textPaint.textSize = 15 * $fontScale;
@@ -753,7 +814,7 @@
 </script>
 
 <!-- modern: the hourly section is a card (its margins are added to the height) -->
-<gridlayout columns="*,auto" height={height - $topViewHeight + topRowHeight + (modern ? MODERN_HOURLY_CARD_MARGINS : 0)} rows={`${topRowHeight},*`}>
+<gridlayout columns="*,auto" height={height - $topViewHeight + topRowHeight + radarHeight + (modern ? MODERN_HOURLY_CARD_MARGINS : 0)} rows={`${topRowHeight},${radarHeight},*`}>
     <canvasview bind:this={canvasView} id="topweather" colSpan={2} paddingBottom={10} paddingLeft={10} paddingRight={10} on:draw={drawOnCanvas}>
         <!-- <cgroup fontSize={14 * $fontScale} verticalAlignment="bottom">
             <cspan color="#ffa500" fontFamily={$fonts.wi} text="wi-sunrise " />
@@ -805,7 +866,32 @@
         size={modern ? MODERN_ICON_SIZE * $fontScale : actualWeatherIconSize}
         verticalAlignment={modern ? 'top' : 'middle'}
         on:tap />
-    <gridlayout class={modern ? 'modernCard' : ''} colSpan={2} row={1}>
+    {#if radarToggleShown}
+        <label
+            backgroundColor={radarVisible ? $colors.colorSurfaceContainer : undefined}
+            borderRadius={14}
+            color={radarVisible ? $colors.colorPrimary : colorOnSurfaceVariant}
+            colSpan={2}
+            fontFamily={$fonts.mdi}
+            fontSize={18 * $fontScale}
+            height={(modern ? MODERN_SUN_LINE_HEIGHT : 30) * $fontScale}
+            horizontalAlignment="right"
+            marginBottom={modern ? 0 : 2}
+            marginRight={modern ? MODERN_PADDING - 4 : 4}
+            marginTop={modern ? modernSunTop : 0}
+            text="mdi-radar"
+            textAlignment="center"
+            verticalAlignment={modern ? 'top' : 'bottom'}
+            verticalTextAlignment="center"
+            width={30 * $fontScale}
+            on:tap={toggleRadar} />
+    {/if}
+    {#if radarVisible}
+        <gridlayout colSpan={2} row={1}>
+            <RadarWidgetView coord={weatherLocation.coord} margin={radarMargin} ratio={RADAR_SIZE_RATIOS[radarSettings.size] ?? RADAR_SIZE_RATIOS.medium} width={$windowSize.width} on:open={() => dispatch('radar')} />
+        </gridlayout>
+    {/if}
+    <gridlayout class={modern ? 'modernCard' : ''} colSpan={2} row={2}>
         {#if $hourlyViewMode === 'chart'}
             <HourlyChartView
                 barWidth={1}

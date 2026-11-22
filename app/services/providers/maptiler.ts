@@ -455,7 +455,7 @@ export class MaptilerProvider extends WeatherProvider {
                     value,
                     title: value.replaceAll('_', ' ').toLowerCase()
                 })),
-                description: () => ApplicationSettings.getString(SETTINGS_WEATHER_MAP_COLORS, WEATHER_MAP_COLORS).replaceAll('_', ' ').toLowerCase()
+                rightValue: () => ApplicationSettings.getString(SETTINGS_WEATHER_MAP_COLORS, WEATHER_MAP_COLORS).replaceAll('_', ' ').toLowerCase()
             },
             {
                 key: SETTINGS_WEATHER_MAP_LAYER,
@@ -468,7 +468,7 @@ export class MaptilerProvider extends WeatherProvider {
                     value,
                     title: getLayerTitle(value)
                 })),
-                description: () => getLayerTitle(ApplicationSettings.getString(SETTINGS_WEATHER_MAP_LAYER, WEATHER_MAP_LAYER))
+                rightValue: () => getLayerTitle(ApplicationSettings.getString(SETTINGS_WEATHER_MAP_LAYER, WEATHER_MAP_LAYER))
             }
         ];
     }
@@ -511,7 +511,10 @@ export function getWeatherMapSettings() {
             step: 1,
             title: lc('maptiler_max_time_span'),
             type: 'slider',
-            rightValue: () => ApplicationSettings.getNumber(SETTINGS_WEATHER_MAP_MAX_TIME_SPAN, 0)
+            currentValue: () => ApplicationSettings.getNumber(SETTINGS_WEATHER_MAP_MAX_TIME_SPAN, 0),
+            valueFormatter: (value: number) => `${Math.round(value)} h`,
+            // a string: a 0 would hide the value
+            rightValue: () => `${ApplicationSettings.getNumber(SETTINGS_WEATHER_MAP_MAX_TIME_SPAN, 0)} h`
         },
         {
             type: 'switch',
