@@ -57,7 +57,7 @@
     let zoom = 6;
     const customSource = ApplicationSettings.getString(SETTINGS_WEATHER_MAP_CUSTOM_TILE_SOURCE, undefined);
     let mapCenter = focusPos;
-    let animated = false;
+    let animated = true;
     const isLibreWXR = isLibreWXRSource();
     let colors = isLibreWXR ? LIBREWXR_COLORS + '' : WEATHER_MAP_COLORS;
     try {

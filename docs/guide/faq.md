@@ -110,7 +110,7 @@ Yes. Each widget has its own location, provider and options. See [Home widgets](
 
 ### The map shows nothing
 
-Check your connection. The default source is LibreWXR. If you switched to MapTiler, it needs a MapTiler API key. Change the source in Settings > Map.
+Check your connection. The default source is LibreWXR. If you switched to MapTiler, it needs a MapTiler API key. Change the source in Settings > Radar.
 
 ## Contributing
 

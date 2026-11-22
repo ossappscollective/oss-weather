@@ -78,6 +78,9 @@
     onIconAnimationsChanged(refreshVisibleItems);
     onFontScaleChanged(refreshVisibleItems);
 
+    function refreshItems() {
+        collectionView?.nativeView?.refresh();
+    }
     function onTap(item) {
         dispatch('tap', item);
     }
@@ -103,10 +106,10 @@
     on:layoutCompleted={onCollectionViewLayoutCompleted}
     on:scroll={notifyChartScrolled}>
     <Template key="topView" let:item>
-        <TopWeatherView {fakeNow} height={topHeight} {item} {weatherLocation} on:tap={() => onTap(item)} />
+        <TopWeatherView {fakeNow} height={topHeight} {item} {weatherLocation} on:radar={() => dispatch('radar')} on:resize={refreshItems} on:tap={() => onTap(item)} />
     </Template>
     <Template key="topView_animated" let:item>
-        <TopWeatherView animated={true} {fakeNow} height={topHeight} {item} {weatherLocation} on:tap={() => onTap(item)} />
+        <TopWeatherView animated={true} {fakeNow} height={topHeight} {item} {weatherLocation} on:radar={() => dispatch('radar')} on:resize={refreshItems} on:tap={() => onTap(item)} />
     </Template>
     <Template key="animated" let:item>
         <DailyView animated={true} {item} on:tap={() => onTap(item)} />
