@@ -338,10 +338,22 @@
         }
     }
 
+    async function refreshTimezone() {
+        const timezoneData = await queryTimezone(weatherLocation);
+        if (timezoneData.timezone !== weatherLocation.timezone || timezoneData.timezoneOffset !== weatherLocation.timezoneOffset) {
+            Object.assign(weatherLocation, timezoneData);
+            saveWeatherLocation();
+            updateView();
+        }
+    }
+
     async function refreshWeather() {
         if (!weatherLocation) {
             showSnack({ message: l('no_location_set') });
             return;
+        }
+        if (weatherLocation.timezone) {
+            await refreshTimezone();
         }
         const requestKey = getWeatherKey();
         if (requestKey !== displayedWeatherKey) {
@@ -355,11 +367,8 @@
 
         try {
             const usedWeatherData = weatherDataService.allWeatherData;
-            const needsSaving = !weatherLocation.timezone;
-            const timezoneData = await queryTimezone(weatherLocation);
-            if (needsSaving) {
-                Object.assign(weatherLocation, timezoneData);
-                saveWeatherLocation();
+            if (!weatherLocation.timezone) {
+                await refreshTimezone();
             }
 
             // weatherData = await getWeatherProvider(provider).getWeather(weatherLocation, { model: weatherLocation.omModel });

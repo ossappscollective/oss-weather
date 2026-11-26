@@ -18,6 +18,11 @@ export interface FavoriteLocation extends WeatherLocation {
     startingSide?: string;
 }
 
+// the offset changes with DST: derive it from the timezone id when used instead of trusting a stored one
+export function getTimezoneOffset(timezone: string) {
+    return __ANDROID__ ? java.util.TimeZone.getTimeZone(timezone).getOffset(Date.now()) / 3600000 : NSTimeZone.alloc().initWithName(timezone).secondsFromGMTForDate(new Date()) / 3600;
+}
+
 let timezoneLookUp: PolygonLookup;
 export async function queryTimezone(location: FavoriteLocation, force = false) {
     let timezone = location.timezone;
@@ -29,18 +34,7 @@ export async function queryTimezone(location: FavoriteLocation, force = false) {
         timezone = result?.properties.tzid;
     }
     if (timezone) {
-        if (__ANDROID__) {
-            const nTimezone = java.util.TimeZone.getTimeZone(timezone);
-            return {
-                timezone,
-                timezoneOffset: nTimezone.getOffset(Date.now()) / 3600000
-            };
-        } else {
-            return {
-                timezone,
-                timezoneOffset: NSTimeZone.alloc().initWithName(timezone).secondsFromGMTForDate(new Date()) / 3600
-            };
-        }
+        return { timezone, timezoneOffset: getTimezoneOffset(timezone) };
     } else {
         return getTimezone(location);
     }
