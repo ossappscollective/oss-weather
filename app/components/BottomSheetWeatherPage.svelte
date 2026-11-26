@@ -5,7 +5,7 @@
     import CActionBar from '~/components/common/CActionBar.svelte';
     import WeatherComponent from '~/components/WeatherComponent.svelte';
     import { SETTINGS_WEATHER_LOCATION } from '~/helpers/constants';
-    import { FavoriteLocation, favoriteIcon, favoriteIconColor, toggleFavorite } from '~/helpers/favorites';
+    import { FavoriteLocation, favoriteIcon, favoriteIconColor, queryTimezone, toggleFavorite } from '~/helpers/favorites';
     import { l, lc } from '~/helpers/locale';
     import { WeatherLocation, getTimezone, networkService, prepareItems } from '~/services/api';
     import { getAqiProvider, getMarineProvider, getProviderType, getWeather, getWeatherProvider, getWeatherProviderKeys, onProviderChanged } from '~/services/providers/weatherproviderfactory';
@@ -34,6 +34,9 @@
         }
         loading = true;
         try {
+            if (weatherLocation.timezone) {
+                Object.assign(weatherLocation, await queryTimezone(weatherLocation));
+            }
             let applyNewWeatherDataTimeout;
             const usedWeatherData = weatherDataService.allWeatherData;
             const [weatherData, timezoneData, ...others] = await Promise.all(

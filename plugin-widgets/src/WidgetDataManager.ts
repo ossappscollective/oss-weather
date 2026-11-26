@@ -16,7 +16,7 @@ import { splitValueUnit } from '~/utils/weather/valueUnit';
 import { staleForecast } from './WidgetStale';
 import { renderWidgetIcon } from './WidgetIcons';
 import { ForecastData, WeatherWidgetData, WidgetChip, WidgetConfig } from './WidgetTypes';
-import { queryTimezone } from '~/helpers/favorites';
+import { getTimezoneOffset } from '~/helpers/favorites';
 
 interface WidgetWeatherSource {
     provider?: ProviderType;
@@ -74,8 +74,10 @@ export class WidgetDataManager {
         // Handle "current" location - use app's current selected location
         if (isDefaultLocation(config.locationName)) {
             location = JSON.parse(ApplicationSettings.getString(SETTINGS_WEATHER_LOCATION, DEFAULT_LOCATION || 'null'));
-            // const timezoneData = await queryTimezone(location);
-            // Object.assign(location, timezoneData)
+        }
+        // widgets refresh while the app is closed: the stored offset is stale after a DST switch
+        if (location?.timezone) {
+            location.timezoneOffset = getTimezoneOffset(location.timezone);
         }
         return location;
     }
